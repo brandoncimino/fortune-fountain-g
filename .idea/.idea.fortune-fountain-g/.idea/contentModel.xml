@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\Brandon Cimino\.Rider2019.3\config\scratches" t="IncludeRecursive" />
+    <e p="C:\Users\Brandon Cimino\.Rider2019.3\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Brandon Cimino\.Rider2019.3\system\resharper-host\local\Transient\ReSharperHost\v193\SolutionCaches\_fortune-fountain-g.997810818.00" t="ExcludeRecursive" />
+    <e p="C:\Users\Brandon Cimino\Documents\GitHub\personal\brandon-utils\Editor" t="Include">
+      <e p="com.fowlfever.brandonutils.asmdef" t="Include" />
+      <e p="Exceptions" t="Include">
+        <e p="BrandonException.cs" t="Include" />
+      </e>
+      <e p="ListUtils.cs" t="Include" />
+      <e p="Saving" t="Include">
+        <e p="SaveData.cs" t="Include" />
+        <e p="SaveDataException.cs" t="Include" />
+        <e p="SaveDataTestImpl.cs" t="Include" />
+      </e>
+      <e p="TestUtils.cs" t="Include" />
+    </e>
+    <e p="C:\Users\Brandon Cimino\Documents\GitHub\personal\brandon-utils\Tests" t="Include">
+      <e p="com.fowlfever.brandonutils.tests.asmdef" t="Include" />
+      <e p="SaveDataTests.cs" t="Include" />
+    </e>
+    <e p="C:\Users\Brandon Cimino\RiderProjects\fortune-fountain-g" t="IncludeRecursive">
+      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
+      <e p="Assets" t="Include">
+        <e p="BabysFirstScript.cs" t="Include" />
+      </e>
+      <e p="com.fowlfever.brandonutils.csproj" t="IncludeRecursive" />
+      <e p="com.fowlfever.brandonutils.tests.csproj" t="IncludeRecursive" />
+      <e p="fortune-fountain-g.sln" t="IncludeFlat" />
+      <e p="obj" t="ExcludeRecursive" />
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="Temp\bin" t="ExcludeRecursive" />
+    </e>
+  </component>
+</project>
