@@ -20,17 +20,17 @@ namespace Packages.BrandonUtils.Tests
 
         static readonly Dictionary<string, DateTime> DummySaveDates = new Dictionary<string, DateTime>()
         {
-            [DummyNickName + "_01010001_000000"] = new DateTime(1,1,1,0,0,0),
+            [DummyNickName + "_01010001_000000"] = new DateTime(1, 1, 1, 0, 0, 0),
             [DummyNickName + "_01010001_010101"] = new DateTime(1, 1, 1, 1, 1, 1),
             [DummyNickName + "_07011993_103200"] = new DateTime(1993, 7, 1, 10, 32, 0),
             [DummyNickName + "_07011993_223200"] = new DateTime(1993, 7, 1, 22, 32, 0),
             [DummyNickName + "_07011993_223201"] = new DateTime(1993, 7, 1, 22, 32, 1),
-            [DummyNickName + "_12311999_235959"] = new DateTime(1999,12,31,23,59,59),
-            [DummyNickName + "_01012000_000000"] = new DateTime(2000,1,1,0,0,0),
+            [DummyNickName + "_12311999_235959"] = new DateTime(1999, 12, 31, 23, 59, 59),
+            [DummyNickName + "_01012000_000000"] = new DateTime(2000, 1, 1, 0, 0, 0),
             [DummyNickName + "_03042000_095434"] = new DateTime(2000, 3, 4, 9, 54, 34),
             [DummyNickName + "_11012019_192834"] = new DateTime(2019, 11, 1, 19, 28, 34),
             [DummyNickName + "_11012019_192835"] = new DateTime(2019, 11, 1, 19, 28, 35),
-            [DummyNickName + "_05302020_005900"] = new DateTime(2020, 5, 30, 0,59,0),
+            [DummyNickName + "_05302020_005900"] = new DateTime(2020, 5, 30, 0, 59, 0),
             [DummyNickName + "_08122045_035959"] = new DateTime(2045, 08, 12, 3, 59, 59),
         };
 
@@ -152,7 +152,9 @@ namespace Packages.BrandonUtils.Tests
             DeleteSaveFiles(nickName);
             var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestBackupSaveSlots));
 
-            for (int numberOfSaveFiles = 1; numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2; numberOfSaveFiles++)
+            for (int numberOfSaveFiles = 1;
+                numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2;
+                numberOfSaveFiles++)
             {
                 Thread.Sleep(1000);
                 newSave.Save();
@@ -165,20 +167,23 @@ namespace Packages.BrandonUtils.Tests
             }
         }
 
+        /// <summary>
+        /// Tests that the save file is serialized with the <see cref="DateTime.Ticks"/> of the save time, not the <see cref="DateTime"/>.
+        /// </summary>
         [Test]
         public void TestSerializeLastSaveTime()
         {
             var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestSerializeLastSaveTime));
-            var saveJson = JsonUtility.ToJson(newSave,true);
-            Debug.Log(saveJson);
-            Assert.IsTrue(saveJson.Contains("\"lastSaveTicks\""));
+            var saveJson = JsonUtility.ToJson(newSave, true);
+            Debug.Log($"{nameof(saveJson)}: {saveJson}");
+            Assert.IsTrue(saveJson.Contains($"\"lastSaveTime\": {newSave.LastSaveTime.Ticks}"));
         }
 
         [Test]
         public void TestToStringMatchesToJson()
         {
             var newSave = SaveDataTestImpl.NewSaveFile(MethodBase.GetCurrentMethod().Name);
-            var saveJson = JsonUtility.ToJson(newSave,true);
+            var saveJson = JsonUtility.ToJson(newSave, true);
             var saveString = newSave.ToString();
             Assert.That(saveString, Is.EqualTo(saveJson));
         }

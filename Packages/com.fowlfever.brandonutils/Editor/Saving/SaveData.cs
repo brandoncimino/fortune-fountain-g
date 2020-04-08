@@ -24,12 +24,12 @@ namespace BrandonUtils.Saving
         /// <summary>
         ///     The time of the last <see cref="Save"/>
         /// </summary>
-        [SerializeField] private long laveSaveTime;
+        [SerializeField] private long lastSaveTime;
 
         public DateTime LastSaveTime
         {
-            get => new DateTime(laveSaveTime);
-            private set => laveSaveTime = value.Ticks;
+            get => new DateTime(lastSaveTime);
+            private set => lastSaveTime = value.Ticks;
         }
 
         [SerializeField] private long saveCreatedTime;
@@ -51,6 +51,18 @@ namespace BrandonUtils.Saving
         public static readonly string SaveFilePattern = $@"(?<nickName>.*)_(?<date>{DatePattern})";
         public static readonly string SaveFolderPath = Path.Combine(Application.persistentDataPath, SaveFolderName);
         public static readonly TimeSpan ReSaveDelay = TimeSpan.FromSeconds(1);
+
+        /// <summary>
+        /// Static initializer that makes sure the <see cref="SaveFolderPath"/> exists.
+        /// </summary>
+        static SaveData()
+        {
+            if (!Directory.Exists(SaveFolderPath))
+            {
+                Debug.LogWarning($"{nameof(SaveFolderPath)} at {SaveFolderPath} didn't exist, so it is being created...");
+                Directory.CreateDirectory(SaveFolderPath);
+            }
+        }
 
         internal SaveData()
         {
