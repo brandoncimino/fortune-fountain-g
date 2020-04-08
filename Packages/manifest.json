@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.fowlfever.brandonutils": "file:C:/Users/Brandon Cimino/Documents/GitHub/personal/brandon-utils",
+    "com.fowlfever.brandonutils": "https://github.com/brandoncimino/brandon-utils.git",
     "com.unity.collab-proxy": "1.2.16",
     "com.unity.ide.rider": "1.1.4",
     "com.unity.ide.vscode": "1.1.4",
@@ -39,5 +39,11 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
+  },
+  "lock": {
+    "com.fowlfever.brandonutils": {
+      "revision": "HEAD",
+      "hash": "c3c6197deb3590e103afc99b5b4579c2071583cc"
+    }
   }
 }
