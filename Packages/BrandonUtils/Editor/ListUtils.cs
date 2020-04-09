@@ -39,7 +39,7 @@ namespace Packages.BrandonUtils.Editor
             return oldList.Select(it => it).ToList();
         }
 
-        public static string Pretty<T>(this List<T> toPrint, string separator="\n")
+        public static string Pretty<T>(this List<T> toPrint, string separator = "\n")
         {
             return string.Join(separator, toPrint.Select(it => $"[{it}]").ToList());
         }

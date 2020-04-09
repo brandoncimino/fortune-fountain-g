@@ -8,8 +8,6 @@ using BrandonUtils.Saving;
 using NUnit.Framework;
 using Packages.BrandonUtils.Editor;
 using UnityEngine;
-using Assert = NUnit.Framework.Assert;
-using Debug = UnityEngine.Debug;
 
 namespace Packages.BrandonUtils.Tests
 {

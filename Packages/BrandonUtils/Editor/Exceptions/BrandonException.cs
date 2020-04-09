@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace BrandonUtils.Exceptions
 {

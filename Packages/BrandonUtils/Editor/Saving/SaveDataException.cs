@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Runtime.Serialization;
 using BrandonUtils.Exceptions;
-using JetBrains.Annotations;
 
 namespace BrandonUtils.Saving
 {
@@ -14,37 +12,38 @@ namespace BrandonUtils.Saving
             this.saveData = saveData;
         }
 
-        public SaveDataException(SaveData<T> saveData, string message) : base(GetMessage(saveData,message))
+        public SaveDataException(SaveData<T> saveData, string message) : base(GetMessage(saveData, message))
         {
             this.saveData = saveData;
         }
 
-        public SaveDataException(SaveData<T> saveData, Exception innerException) : base(GetMessage(saveData), innerException)
+        public SaveDataException(SaveData<T> saveData, Exception innerException) : base(GetMessage(saveData),
+            innerException)
         {
             this.saveData = saveData;
         }
 
         public SaveDataException(Exception innerException) : base(GetMessage(), innerException)
         {
-
         }
 
-        public SaveDataException(string message, Exception innerException) : base(GetMessage(message: message), innerException)
+        public SaveDataException(string message, Exception innerException) : base(GetMessage(message: message),
+            innerException)
         {
-
         }
 
         public SaveDataException(string message) : base(GetMessage(message: message))
         {
-
         }
 
-        public SaveDataException(SaveData<T> saveData, string message, Exception innerException) : base(GetMessage(saveData, message), innerException)
+        public SaveDataException(SaveData<T> saveData, string message, Exception innerException) : base(
+            GetMessage(saveData, message), innerException)
         {
             this.saveData = saveData;
         }
 
-        private static string GetMessage(SaveData<T> saveData = null, string message = "Something went wrong with save data management!")
+        private static string GetMessage(SaveData<T> saveData = null,
+            string message = "Something went wrong with save data management!")
         {
             if (saveData != null)
             {

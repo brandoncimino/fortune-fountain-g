@@ -8,6 +8,5 @@
     /// </remarks>
     public class SaveDataTestImpl : SaveData<SaveDataTestImpl>
     {
-
     }
 }

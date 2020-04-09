@@ -14,13 +14,16 @@
       <e p="fortune-fountain-g.sln" t="IncludeFlat" />
       <e p="obj" t="ExcludeRecursive" />
       <e p="packages" t="ExcludeRecursive">
-        <e p="com.fowlfever.brandonutils" t="Include">
+        <e p="BrandonUtils" t="Include">
           <e p="Editor" t="Include">
             <e p="com.fowlfever.brandonutils.asmdef" t="Include" />
             <e p="Exceptions" t="Include">
               <e p="BrandonException.cs" t="Include" />
             </e>
             <e p="ListUtils.cs" t="Include" />
+            <e p="Logging" t="Include">
+              <e p="LogUtils.cs" t="Include" />
+            </e>
             <e p="Saving" t="Include">
               <e p="SaveData.cs" t="Include" />
               <e p="SaveDataException.cs" t="Include" />
@@ -31,6 +34,7 @@
           <e p="Tests" t="Include">
             <e p="com.fowlfever.brandonutils.tests.asmdef" t="Include" />
             <e p="SaveDataTests.cs" t="Include" />
+            <e p="sketchbook.cs" t="Include" />
           </e>
         </e>
       </e>

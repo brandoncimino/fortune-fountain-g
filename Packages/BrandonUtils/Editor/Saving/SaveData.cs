@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -59,7 +57,8 @@ namespace BrandonUtils.Saving
         {
             if (!Directory.Exists(SaveFolderPath))
             {
-                Debug.LogWarning($"{nameof(SaveFolderPath)} at {SaveFolderPath} didn't exist, so it is being created...");
+                Debug.LogWarning(
+                    $"{nameof(SaveFolderPath)} at {SaveFolderPath} didn't exist, so it is being created...");
                 Directory.CreateDirectory(SaveFolderPath);
             }
         }
