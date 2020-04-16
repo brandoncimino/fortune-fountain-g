@@ -1,4 +1,5 @@
 ﻿using System;
+// ReSharper disable CheckNamespace
 
 /// <summary>
 /// Contains utility methods that manage general "Incremental Game" functionality,
@@ -10,11 +11,21 @@ public class IncrementalUtils
 {
     public static int NumberOfGrabs(float grabInterval, float duration)
     {
-        throw new NotImplementedException();
+        return Convert.ToInt32(Math.Floor(duration / grabInterval));
     }
 
     public static int NumberOfGrabs(float grabInterval, long startTime, long endTime)
     {
-        throw new NotImplementedException();
+        return NumberOfGrabs(grabInterval, (endTime - startTime));
+    }
+
+    public static float ProgressOfGrabs(float grabInterval, float duration)
+    {
+        return (duration % grabInterval);
+    }
+    
+    public static float ProgressOfGrabs(float grabInterval, float startTime, float endTime)
+    {
+        return ProgressOfGrabs(grabInterval, (endTime - startTime));
     }
 }
