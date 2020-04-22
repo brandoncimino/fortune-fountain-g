@@ -1168,7 +1168,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 606673775}
-        m_MethodName: YeetItems
+        m_MethodName: YeetDiscard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

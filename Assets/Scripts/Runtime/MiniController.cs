@@ -77,12 +77,48 @@ namespace DefaultNamespace
             RefreshPennyPercent(ItemGrabProgress[0]);
         }
 
-        //test to see if Brandon's actually reading this
-        public void YeetItems()
+        /// <summary>
+        /// Testing variable: Should progression towards the next Grab be discarded when Hand is Thrown?
+        /// </summary>
+        public enum RolloverResult
+        {
+            /// <summary>
+            /// Progression should be retained. Allows long-term items to be grabbed earlier than anticipated. Causes Rapid-Hand-Throwing to become optimal
+            /// </summary>
+            Retain,
+            /// <summary>
+            /// Progression should be discarded. May cause player anger if a large amount of a long-term item's progression is wasted. Identical to OG Fortune Fountain
+            /// </summary>
+            Discard,
+            /// <summary>
+            /// Untested Theory: Progression should be reduced, but not to zero. May become possible upgrade
+            /// </summary>
+            Halved
+        }
+
+        public void YeetDiscard()
+        {
+            YeetItems(RolloverResult.Discard);
+        }
+        public void YeetItems(RolloverResult rolloverResult)
         {
             _wellNum += ObtainHandSumValue();
             ItemsInHand.Clear();
             GrabbedItemCount = GrabbedItemCount.Select(c => 0).ToList();
+            if (rolloverResult == RolloverResult.Discard)
+                ItemGrabProgress[0] = 0;
+            else if (rolloverResult == RolloverResult.Retain)
+            {
+                //Intentionally left blank; Retain does not modify existing progress
+            }
+            else if (rolloverResult == RolloverResult.Halved)
+            {
+                ItemGrabProgress[0] /= 2;
+            }
+            else
+            {
+                throw new NotImplementedException("Unreachable code reached: pls gib me rulovr ahpshon");;
+            }
             RefreshAll();
         }
         
