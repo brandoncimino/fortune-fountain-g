@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 // ReSharper disable CheckNamespace
 
 namespace DefaultNamespace
@@ -11,7 +11,7 @@ namespace DefaultNamespace
         private Grabbable()
         {
         }
-        public Grabbable(string name, int basePrice, int maxStack, float grabInterval)
+        public Grabbable(string name, int basePrice, int maxStack, long grabInterval)
         {
             Name = name;
             this.basePrice = basePrice;
@@ -22,7 +22,7 @@ namespace DefaultNamespace
         private string Name = "null";
         public int basePrice = 0;
         public int maxStack = Int32.MaxValue;
-        public float grabInterval;
+        public long grabInterval;
     }
 
     public class GrabbedItems

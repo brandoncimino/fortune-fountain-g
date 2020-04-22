@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -27,13 +27,13 @@ namespace DefaultNamespace
         //List of the numbers of each Item currently in the Hand
         List<int> GrabbedItemCount = new List<int>();
         //List of time elapsed towards Grabbing the new Item
-        List<float> ItemGrabProgress = new List<float>();
+        List<long> ItemGrabProgress = new List<long>();
         void Start()
         {
-            // TODO: The order of Grabbable Items are determine at runtime. this should definitely be moved to the class
+            // TODO: The creation of the Grabbable Items should definitely be moved to the class
             // TODO: These three Lists should always have the same number of items, and each position within the list is referring to the same Item. This should probably be converted into one singular List. 
             // Adding Pennies
-            ItemsToGrab.Add(new Grabbable("Penny", 1, 5, 1f));
+            ItemsToGrab.Add(new Grabbable("Penny", 1, 5, TimeSpan.TicksPerSecond));
             GrabbedItemCount.Add(0);
             ItemGrabProgress.Add(0);
             
@@ -43,11 +43,12 @@ namespace DefaultNamespace
 
         void Update()
         {
-            //TODO: In the future, we may need to send something other than deltaTime
-            GrabItemCheck(Time.deltaTime);
+            //Debug.Log((Time.deltaTime * TimeSpan.TicksPerSecond) + "f converts to " + (Convert.ToInt32(Time.deltaTime * TimeSpan.TicksPerSecond)) + "L");
+            //In the future, we may need to send something other than deltaTime
+            GrabItemCheck(Convert.ToInt64(Time.deltaTime * TimeSpan.TicksPerSecond));
         }
 
-        private void GrabItemCheck(float changeInTime)
+        private void GrabItemCheck(long changeInTime)
         {
             for (int i = 0; i < ItemsToGrab.Count; i++)
             {
@@ -70,7 +71,7 @@ namespace DefaultNamespace
                 }
                 //Debug.Log("Progress of Grab: Adding " + changeInTime + " to " + ItemGrabProgress[i] + " getting " + (changeInTime + ItemGrabProgress[i]));
 
-                ItemGrabProgress[i] = IncrementalUtils.ProgressOfGrabs(ItemsToGrab[i].grabInterval, changeInTime + ItemGrabProgress[i]);
+                ItemGrabProgress[i] = IncrementalUtils.ProgressOfGrab(ItemsToGrab[i].grabInterval, changeInTime + ItemGrabProgress[i]);
                 //Debug.Log("Progress of Grab: Got " + ItemGrabProgress[i]);
             }
             RefreshPennyPercent(ItemGrabProgress[0]);
