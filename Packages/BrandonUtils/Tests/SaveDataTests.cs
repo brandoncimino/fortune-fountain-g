@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using BrandonUtils.Saving;
+using BrandonUtils.Runtime.Saving;
 using NUnit.Framework;
-using Packages.BrandonUtils.Editor;
+using Packages.BrandonUtils.Runtime;
 using UnityEngine;
 
 namespace Packages.BrandonUtils.Tests

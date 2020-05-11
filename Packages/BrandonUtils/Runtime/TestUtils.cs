@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Packages.BrandonUtils.Editor
+namespace Packages.BrandonUtils.Runtime
 {
     public static class TestUtils
     {

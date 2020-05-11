@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Packages.BrandonUtils.Logging
+namespace BrandonUtils.Runtime.Logging
 {
     [RequireComponent(typeof(Text))]
     public class LogUtils : MonoBehaviour

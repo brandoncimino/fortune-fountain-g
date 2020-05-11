@@ -1,4 +1,4 @@
-﻿namespace BrandonUtils.Saving
+﻿namespace BrandonUtils.Runtime.Saving
 {
     /// <summary>
     ///     An example implementation of <see cref="SaveData{T}"/>.
