@@ -2,7 +2,9 @@
   "name": "com.fowlfever.fortunefountaing.runtime.tests",
   "references": [
     "GUID:27619889b8ba8c24980f49ee34dbb44a",
-    "GUID:0acc523941302664db1f4e527237feb3"
+    "GUID:0acc523941302664db1f4e527237feb3",
+    "GUID:e2ec7f5c6db56fe41b07b13f1531f007",
+    "GUID:da77a6022a1c1a348868021bde7f2439"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
