@@ -60,6 +60,7 @@ crashlytics-build.properties
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+# NOTE from Brandon on 5/11/2020: indexLayout.xml, though similar-sounding to contentModel.xml, SHOULD be included in version control! Source: https://rider-support.jetbrains.com/hc/en-us/articles/207097529-What-is-the-idea-folder-
 
 # User-specific stuff
 .idea/**/workspace.xml
