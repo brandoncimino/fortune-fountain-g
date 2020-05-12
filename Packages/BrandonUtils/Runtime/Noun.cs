@@ -5,13 +5,13 @@
     /// </summary>
     public class Noun
     {
-        public string Singular;
-        public string Plural;
+        public readonly string Singular;
+        public readonly string Plural;
 
-        public Noun(string singular, string plural=null)
+        public Noun(string singular, string plural = null)
         {
             this.Singular = singular;
-            this.Plural = plural == null ? Singular + "s" : plural;
+            this.Plural = plural ?? Singular + "s";
         }
 
         public string Get(int quantity = 1)
