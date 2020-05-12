@@ -27,5 +27,20 @@ namespace Tests.Runtime
         {
             return ValuableDatabase.Models.Keys.Select(key => ValuableDatabase.Models[key].Type);
         }
+
+        [Test]
+        public void TypeMatchesKey()
+        {
+            foreach (var valuableModel in ValuableDatabase.Models)
+            {
+                Assert.That(valuableModel.Key, Is.EqualTo(valuableModel.Value.Type));
+            }
+        }
+
+        [Test]
+        public void OrderMatchesEnum()
+        {
+            Assert.That(ValuableDatabase.Models.Keys, Is.Ordered);
+        }
     }
 }
