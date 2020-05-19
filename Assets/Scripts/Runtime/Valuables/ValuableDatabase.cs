@@ -1,5 +1,6 @@
 ﻿// using System.Collections.Generic;
 
+using System;
 using System.Collections.Generic;
 using Packages.BrandonUtils.Runtime;
 using static Runtime.Valuables.ValuableType;
@@ -13,6 +14,11 @@ namespace Runtime.Valuables
     /// </summary>
     public static class ValuableDatabase
     {
+        /// <summary>
+        /// A convenient accessor for the enumerated <see cref="ValuableType"/> constants, similar to Java's <c>enum.values()</c>.
+        /// </summary>
+        public static readonly ValuableType[] ValuableTypes = Enum.GetValues(typeof(ValuableType)) as ValuableType[];
+
         public static readonly Dictionary<ValuableType, ValuableModel> Models =
             new Dictionary<ValuableType, ValuableModel>()
             {
