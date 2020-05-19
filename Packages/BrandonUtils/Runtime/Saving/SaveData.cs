@@ -63,7 +63,7 @@ namespace Packages.BrandonUtils.Runtime.Saving
             }
         }
 
-        internal SaveData()
+        protected SaveData()
         {
             this.SaveCreatedTime = DateTime.Now;
         }
