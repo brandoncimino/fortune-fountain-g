@@ -3,3 +3,4 @@
 
 # Should be ignored according to this comment: https://rider-support.jetbrains.com/hc/en-us/community/posts/115000661950-A-lot-of-files-in-contentModel-xml
 contentModel.xml
+indexLayout.xml
