@@ -95,6 +95,11 @@ namespace Packages.BrandonUtils.Runtime.Saving
             return GetSaveFilePath(nickName, DateTime.Now);
         }
 
+        /// <summary>
+        /// Creates a new, blank <see cref="SaveData{T}"/> of type <see cref="T"/>, and <see cref="Save(Packages.BrandonUtils.Runtime.Saving.SaveData{T},string)"/>s it as a new file with the <see cref="nickName"/> "<c>nickname</c>".
+        /// </summary>
+        /// <param name="nickname"></param>
+        /// <returns>the newly created <see cref="SaveData{T}"/></returns>
         public static T NewSaveFile(string nickname)
         {
             Debug.Log("Creating a new save file: " + nickname + " (" + GetSaveFilePath(nickname) + "), of type " +
@@ -158,7 +163,7 @@ namespace Packages.BrandonUtils.Runtime.Saving
         }
 
         /// <summary>
-        ///     Calls the static <see cref="Save"/>
+        ///     Calls the static <see cref="Save(Packages.BrandonUtils.Runtime.Saving.SaveData{T},string)"/> with this <see cref="SaveData{T}"/>'s <see cref="nickName"/>.
         /// </summary>
         public void Save()
         {
