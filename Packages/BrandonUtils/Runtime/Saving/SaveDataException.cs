@@ -1,7 +1,7 @@
 ﻿using System;
-using BrandonUtils.Runtime.Exceptions;
+using Packages.BrandonUtils.Runtime.Exceptions;
 
-namespace BrandonUtils.Runtime.Saving
+namespace Packages.BrandonUtils.Runtime.Saving
 {
     public class SaveDataException<T> : BrandonException where T : SaveData<T>, new()
     {

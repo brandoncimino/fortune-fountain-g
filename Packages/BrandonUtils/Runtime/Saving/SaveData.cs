@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace BrandonUtils.Runtime.Saving
+namespace Packages.BrandonUtils.Runtime.Saving
 {
     /// <summary>
     /// A single "Save File", containing data

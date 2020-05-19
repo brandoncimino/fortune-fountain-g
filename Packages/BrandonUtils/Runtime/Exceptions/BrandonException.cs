@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 
-namespace BrandonUtils.Runtime.Exceptions
+namespace Packages.BrandonUtils.Runtime.Exceptions
 {
     public class BrandonException : SystemException
     {
