@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Runtime.Saving
 {
+    [Serializable]
     public class Hand
     {
         /// <summary>
