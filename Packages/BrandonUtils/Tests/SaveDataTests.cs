@@ -154,7 +154,7 @@ namespace Packages.BrandonUtils.Tests
                 numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2;
                 numberOfSaveFiles++)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(SaveDataTestImpl.ReSaveDelay);
                 newSave.Save();
                 Debug.Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
                 Assert.AreEqual(
