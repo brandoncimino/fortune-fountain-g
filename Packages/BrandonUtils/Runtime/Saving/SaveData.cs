@@ -153,7 +153,7 @@ namespace Packages.BrandonUtils.Runtime.Saving
             saveData.LastSaveTime = saveTime;
 
             string newFilePath = GetSaveFilePath(nickName);
-            File.WriteAllText(newFilePath, JsonUtility.ToJson(saveData, true));
+            File.WriteAllText(newFilePath, saveData.ToJson());
             Assert.IsTrue(File.Exists(newFilePath));
 
             Debug.Log($"Finished saving {nickName}! Trimming previous saves down to {BackupSaveSlots}...");
@@ -227,9 +227,20 @@ namespace Packages.BrandonUtils.Runtime.Saving
             }
         }
 
-        public override string ToString()
+        /// <summary>
+        /// Contains the serialization of the <see cref="SaveData{T}"/>.
+        ///
+        /// While this is currently a simple <see cref="JsonUtility.ToJson(object)"/>, putting it inside of a method ensures that if/when this ever changes, everything is using the same method.
+        /// </summary>
+        /// <returns></returns>
+        public string ToJson()
         {
             return JsonUtility.ToJson(this, true);
+        }
+
+        public override string ToString()
+        {
+            return ToJson();
         }
     }
 }
