@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Runtime.Valuables
 {
+    [Serializable]
     public class Throwable
     {
         [SerializeField] public ValuableType ValuableType;
