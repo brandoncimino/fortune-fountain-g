@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Packages.BrandonUtils.Runtime.Logging;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -38,7 +39,8 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public string nickName;
 
         public string[] AllSaveFilePaths => GetAllSaveFilePaths(this.nickName);
-        public string LatestSaveFilePath => GetLatestSaveFilePath(this.nickName);
+        public string LatestSaveFilePath => GetAllSaveFilePaths(this.nickName).Last();
+        public string OldestSaveFilePath => GetAllSaveFilePaths(this.nickName).First();
         public bool Exists => SaveFileExists(this.nickName);
 
         public const string SaveFolderName = "SaveData";
@@ -71,7 +73,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             Debug.Log("Loading save file: " + nickName);
             int attemptCount = 0;
             while (!SaveFileExists(nickName)) {
-                if (attemptCount == LoadRetryLimit) {
+                if (attemptCount >= LoadRetryLimit) {
                     throw new SaveDataException<T>($"Unable to load the any save files for {nickName} after {attemptCount} attempts!");
                 }
                 else {
@@ -82,7 +84,10 @@ namespace Packages.BrandonUtils.Runtime.Saving {
                 NewSaveFile(nickName);
             }
 
-            return FromSaveFile(GetLatestSaveFilePath(nickName));
+
+            var latestSaveFilePath = GetAllSaveFilePaths(nickName).Last();
+            LogUtils.Log($"Found latest safe file for {nickName} at path: {latestSaveFilePath}");
+            return FromSaveFile(latestSaveFilePath);
         }
 
         private static T FromSaveFile(string saveFilePath) {
@@ -97,7 +102,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// <param name="nickName"></param>
         /// <param name="dateTime"></param>
         /// <returns></returns>
-        private static string GetSaveFilePath(string nickName, DateTime dateTime) {
+        public static string GetSaveFilePath(string nickName, DateTime dateTime) {
             return Path.ChangeExtension(
                 Path.Combine(
                     SaveFolderPath,
@@ -113,7 +118,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// </summary>
         /// <param name="nickName"></param>
         /// <returns></returns>
-        private static string GetNewSaveFilePath(string nickName) {
+        public static string GetNewSaveFilePath(string nickName) {
             return GetSaveFilePath(nickName, DateTime.Now);
         }
 
@@ -122,13 +127,12 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         /// <summary>
-        /// Creates a new, blank <see cref="SaveData{T}"/> of type <see cref="T"/>, and <see cref="Save(Packages.BrandonUtils.Runtime.Saving.SaveData{T},string)"/>s it as a new file with the <see cref="nickName"/> "<c>nickname</c>".
+        /// Creates a new, blank <see cref="SaveData{T}"/> of type <see cref="T"/>, and <see cref="Save(Packages.BrandonUtils.Runtime.Saving.SaveData{T},string,bool)"/>s it as a new file with the <see cref="nickName"/> <paramref name="nickname"/>.
         /// </summary>
         /// <param name="nickname"></param>
         /// <returns>the newly created <see cref="SaveData{T}"/></returns>
         public static T NewSaveFile(string nickname) {
-            Debug.Log("Creating a new save file: " + nickname + " (" + GetNewSaveFilePath(nickname) + "), of type " +
-                      typeof(T));
+            Debug.Log($"Creating a new save file: {nickname} ({GetNewSaveFilePath(nickname)}), of type {typeof(T)}");
             //create the save folder if it doesn't already exist
             Directory.CreateDirectory(Path.GetDirectoryName(GetNewSaveFilePath(nickname)) ??
                                       throw new SaveDataException<T>(
@@ -143,16 +147,18 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         ///     Serializes <paramref name="saveData"/> to a new <see cref="File"/>.
         /// </summary>
         /// <remarks>
-        ///     <para>The new file will be located at <see cref="GetSaveFilePath(string,System.DateTime)"/>.</para>
+        ///     <para>The new file will be located at <see cref="GetNewSaveFilePath"/>.</para>
         ///     <para>Retains previous saves with the same <paramref name="nickName"/>, up to <see cref="BackupSaveSlots"/>, via <see cref="TrimSaves"/>.</para>
         ///     <para>May update fields in <paramref name="saveData"/>, such as <see cref="LastSaveTime"/>.</para>
         /// </remarks>
         /// <param name="saveData">The <see cref="SaveData{T}"/> inheritor to be saved.</param>
         /// <param name="nickName">The <see cref="nickName"/> that the <see cref="saveData"/> should be given.</param>
+        /// <param name="useReSaveDelay">If <c>true</c>, check if <see cref="ReSaveDelay"/> has elapsed since <see cref="LastSaveTime"/>.</param>
         /// <returns>The passed <paramref name="saveData"/> for method chaining.</returns>
         /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="SaveDataException{T}"></exception>
-        private static T Save([NotNull] SaveData<T> saveData, [NotNull] string nickName) {
+        /// <exception cref="SaveDataException{T}">If <paramref name="nickName"/> <see cref="string.IsNullOrWhiteSpace"/>.</exception>
+        /// <exception cref="ReSaveDelayException{t}">If <paramref name="useReSaveDelay"/> is <c>true</c> and <see cref="ReSaveDelay"/> hasn't elapsed since <see cref="LastSaveTime"/>.</exception>
+        private static T Save([NotNull] SaveData<T> saveData, [NotNull] string nickName, bool useReSaveDelay = true) {
             if (saveData == null) throw new ArgumentNullException(nameof(saveData));
             if (string.IsNullOrWhiteSpace(nickName)) {
                 var argException = new ArgumentException("Value cannot be null or whitespace.", nameof(nickName));
@@ -162,13 +168,15 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             }
 
             var saveTime = DateTime.Now;
-            if (saveTime - saveData.LastSaveTime < ReSaveDelay) {
-                throw new SaveDataException<T>(saveData,
-                                               $"The save file {nickName} was saved too recently!" +
-                                               $"\n\t{nameof(saveData.LastSaveTime)}: {saveData.LastSaveTime}" +
-                                               $"\n\tNew saveTime: {saveTime}" +
-                                               $"\n\t{nameof(ReSaveDelay)}: {ReSaveDelay}" +
-                                               $"\n\tDelta: {saveTime - saveData.LastSaveTime}");
+
+            //throw an error if ReSaveDelay hasn't elapsed since the last time the file was saved
+            if (useReSaveDelay && saveTime - saveData.LastSaveTime < ReSaveDelay) {
+                throw new ReSaveDelayException<T>(saveData,
+                                                  $"The save file {nickName} was saved too recently!" +
+                                                  $"\n\t{nameof(saveData.LastSaveTime)}: {saveData.LastSaveTime}" +
+                                                  $"\n\tNew saveTime: {saveTime}" +
+                                                  $"\n\t{nameof(ReSaveDelay)}: {ReSaveDelay}" +
+                                                  $"\n\tDelta: {saveTime - saveData.LastSaveTime}");
             }
 
             saveData.nickName = nickName;
@@ -185,10 +193,13 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         /// <summary>
-        ///     Calls the static <see cref="Save(Packages.BrandonUtils.Runtime.Saving.SaveData{T},string)"/> with this <see cref="SaveData{T}"/>'s <see cref="nickName"/>.
+        ///     Calls the static <see cref="Save(Packages.BrandonUtils.Runtime.Saving.SaveData{T},string,bool)"/> with this <see cref="SaveData{T}"/>'s <see cref="nickName"/>.
+        /// <br/>
         /// </summary>
-        public void Save() {
-            Save(this, this.nickName);
+        /// <param name="useReSaveDelay">If <c>true</c>, check if <see cref="ReSaveDelay"/> has elapsed since <see cref="LastSaveTime"/>.</param>
+        /// <exception cref="ReSaveDelayException{t}">If <paramref name="useReSaveDelay"/> is <c>true</c> and <see cref="ReSaveDelay"/> hasn't elapsed since <see cref="LastSaveTime"/>.</exception>
+        public void Save(bool useReSaveDelay = true) {
+            Save(this, this.nickName, useReSaveDelay);
         }
 
         public static void TrimSaves(string nickName, int trimTo = BackupSaveSlots) {
@@ -200,9 +211,11 @@ namespace Packages.BrandonUtils.Runtime.Saving {
                 return;
             }
 
-            for (int i = trimTo; i < saveFiles.Length; i++) {
-                Debug.Log($"Trimming the save file at index [{i}]: {saveFiles[i]}");
-                Delete(saveFiles[i]);
+            //A for loop is used here instead of a while loop in order to guard against infinite loops (basically, while loops scare me)
+            int toDelete = saveFiles.Length - trimTo;
+            for (int i = 0; i < toDelete; i++) {
+                Delete(GetAllSaveFilePaths(nickName).First());
+                saveFiles = GetAllSaveFilePaths(nickName);
             }
         }
 
@@ -217,16 +230,16 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             return saveFiles;
         }
 
-        private static void SortSaveFilePaths(string[] saveFiles) {
-            Array.Sort(saveFiles, (save1, save2) => GetSaveDate(save1).CompareTo(GetSaveDate(save2)));
+        /// <summary>
+        /// Sorts the given save file paths <b><i>CHRONOLOGICALLY</i></b> by their <see cref="GetSaveDate"/>.
+        /// </summary>
+        /// <param name="saveFilePaths"></param>
+        private static void SortSaveFilePaths(string[] saveFilePaths) {
+            Array.Sort(saveFilePaths, (save1, save2) => GetSaveDate(save1).CompareTo(GetSaveDate(save2)));
         }
 
-        public static string GetLatestSaveFilePath(string nickName = "") {
-            return GetAllSaveFilePaths(nickName)[0];
-        }
-
-        public static string GetSaveFileNameWithDate(String saveFile, DateTime saveDate) {
-            return saveFile + "_" + saveDate.ToString(DateFormat);
+        public static string GetSaveFileNameWithDate(String nickName, DateTime saveDate) {
+            return nickName + "_" + saveDate.ToString(DateFormat);
         }
 
         public static string GetNickname(string saveFile) {

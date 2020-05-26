@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Saving;
 using UnityEngine;
 
@@ -92,7 +93,7 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         [Test]
-        public void TestSortAutoSaveFiles() {
+        public void TestSaveFilePathsAreSortedChronologically() {
             var loadedSaves = SaveDataTestImpl.GetAllSaveFilePaths(DummyNickName);
             Assert.AreNotEqual(0, loadedSaves.Length, "No saves were actually loaded!");
             TestUtils.AreEqual(DummySaveFiles, loadedSaves);
@@ -161,6 +162,55 @@ namespace Packages.BrandonUtils.Tests {
             var saveJson = JsonUtility.ToJson(newSave, true);
             var saveString = newSave.ToString();
             Assert.That(saveString, Is.EqualTo(saveJson));
+        }
+
+        [Test]
+        public void TestLoadMostRecentSaveFile() {
+            //save a few files
+            int saveCount = 3;
+            string nickName = nameof(TestLoadMostRecentSaveFile);
+
+            //create a new save file with the desired nickname
+            SaveDataTestImpl saveData = SaveDataTestImpl.NewSaveFile(nickName);
+            for (int i = 0; i < saveCount; i++) {
+                if (i != 0) {
+                    LogUtils.Log($"Waiting {SaveDataTestImpl.ReSaveDelay} before continuing...");
+                }
+
+                //add a unique value into the save data
+                saveData.Word = $"SAVE_{i}";
+
+                //re-save the save data
+                saveData.Save(false);
+
+                LogUtils.Log($"Saved {nickName} #{i}:\n{saveData}");
+
+                //check that the most recent file name
+                Assert.That(saveData.LatestSaveFilePath, Is.EqualTo(SaveDataTestImpl.GetNewSaveFilePath(nickName)), "Didn't find the expected latest save file path!");
+
+                //load the save data and check the unique value
+                Assert.That(SaveDataTestImpl.Load(nickName).Word, Is.EqualTo(saveData.Word));
+            }
+        }
+
+        [Test]
+        public void TestUseReSaveDelay() {
+            SaveDataTestImpl saveDataTestImpl = SaveDataTestImpl.NewSaveFile(nameof(TestUseReSaveDelay));
+            Assert.Throws(typeof(ReSaveDelayException<SaveDataTestImpl>), () => saveDataTestImpl.Save(true));
+        }
+
+        [Test]
+        public void TestIgnoreReSaveDelay() {
+            SaveDataTestImpl saveDataTestImpl = new SaveDataTestImpl {nickName = nameof(TestIgnoreReSaveDelay)};
+
+            for (int i = 0; i < 5; i++) {
+                try {
+                    saveDataTestImpl.Save(false);
+                }
+                catch (ReSaveDelayException<SaveDataTestImpl> e) {
+                    throw new AssertionException($"When useReSaveDelay is FALSE, we shouldn't throw a {nameof(ReSaveDelayException<SaveDataTestImpl>)}, but we threw {e.Message}!", e);
+                }
+            }
         }
     }
 }
