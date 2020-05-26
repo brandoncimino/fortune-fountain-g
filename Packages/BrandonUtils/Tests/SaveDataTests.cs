@@ -9,15 +9,12 @@ using Packages.BrandonUtils.Runtime;
 using Packages.BrandonUtils.Runtime.Saving;
 using UnityEngine;
 
-namespace Packages.BrandonUtils.Tests
-{
-    public class SaveDataTests
-    {
+namespace Packages.BrandonUtils.Tests {
+    public class SaveDataTests {
         const string DummyNickName = "DummySaveFile";
         static List<string> DummySaveFiles;
 
-        static readonly Dictionary<string, DateTime> DummySaveDates = new Dictionary<string, DateTime>()
-        {
+        static readonly Dictionary<string, DateTime> DummySaveDates = new Dictionary<string, DateTime>() {
             [DummyNickName + "_01010001_000000"] = new DateTime(1, 1, 1, 0, 0, 0),
             [DummyNickName + "_01010001_010101"] = new DateTime(1, 1, 1, 1, 1, 1),
             [DummyNickName + "_07011993_103200"] = new DateTime(1993, 7, 1, 10, 32, 0),
@@ -33,65 +30,55 @@ namespace Packages.BrandonUtils.Tests
         };
 
         [OneTimeSetUp]
-        public void SetUp()
-        {
+        public void SetUp() {
             Debug.Log("Beginning one-time setup...");
             Debug.Log("persistent data path: " + Application.persistentDataPath);
             DummySaveFiles = MakeDummyFiles();
         }
 
-        private static List<string> GetExistingSaveFiles(string nickName = DummyNickName)
-        {
+        private static List<string> GetExistingSaveFiles(string nickName = DummyNickName) {
             return Directory
-                .GetFiles(SaveDataTestImpl.SaveFolderPath, $"{nickName}*{SaveDataTestImpl.SaveFileExtension}")
-                .ToList();
+                   .GetFiles(SaveDataTestImpl.SaveFolderPath, $"{nickName}*{SaveDataTestImpl.SaveFileExtension}")
+                   .ToList();
         }
 
         [Test]
-        public void TestGenerateAutoSaveName()
-        {
-            foreach (var saveDate in DummySaveDates)
-            {
+        public void TestGenerateAutoSaveName() {
+            foreach (var saveDate in DummySaveDates) {
                 Debug.Log("Parsed to: " + SaveDataTestImpl.GetSaveFileNameWithDate(DummyNickName, saveDate.Value));
                 Assert.AreEqual(saveDate.Key, SaveDataTestImpl.GetSaveFileNameWithDate(DummyNickName, saveDate.Value));
             }
         }
 
         [Test]
-        public void TestParseAutoSaveName()
-        {
-            foreach (var saveDate in DummySaveDates)
-            {
+        public void TestParseAutoSaveName() {
+            foreach (var saveDate in DummySaveDates) {
                 Assert.AreEqual(saveDate.Value, SaveDataTestImpl.GetSaveDate(saveDate.Key));
             }
         }
 
-        private static string MakeDummyFile(string fileName)
-        {
+        private static string MakeDummyFile(string fileName) {
             Debug.Log("Creating dummy file: " + fileName);
             string newFilePath = Path.ChangeExtension(Path.Combine(SaveDataTestImpl.SaveFolderPath, fileName),
-                SaveDataTestImpl.SaveFileExtension);
+                                                      SaveDataTestImpl.SaveFileExtension);
             File.WriteAllText(newFilePath, "I am a dummy test save with the name " + fileName);
             Assume.That(File.Exists(newFilePath), "The file " + newFilePath + " doesn't exist!");
             return newFilePath;
         }
 
-        private static void DeleteSaveFiles(string nickName = DummyNickName)
-        {
+        private static void DeleteSaveFiles(string nickName = DummyNickName) {
             Debug.Log($"Clearing old save files named {nickName}...");
             GetExistingSaveFiles(nickName).ForEach(File.Delete);
             Assume.That(GetExistingSaveFiles(nickName), Is.Empty,
-                "There were still dummy files left after we tried to delete them all!");
+                        "There were still dummy files left after we tried to delete them all!");
         }
 
 
-        static List<string> MakeDummyFiles()
-        {
+        static List<string> MakeDummyFiles() {
             Debug.Log($"About to create dummy save files...");
             DeleteSaveFiles();
             var allSaves = new List<string>();
-            foreach (var saveDate in DummySaveDates)
-            {
+            foreach (var saveDate in DummySaveDates) {
                 allSaves.Add(MakeDummyFile(saveDate.Key));
             }
 
@@ -105,34 +92,28 @@ namespace Packages.BrandonUtils.Tests
         }
 
         [Test]
-        public void TestSortAutoSaveFiles()
-        {
-            var loadedSaves = SaveDataTestImpl.GetAllSaves(DummyNickName);
+        public void TestSortAutoSaveFiles() {
+            var loadedSaves = SaveDataTestImpl.GetAllSaveFilePaths(DummyNickName);
             Assert.AreNotEqual(0, loadedSaves.Length, "No saves were actually loaded!");
             TestUtils.AreEqual(DummySaveFiles, loadedSaves);
         }
 
         [Test]
-        public void TestGetNickname()
-        {
-            foreach (var saveDate in DummySaveDates)
-            {
+        public void TestGetNickname() {
+            foreach (var saveDate in DummySaveDates) {
                 Assert.AreEqual(SaveDataTestImpl.GetNickname(saveDate.Key), DummyNickName);
             }
         }
 
         [Test(TestOf = typeof(SaveData<>))]
-        public void TestTrimSaveFiles()
-        {
+        public void TestTrimSaveFiles() {
             var testTrimValues = new List<int>() {0, 1, 5, 10};
-            foreach (var t in testTrimValues)
-            {
+            foreach (var t in testTrimValues) {
                 _TestTrimSaveFiles(t);
             }
         }
 
-        private static void _TestTrimSaveFiles(int trimTo)
-        {
+        private static void _TestTrimSaveFiles(int trimTo) {
             Assume.That(trimTo, Is.LessThanOrEqualTo(DummySaveDates.Count));
             MakeDummyFiles();
             SaveDataTestImpl.TrimSaves(DummyNickName, trimTo);
@@ -144,23 +125,21 @@ namespace Packages.BrandonUtils.Tests
         }
 
         [Test]
-        public void TestBackupSaveSlots()
-        {
+        public void TestBackupSaveSlots() {
             const string nickName = nameof(TestBackupSaveSlots);
             DeleteSaveFiles(nickName);
             var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestBackupSaveSlots));
 
             for (int numberOfSaveFiles = 1;
-                numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2;
-                numberOfSaveFiles++)
-            {
+                 numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2;
+                 numberOfSaveFiles++) {
                 Thread.Sleep(SaveDataTestImpl.ReSaveDelay);
                 newSave.Save();
                 Debug.Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
                 Assert.AreEqual(
                     Math.Min(numberOfSaveFiles + 1, SaveDataTestImpl.BackupSaveSlots),
-                    SaveDataTestImpl.GetAllSaves(newSave.nickName).Length,
-                    $"Didn't find the correct number of saves!\n\t{string.Join("\n\t", SaveDataTestImpl.GetAllSaves(newSave.nickName))}"
+                    SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName).Length,
+                    $"Didn't find the correct number of saves!\n\t{string.Join("\n\t", SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName))}"
                 );
             }
         }
@@ -169,8 +148,7 @@ namespace Packages.BrandonUtils.Tests
         /// Tests that the save file is serialized with the <see cref="DateTime.Ticks"/> of the save time, not the <see cref="DateTime"/>.
         /// </summary>
         [Test]
-        public void TestSerializeLastSaveTime()
-        {
+        public void TestSerializeLastSaveTime() {
             var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestSerializeLastSaveTime));
             var saveJson = JsonUtility.ToJson(newSave, true);
             Debug.Log($"{nameof(saveJson)}: {saveJson}");
@@ -178,8 +156,7 @@ namespace Packages.BrandonUtils.Tests
         }
 
         [Test]
-        public void TestToStringMatchesToJson()
-        {
+        public void TestToStringMatchesToJson() {
             var newSave = SaveDataTestImpl.NewSaveFile(MethodBase.GetCurrentMethod().Name);
             var saveJson = JsonUtility.ToJson(newSave, true);
             var saveString = newSave.ToString();
