@@ -4,11 +4,9 @@ using JetBrains.Annotations;
 using Runtime.Valuables;
 using UnityEngine;
 
-namespace Runtime.Saving
-{
+namespace Runtime.Saving {
     [Serializable]
-    public class Hand
-    {
+    public class Hand {
         /// <summary>
         /// A reference to the <see cref="FortuneFountainSaveData"/> that owns this <see cref="Hand"/>.
         /// </summary>
@@ -17,7 +15,7 @@ namespace Runtime.Saving
         /// <summary>
         /// The <see cref="DateTime.Ticks"/> of the time <see cref="Grab"/> was last called.
         /// <p/>
-        /// A value of 0 means that the <see cref="Grab"/> was <b>never</b> called.
+        /// A value of 0 means that <see cref="Grab"/> was <b>never</b> called.
         /// </summary>
         [SerializeField] private long lastGrabTime;
 
@@ -30,19 +28,16 @@ namespace Runtime.Saving
 
         [SerializeField] [NotNull] public List<Throwable> Throwables = new List<Throwable>();
 
-        public Hand(FortuneFountainSaveData saveData)
-        {
+        public Hand(FortuneFountainSaveData saveData) {
             _saveData = saveData;
         }
 
-        public DateTime LastThrowTime
-        {
+        public DateTime LastThrowTime {
             get => new DateTime(lastThrowTime);
             set => lastThrowTime = value.Ticks;
         }
 
-        public DateTime LastGrabTime
-        {
+        public DateTime LastGrabTime {
             get => new DateTime(lastGrabTime);
             set => lastGrabTime = value.Ticks;
         }
@@ -52,18 +47,15 @@ namespace Runtime.Saving
         /// </summary>
         /// <param name="type"></param>
         /// <param name="value"></param>
-        public void Grab(ValuableType type, double value)
-        {
+        public void Grab(ValuableType type, double value) {
             LastGrabTime = DateTime.Now;
             Throwables.Add(new Throwable(type, value));
         }
 
-        public void Throw()
-        {
+        public void Throw() {
             LastThrowTime = DateTime.Now;
 
-            while (Throwables.Count > 0)
-            {
+            while (Throwables.Count > 0) {
                 _saveData.AddKarma(Throwables[0].ThrowValue);
                 Throwables.RemoveAt(0);
             }
