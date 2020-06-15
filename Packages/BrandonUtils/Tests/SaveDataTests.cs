@@ -196,7 +196,17 @@ namespace Packages.BrandonUtils.Tests {
         [Test]
         public void TestUseReSaveDelay() {
             SaveDataTestImpl saveDataTestImpl = SaveDataTestImpl.NewSaveFile(nameof(TestUseReSaveDelay));
-            Assert.Throws(typeof(ReSaveDelayException<SaveDataTestImpl>), () => saveDataTestImpl.Save(true));
+
+            var message = $"{nameof(ReSaveDelayException<SaveDataTestImpl>)} when saved again within the {nameof(SaveDataTestImpl.ReSaveDelay)} ({SaveDataTestImpl.ReSaveDelay})!";
+
+            try {
+                saveDataTestImpl.Save(true);
+            }
+            catch (ReSaveDelayException<SaveDataTestImpl> e) {
+                Assert.Pass($"Properly threw a {message}\nException: {e.Message}");
+            }
+
+            Assert.Fail($"Did NOT throw a {message}");
         }
 
         [Test]
