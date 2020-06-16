@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Packages.BrandonUtils.Runtime.Logging;
 using UnityEngine;
 using UnityEngine.Assertions;
+using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Packages.BrandonUtils.Runtime.Saving {
     /// <summary>
@@ -47,9 +46,18 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public const string AutoSaveName = "AutoSave";
         public const string SaveFileExtension = "sav";
         public const int BackupSaveSlots = 10;
-        public const string DateFormat = "MMddyyyy_HHmmss";
-        public const string DatePattern = @"\d{8}_\d{6}";
-        public static readonly string SaveFilePattern = $@"(?<nickName>.*)_(?<date>{DatePattern})";
+
+        /// <summary>
+        /// The length required length of timestamps in save file names generated via <see cref="GetSaveFileNameWithDate"/>
+        /// </summary>
+        private const int TimeStampLength = 18;
+
+        /// <summary>
+        /// Timestamps will be serialized into file names using their <see cref="DateTime.Ticks"/> value, which will have 18 digits until 11/16/3169 09:46:40.
+        /// </summary>
+        public static readonly string TimeStampPattern = @"\d{" + TimeStampLength + "}";
+
+        public static readonly string SaveFilePattern = $@"(?<nickName>.*)_(?<date>{TimeStampPattern})";
         public static readonly string SaveFolderPath = Path.Combine(Application.persistentDataPath, SaveFolderName);
         public static readonly TimeSpan ReSaveDelay = TimeSpan.FromSeconds(1);
         public const int LoadRetryLimit = 10;
@@ -86,7 +94,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
 
 
             var latestSaveFilePath = GetAllSaveFilePaths(nickName).Last();
-            LogUtils.Log($"Found latest safe file for {nickName} at path: {latestSaveFilePath}");
+            Log($"Found latest safe file for {nickName} at path: {latestSaveFilePath}");
             return FromSaveFile(latestSaveFilePath);
         }
 
@@ -238,18 +246,36 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             Array.Sort(saveFilePaths, (save1, save2) => GetSaveDate(save1).CompareTo(GetSaveDate(save2)));
         }
 
-        public static string GetSaveFileNameWithDate(String nickName, DateTime saveDate) {
-            return nickName + "_" + saveDate.ToString(DateFormat);
+        public static string GetSaveFileNameWithDate(string nickName, DateTime saveDate) {
+            return nickName + "_" + GetTimeStamp(saveDate);
         }
 
-        public static string GetNickname(string saveFile) {
-            return Regex.Match(saveFile, SaveFilePattern).Groups["nickName"].Value;
+        /// <summary>
+        /// Converts a <see cref="DateTime"/> to a standardized, file-name-friendly "Time Stamp".
+        /// </summary>
+        /// <param name="dateTime">The <see cref="DateTime"/> to be converted.</param>
+        /// <returns>A file-name-friendly "Time Stamp" string.</returns>
+        /// <seealso cref="TimeStampLength"/>
+        /// <seealso cref="TimeStampPattern"/>
+        public static string GetTimeStamp(DateTime dateTime) {
+            return dateTime.Ticks.ToString().PadLeft(18, '0');
         }
 
-        public static DateTime GetSaveDate(string saveFile) {
-            string dateString = Regex.Match(saveFile, SaveFilePattern).Groups["date"].Value;
-            DateTime saveDate = DateTime.ParseExact(dateString, DateFormat, new DateTimeFormatInfo());
-            return saveDate;
+        public static string GetNickname(string saveFileName) {
+            return Regex.Match(saveFileName, SaveFilePattern).Groups["nickName"].Value;
+        }
+
+        public static DateTime GetSaveDate(string saveFileName) {
+            string dateString = Regex.Match(saveFileName, SaveFilePattern).Groups["date"].Value;
+
+            try {
+                DateTime saveDate = new DateTime(long.Parse(dateString));
+                return saveDate;
+            }
+            catch (Exception e) {
+                throw new SaveDataException<T>($"Could not parse the time stamp from {nameof(saveFileName)} {saveFileName}!" +
+                                               $"\n\t{nameof(dateString)} was extracted as: [{dateString}]", e);
+            }
         }
 
         public static bool Delete(string nickName) {

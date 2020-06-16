@@ -6,9 +6,9 @@ using System.Reflection;
 using System.Threading;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime;
-using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Saving;
 using UnityEngine;
+using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Packages.BrandonUtils.Tests {
     public class SaveDataTests {
@@ -16,24 +16,24 @@ namespace Packages.BrandonUtils.Tests {
         static List<string> DummySaveFiles;
 
         static readonly Dictionary<string, DateTime> DummySaveDates = new Dictionary<string, DateTime>() {
-            [DummyNickName + "_01010001_000000"] = new DateTime(1, 1, 1, 0, 0, 0),
-            [DummyNickName + "_01010001_010101"] = new DateTime(1, 1, 1, 1, 1, 1),
-            [DummyNickName + "_07011993_103200"] = new DateTime(1993, 7, 1, 10, 32, 0),
-            [DummyNickName + "_07011993_223200"] = new DateTime(1993, 7, 1, 22, 32, 0),
-            [DummyNickName + "_07011993_223201"] = new DateTime(1993, 7, 1, 22, 32, 1),
-            [DummyNickName + "_12311999_235959"] = new DateTime(1999, 12, 31, 23, 59, 59),
-            [DummyNickName + "_01012000_000000"] = new DateTime(2000, 1, 1, 0, 0, 0),
-            [DummyNickName + "_03042000_095434"] = new DateTime(2000, 3, 4, 9, 54, 34),
-            [DummyNickName + "_11012019_192834"] = new DateTime(2019, 11, 1, 19, 28, 34),
-            [DummyNickName + "_11012019_192835"] = new DateTime(2019, 11, 1, 19, 28, 35),
-            [DummyNickName + "_05302020_005900"] = new DateTime(2020, 5, 30, 0, 59, 0),
-            [DummyNickName + "_08122045_035959"] = new DateTime(2045, 08, 12, 3, 59, 59),
+            [DummyNickName + "_000000000000000000"] = new DateTime(1, 1, 1, 0, 0, 0, 0),
+            [DummyNickName + "_000000036610010000"] = new DateTime(1, 1, 1, 1, 1, 1, 1),
+            [DummyNickName + "_628771195208760000"] = new DateTime(1993, 7, 1, 10, 32, 0, 876),
+            [DummyNickName + "_628771627200000000"] = new DateTime(1993, 7, 1, 22, 32, 0, 0),
+            [DummyNickName + "_628771627200010000"] = new DateTime(1993, 7, 1, 22, 32, 0, 1),
+            [DummyNickName + "_630822815999990000"] = new DateTime(1999, 12, 31, 23, 59, 59, 999),
+            [DummyNickName + "_630822816000000000"] = new DateTime(2000, 1, 1, 0, 0, 0, 0),
+            [DummyNickName + "_630877604740270000"] = new DateTime(2000, 3, 4, 9, 54, 34, 27),
+            [DummyNickName + "_637082333146780000"] = new DateTime(2019, 11, 1, 19, 28, 34, 678),
+            [DummyNickName + "_637082333151010000"] = new DateTime(2019, 11, 1, 19, 28, 35, 101),
+            [DummyNickName + "_637263971400020000"] = new DateTime(2020, 5, 30, 0, 59, 0, 2),
+            [DummyNickName + "_645217199999990000"] = new DateTime(2045, 08, 12, 3, 59, 59, 999),
         };
 
         [OneTimeSetUp]
         public void SetUp() {
-            Debug.Log("Beginning one-time setup...");
-            Debug.Log("persistent data path: " + Application.persistentDataPath);
+            Log("Beginning one-time setup...");
+            Log("persistent data path: " + Application.persistentDataPath);
             DummySaveFiles = MakeDummyFiles();
         }
 
@@ -46,7 +46,7 @@ namespace Packages.BrandonUtils.Tests {
         [Test]
         public void TestGenerateAutoSaveName() {
             foreach (var saveDate in DummySaveDates) {
-                Debug.Log("Parsed to: " + SaveDataTestImpl.GetSaveFileNameWithDate(DummyNickName, saveDate.Value));
+                Log("Parsed to: " + SaveDataTestImpl.GetSaveFileNameWithDate(DummyNickName, saveDate.Value));
                 Assert.AreEqual(saveDate.Key, SaveDataTestImpl.GetSaveFileNameWithDate(DummyNickName, saveDate.Value));
             }
         }
@@ -59,31 +59,48 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         private static string MakeDummyFile(string fileName) {
-            Debug.Log("Creating dummy file: " + fileName);
+            Log("Creating dummy file: " + fileName);
             string newFilePath = Path.ChangeExtension(Path.Combine(SaveDataTestImpl.SaveFolderPath, fileName),
                                                       SaveDataTestImpl.SaveFileExtension);
+
+            //create the save folder if it doesn't already exist:
+            Directory.CreateDirectory(SaveDataTestImpl.SaveFolderPath);
+
             File.WriteAllText(newFilePath, "I am a dummy test save with the name " + fileName);
             Assume.That(File.Exists(newFilePath), "The file " + newFilePath + " doesn't exist!");
             return newFilePath;
         }
 
         private static void DeleteSaveFiles(string nickName = DummyNickName) {
-            Debug.Log($"Clearing old save files named {nickName}...");
+            Log($"Clearing old save files named {nickName}...");
             GetExistingSaveFiles(nickName).ForEach(File.Delete);
             Assume.That(GetExistingSaveFiles(nickName), Is.Empty,
                         "There were still dummy files left after we tried to delete them all!");
         }
 
+        /*
+         * TODO: This will remove the ENTIRE SAVE FOLDER!!!
+         *     It should be updated to instead RENAME the old folder and then rename it BACK after testing is completed!!
+         */
+        private static void NukeSaveFolder() {
+            if (Directory.Exists(SaveDataTestImpl.SaveFolderPath)) {
+                Log(Color.red, $"Removing the entire save folder at {SaveDataTestImpl.SaveFolderPath}");
+                Directory.Delete(SaveDataTestImpl.SaveFolderPath, true);
+            }
+            else {
+                Log(Color.green, $"No need to nuke the save folder, because it didn't exist at {SaveDataTestImpl.SaveFolderPath}");
+            }
+        }
 
         static List<string> MakeDummyFiles() {
-            Debug.Log($"About to create dummy save files...");
-            DeleteSaveFiles();
+            Log($"About to create dummy save files, which are EMPTY (in retrospect, I probably should've named them \"empty save files\" instead...)");
+            NukeSaveFolder();
             var allSaves = new List<string>();
             foreach (var saveDate in DummySaveDates) {
                 allSaves.Add(MakeDummyFile(saveDate.Key));
             }
 
-            Debug.Log("Finished creating dummy save files:\n" + string.Join("\n", allSaves));
+            Log("Finished creating dummy save files:\n" + string.Join("\n", allSaves));
             Assume.That(
                 GetExistingSaveFiles().Count,
                 Is.EqualTo(DummySaveDates.Count),
@@ -136,7 +153,7 @@ namespace Packages.BrandonUtils.Tests {
                  numberOfSaveFiles++) {
                 Thread.Sleep(SaveDataTestImpl.ReSaveDelay);
                 newSave.Save();
-                Debug.Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
+                Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
                 Assert.AreEqual(
                     Math.Min(numberOfSaveFiles + 1, SaveDataTestImpl.BackupSaveSlots),
                     SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName).Length,
@@ -152,7 +169,7 @@ namespace Packages.BrandonUtils.Tests {
         public void TestSerializeLastSaveTime() {
             var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestSerializeLastSaveTime));
             var saveJson = JsonUtility.ToJson(newSave, true);
-            Debug.Log($"{nameof(saveJson)}: {saveJson}");
+            Log($"{nameof(saveJson)}: {saveJson}");
             Assert.IsTrue(saveJson.Contains($"\"lastSaveTime\": {newSave.LastSaveTime.Ticks}"));
         }
 
@@ -174,7 +191,7 @@ namespace Packages.BrandonUtils.Tests {
             SaveDataTestImpl saveData = SaveDataTestImpl.NewSaveFile(nickName);
             for (int i = 0; i < saveCount; i++) {
                 if (i != 0) {
-                    LogUtils.Log($"Waiting {SaveDataTestImpl.ReSaveDelay} before continuing...");
+                    Log($"Waiting {SaveDataTestImpl.ReSaveDelay} before continuing...");
                 }
 
                 //add a unique value into the save data
@@ -183,10 +200,10 @@ namespace Packages.BrandonUtils.Tests {
                 //re-save the save data
                 saveData.Save(false);
 
-                LogUtils.Log($"Saved {nickName} #{i}:\n{saveData}");
+                Log($"Saved {nickName} #{i}:\n{saveData}");
 
-                //check that the most recent file name
-                Assert.That(saveData.LatestSaveFilePath, Is.EqualTo(SaveDataTestImpl.GetNewSaveFilePath(nickName)), "Didn't find the expected latest save file path!");
+                //Assert that the timestamp in the filename matches the lastsavetime
+                Assert.That(saveData.LastSaveTime, Is.EqualTo(SaveDataTestImpl.GetSaveDate(saveData.LatestSaveFilePath)));
 
                 //load the save data and check the unique value
                 Assert.That(SaveDataTestImpl.Load(nickName).Word, Is.EqualTo(saveData.Word));
