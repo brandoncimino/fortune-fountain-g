@@ -5,6 +5,13 @@ namespace Runtime.Valuables
     /// <summary>
     /// Contains information about each <b>type</b> of valuable (as opposed to an <b>instance</b> of a valuable),
     /// such as base price, textures, etc.
+    ///
+    /// Combined with <see cref="ValuableType"/> to produce "Java-style" enums accessed via <see cref="ValuableDatabase"/>.
+    ///
+    /// Should never be instantiated outside of <see cref="ValuableDatabase"/>.
+    ///
+    /// TODO: Introduce some mechanism that will prevent ValuableModel from being instantiated outside of <see cref="ValuableDatabase"/>.
+    ///   There is probably some level of security (i.e. protected, internal, etc.) that will properly restrict this.
     /// </summary>
     public class ValuableModel
     {
