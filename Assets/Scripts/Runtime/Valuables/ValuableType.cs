@@ -5,7 +5,7 @@
     /// </summary>
     public enum ValuableType {
         Coin,
-        Ingot,
+        Metal,
         Gem,
         Fiduciary,
         Scrip,
