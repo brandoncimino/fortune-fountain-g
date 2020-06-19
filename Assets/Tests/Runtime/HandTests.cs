@@ -17,7 +17,7 @@ namespace Tests.Runtime {
                 Is.EqualTo(new DateTime())
             );
 
-            fortuneFountainSaveData.Hand.Grab(ValuableType.Penny, 10);
+            fortuneFountainSaveData.Hand.Grab(ValuableType.Coin, 10);
             Assert.That(
                 fortuneFountainSaveData.Hand.LastGrabTime,
                 Is.EqualTo(DateTime.Now)
@@ -89,10 +89,10 @@ namespace Tests.Runtime {
                 Assert.That(fortuneFountainSaveData.Hand.throwables, Is.Empty,
                             "The hand should be empty before we grab anything");
 
-                fortuneFountainSaveData.Hand.Grab(ValuableType.Penny, kValue);
+                fortuneFountainSaveData.Hand.Grab(ValuableType.Coin, kValue);
                 //make sure contains the thing we grabbed
                 Assert.That(fortuneFountainSaveData.Hand.throwables.Select(it => it.ValuableType),
-                            Contains.Item(ValuableType.Penny));
+                            Contains.Item(ValuableType.Coin));
 
                 fortuneFountainSaveData.Hand.Throw();
 

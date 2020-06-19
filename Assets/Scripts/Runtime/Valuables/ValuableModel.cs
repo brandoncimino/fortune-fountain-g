@@ -1,13 +1,11 @@
 ﻿using Packages.BrandonUtils.Runtime;
 
-namespace Runtime.Valuables
-{
+namespace Runtime.Valuables {
     /// <summary>
     /// Contains information about each <b>type</b> of valuable (as opposed to an <b>instance</b> of a valuable),
     /// such as base price, textures, etc.
     /// </summary>
-    public class ValuableModel
-    {
+    public class ValuableModel {
         /// <summary>
         /// The <see cref="ValuableType"/> of this model.
         /// </summary>
@@ -20,11 +18,21 @@ namespace Runtime.Valuables
 
         public Noun DisplayName;
 
-        public ValuableModel(ValuableType type, long baseValue, Noun displayName)
-        {
+        public ValuableModel(ValuableType type, long baseValue, Noun displayName) {
             Type = type;
             BaseValue = baseValue;
             DisplayName = displayName;
+        }
+
+        /// <summary>
+        /// Constructs a <see cref="ValuableModel"/> with the <see cref="DisplayName"/> defaulting to the <see cref="ValuableType"/>.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="baseValue"></param>
+        public ValuableModel(ValuableType type, long baseValue) {
+            Type = type;
+            BaseValue = baseValue;
+            DisplayName = new Noun(type.ToString());
         }
     }
 }
