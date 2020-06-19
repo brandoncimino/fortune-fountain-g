@@ -20,44 +20,93 @@ namespace Runtime.Valuables {
         public static readonly Dictionary<ValuableType, ValuableModel> Models =
             new Dictionary<ValuableType, ValuableModel>() {
                 [Coin] = new ValuableModel(
-                    Coin,
-                    1
+                    type: Coin,
+                    immutableValue: 1,
+                    magnitudes: new[] {
+                        new Noun("Penny", "Pennies"),
+                        new Noun("Dollar"),
+                        new Noun("Piece of Eight", "Pieces of Eight"),
+                        new Noun("Doubloon")
+                    }
                 ),
 
-                [Ingot] = new ValuableModel(
-                    Ingot,
-                    10
+                [Metal] = new ValuableModel(
+                    type: Metal,
+                    immutableValue: 10,
+                    magnitudes: new[] {
+                        new Noun("Silver"),
+                        new Noun("Gold"),
+                        new Noun("Platinum"),
+                        new Noun("Uranium")
+                    },
+                    displayName: new Noun("Precious Metal")
                 ),
 
                 [Gem] = new ValuableModel(
-                    Gem,
-                    500
+                    type: Gem,
+                    immutableValue: 500,
+                    magnitudes: new[] {
+                        new Noun("Glass"),
+                        new Noun("Garnet"),
+                        new Noun("Salt"),
+                        new Noun("Painite")
+                    }
                 ),
 
                 [Fiduciary] = new ValuableModel(
-                    Fiduciary,
-                    2500,
+                    type: Fiduciary,
+                    immutableValue: 2500,
+                    magnitudes: new[] {
+                        new Noun("Gift Card"),
+                        new Noun("Bond"),
+                        new Noun("Debt"),
+                        new Noun("Oath") //represented by a feather quill or fountain pen dripping blood
+                    },
                     new Noun("Fiduciary", "Fiduciaries")
                 ),
 
                 [Scrip] = new ValuableModel(
-                    Scrip,
-                    10000
+                    type: Scrip,
+                    immutableValue: 10000,
+                    magnitudes: new[] {
+                        new Noun("WAS IOU, BUT THAT SHOULD CHANGE"),
+                        new Noun("Arcade Token"),
+                        new Noun("Bottle Cap"),
+                        new Noun("Gasoline")
+                    }
                 ),
 
                 [Collectible] = new ValuableModel(
-                    Collectible,
-                    360000
+                    type: Collectible,
+                    immutableValue: 360000,
+                    magnitudes: new[] {
+                        new Noun("Stuffed Animal"),
+                        new Noun("Trading Card"),
+                        new Noun("Postage Stamp"),
+                        new Noun("Painting")
+                    }
                 ),
 
                 [Livestock] = new ValuableModel(
-                    Livestock,
-                    4000000
+                    type: Livestock,
+                    immutableValue: 4000000,
+                    magnitudes: new[] {
+                        new Noun("Carp", "Carp"),
+                        new Noun("Chicken"),
+                        new Noun("Cow"),
+                        new Noun("Kangaroo")
+                    }
                 ),
 
                 [Speculative] = new ValuableModel(
-                    Speculative,
-                    long.MaxValue
+                    type: Speculative,
+                    immutableValue: long.MaxValue,
+                    magnitudes: new[] {
+                        new Noun("South Sea Lottery Ticket"),
+                        new Noun("Stock Share"),
+                        new Noun("Cryptocoin"),
+                        new Noun("Indulgence")
+                    }
                 ),
             };
     }
