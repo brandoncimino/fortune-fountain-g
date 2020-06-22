@@ -2,28 +2,30 @@
 using Packages.BrandonUtils.Runtime.Saving;
 using UnityEngine;
 
-namespace Runtime.Saving
-{
+namespace Runtime.Saving {
     /// <inheritdoc />
     [Serializable]
-    public class FortuneFountainSaveData : SaveData<FortuneFountainSaveData>
-    {
-        /// <summary>
+    public class FortuneFountainSaveData : SaveData<FortuneFountainSaveData> {
         /// A reference to the player's <see cref="Hand"/>.
         /// <br/>
         /// Must <b>not</b> be <c>readonly</c> for the <see cref="SerializeField"/> attribute to work properly.
-        /// </summary>
         [SerializeField] public Hand Hand;
 
         public double Karma;
 
-        public FortuneFountainSaveData()
-        {
+        //Generation-related stuff
+
+        /// The default, immutable value for <see cref="GrabTimeLimit"/>
+        private const long GrabTimeLimit_Default = 5;
+
+        /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="GrabTimeLimit_Default"/>.
+        public float GrabTimeLimit = GrabTimeLimit_Default;
+
+        public FortuneFountainSaveData() {
             Hand = new Hand(this);
         }
 
-        public void AddKarma(double amount)
-        {
+        public void AddKarma(double amount) {
             Karma += amount;
         }
     }
