@@ -1,5 +1,6 @@
 ﻿using System;
 using Packages.BrandonUtils.Runtime.Saving;
+using Runtime.Valuables;
 using UnityEngine;
 
 namespace Runtime.Saving {
@@ -22,11 +23,22 @@ namespace Runtime.Saving {
         public float GrabTimeLimit = GrabTimeLimit_Default;
 
         public FortuneFountainSaveData() {
-            Hand = new Hand(this);
+            Hand = new Hand();
+
+            //subscribing to events
+            Throwable.ThrowSingleEvent += HandleThrowSingleEvent;
         }
 
         public void AddKarma(double amount) {
             Karma += amount;
+        }
+
+        /// <summary>
+        /// Handles the <see cref="Throwable.ThrowSingleEvent"/>, primarily by calling <see cref="AddKarma"/>.
+        /// </summary>
+        /// <param name="throwable"></param>
+        private void HandleThrowSingleEvent(Throwable throwable) {
+            AddKarma(throwable.ThrowValue);
         }
     }
 }

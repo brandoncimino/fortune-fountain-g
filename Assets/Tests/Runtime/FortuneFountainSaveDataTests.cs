@@ -24,7 +24,7 @@ namespace Tests.Runtime {
                 var karmaValue = Random.Range(1, 25);
                 var valuableType = ValuableDatabase.ValuableTypes[i];
                 Log($"Grabbing a {valuableType} with a value of {karmaValue}");
-                fortuneFountainSaveData.Hand.Grab(valuableType, karmaValue);
+                fortuneFountainSaveData.Hand.Grab(new Throwable(valuableType, karmaValue));
 
                 Log($"Waiting for {nameof(FortuneFountainSaveData.ReSaveDelay)} ({FortuneFountainSaveData.ReSaveDelay})");
                 Thread.Sleep(FortuneFountainSaveData.ReSaveDelay);

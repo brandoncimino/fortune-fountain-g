@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
+using Packages.BrandonUtils.Runtime;
 using Runtime.Saving;
 using Runtime.Valuables;
+using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Tests.Runtime {
     public class HandTests {
@@ -17,7 +19,7 @@ namespace Tests.Runtime {
                 Is.EqualTo(new DateTime())
             );
 
-            fortuneFountainSaveData.Hand.Grab(ValuableType.Coin, 10);
+            fortuneFountainSaveData.Hand.Grab(new Throwable(ValuableType.Coin, 10));
             Assert.That(
                 fortuneFountainSaveData.Hand.LastGrabTime,
                 Is.EqualTo(DateTime.Now)
@@ -33,10 +35,19 @@ namespace Tests.Runtime {
                 Is.EqualTo(new DateTime())
             );
 
+            var initialTime = fortuneFountainSaveData.Hand.LastThrowTime;
+
             fortuneFountainSaveData.Hand.Throw();
+
+            //Because of the milliseconds of time it takes to do these assertions and stuff, the LastThrowTime isn't going to be exactly DateTime.Now, so we're instead asserting that the time is between the range of initialTime (exclusive) and DateTime.Now (inclusive).
             Assert.That(
                 fortuneFountainSaveData.Hand.LastThrowTime,
-                Is.EqualTo(DateTime.Now)
+                Is.GreaterThan(initialTime)
+            );
+
+            Assert.That(
+                fortuneFountainSaveData.Hand.LastThrowTime,
+                Is.LessThanOrEqualTo(DateTime.Now)
             );
         }
 
@@ -52,7 +63,7 @@ namespace Tests.Runtime {
                 );
 
                 //grab the item
-                fortuneFountainSaveData.Hand.Grab(valuableType, 10);
+                fortuneFountainSaveData.Hand.Grab(new Throwable(valuableType, 10));
 
                 //assert that we're now holding it
                 Assert.That(
@@ -62,46 +73,145 @@ namespace Tests.Runtime {
             }
         }
 
+        /// <summary>
+        /// Tests the <see cref="FortuneFountainSaveData.Karma"/> after calling <see cref="Throwable.Throw"/> directly on individual <see cref="Throwable"/>s, one-at-a-time.
+        /// </summary>
         [Test]
-        public void PostThrowKarma() {
-            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
-            var kValues = new List<double> {
-                10,
-                54,
-                87,
-                98,
-                12341435,
-                7845687,
-                0,
-                -123,
-                1.5,
-                Math.PI,
-                Math.E,
-                -238475.52349578,
+        public void PostThrowSingleKarma() {
+            FortuneFountainSaveData fortuneFountainSaveData = UglySaveData();
+
+            double expectedKarmaTotal = 0;
+
+            var throwablesCopy = fortuneFountainSaveData.Hand.throwables.Clone();
+
+            foreach (var throwable in throwablesCopy) {
+                expectedKarmaTotal += throwable.ThrowValue;
+
+                throwable.Throw();
+
+                Assert.That(fortuneFountainSaveData.Karma, Is.EqualTo(expectedKarmaTotal));
+            }
+        }
+
+        [Test]
+        public void KarmaInHandIsAccurate() {
+            new[] {
+                SimpleSaveData(),
+                UglySaveData()
+            }.ToList().ForEach(save => Assert.That(save.Hand.KarmaInHand, Is.EqualTo(save.Hand.throwables.Sum(it => it.ThrowValue))));
+        }
+
+        [Test]
+        public void ThrowOneTwice() {
+            var save1 = new FortuneFountainSaveData() {
+                Hand = {
+                    throwables = {
+                        new Throwable(ValuableType.Coin, 1)
+                    }
+                }
             };
 
-            double karmaTotal = 0;
+            int throwCount = 0;
+            Throwable.ThrowSingleEvent += throwable => throwCount++;
 
-            foreach (var kValue in kValues) {
-                karmaTotal += kValue;
+            save1.Hand.Throw();
+            Assert.That(throwCount, Is.EqualTo(1));
+            Assert.That(save1.Hand.throwables, Is.Empty);
 
-                //make sure the hand is empty
-                Assert.That(fortuneFountainSaveData.Hand.throwables, Is.Empty,
-                            "The hand should be empty before we grab anything");
+            save1.Hand.Throw();
+            Assert.That(throwCount, Is.EqualTo(1));
+        }
 
-                fortuneFountainSaveData.Hand.Grab(ValuableType.Coin, kValue);
-                //make sure contains the thing we grabbed
-                Assert.That(fortuneFountainSaveData.Hand.throwables.Select(it => it.ValuableType),
-                            Contains.Item(ValuableType.Coin));
+        [Test]
+        public void PostThrowHandKarma() {
+            FortuneFountainSaveData fortuneFountainSaveData = UglySaveData();
 
-                fortuneFountainSaveData.Hand.Throw();
+            Assume.That(fortuneFountainSaveData.Karma, Is.EqualTo(0));
 
-                //make sure the hand is empty after we've thrown it
-                Assert.That(fortuneFountainSaveData.Hand.throwables, Is.Empty,
-                            "The hand should be empty after we've thrown everything");
+            var expectedPostThrowKarma = fortuneFountainSaveData.Hand.KarmaInHand;
 
-                Assert.That(fortuneFountainSaveData.Karma, Is.EqualTo(karmaTotal));
-            }
+            Log($"Before throwing, there is {fortuneFountainSaveData.Karma} karma");
+
+            fortuneFountainSaveData.Hand.Throw();
+
+            Assert.That(fortuneFountainSaveData.Karma, Is.EqualTo(expectedPostThrowKarma));
+
+            Log(fortuneFountainSaveData.Hand.throwables.Count);
+        }
+
+        private static FortuneFountainSaveData SimpleSaveData() {
+            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData {
+                Hand = {
+                    throwables = new List<Throwable>() {
+                        new Throwable(ValuableType.Coin, 10d),
+                        new Throwable(ValuableType.Coin, 20d),
+                        new Throwable(ValuableType.Coin, 30d)
+                    }
+                }
+            };
+
+            Assume.That(fortuneFountainSaveData.Hand.throwables, Is.Not.Empty);
+
+            return fortuneFountainSaveData;
+        }
+
+        private static FortuneFountainSaveData UglySaveData() {
+            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData {
+                Hand = {
+                    throwables = new List<Throwable>() {
+                        new Throwable(ValuableType.Coin, 10),
+                        new Throwable(ValuableType.Fiduciary, 54),
+                        new Throwable(ValuableType.Coin, 87),
+                        new Throwable(ValuableType.Gem, 98),
+                        new Throwable(ValuableType.Livestock, 12341435),
+                        new Throwable(ValuableType.Collectible, 7845687),
+                        new Throwable(ValuableType.Metal, 0),
+                        new Throwable(ValuableType.Scrip, -123),
+                        new Throwable(ValuableType.Coin, 1.5),
+                        new Throwable(ValuableType.Scrip, Math.PI),
+                        new Throwable(ValuableType.Fiduciary, Math.E),
+                        new Throwable(ValuableType.Fiduciary, -238475.52349578),
+                    }
+                }
+            };
+
+            Assume.That(fortuneFountainSaveData.Hand.throwables, Is.Not.Empty);
+
+            return fortuneFountainSaveData;
+        }
+
+        [Test]
+        public void ThrowHandCausesThrowSingle() {
+            var fortuneFountainSaveData = SimpleSaveData();
+
+            int expectedThrowEvents = fortuneFountainSaveData.Hand.throwables.Count;
+            int actualThrowEvents = 0;
+
+            //register an anonymous method to the ThrowSingleEvent that will count the number of events
+            Throwable.ThrowSingleEvent += throwable => actualThrowEvents++;
+            fortuneFountainSaveData.Hand.Throw();
+
+            Assert.That(actualThrowEvents, Is.EqualTo(expectedThrowEvents));
+        }
+
+        [Test]
+        public void ThrowEmptiesHand() {
+            FortuneFountainSaveData fortuneFountainSaveData = SimpleSaveData();
+
+            fortuneFountainSaveData.Hand.Throw();
+
+            Assert.That(fortuneFountainSaveData.Hand.throwables, Is.Empty);
+        }
+
+        [Test]
+        public void ThrowSingleRemovesThrowable() {
+            FortuneFountainSaveData fortuneFountainSaveData = SimpleSaveData();
+
+            var toBeThrown = fortuneFountainSaveData.Hand.throwables[0];
+
+            toBeThrown.Throw();
+
+            CollectionAssert.DoesNotContain(fortuneFountainSaveData.Hand.throwables, toBeThrown);
         }
     }
 }

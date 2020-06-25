@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
+using Packages.BrandonUtils.Runtime.Logging;
 using Runtime.Valuables;
 using UnityEngine;
 
 namespace Runtime.Saving {
     [Serializable]
     public class Hand {
-        /// <summary>
-        /// A reference to the <see cref="FortuneFountainSaveData"/> that owns this <see cref="Hand"/>.
-        /// </summary>
-        private readonly FortuneFountainSaveData _saveData;
-
         /// <summary>
         /// The <see cref="DateTime.Ticks"/> of the time <see cref="Grab"/> was last called.
         /// <p/>
@@ -28,9 +25,11 @@ namespace Runtime.Saving {
 
         [SerializeField] [NotNull] public List<Throwable> throwables = new List<Throwable>();
 
-        public Hand(FortuneFountainSaveData saveData) {
-            _saveData = saveData;
-        }
+        public double KarmaInHand => throwables.Select(it => it.ThrowValue).Sum();
+
+        public delegate void ThrowHandDelegate(Hand hand);
+
+        public static event ThrowHandDelegate ThrowHandEvent;
 
         public DateTime LastThrowTime {
             get => new DateTime(lastThrowTime);
@@ -42,26 +41,56 @@ namespace Runtime.Saving {
             set => lastGrabTime = value.Ticks;
         }
 
-        /// <summary>
-        /// Adds an entry to <see cref="throwables"/> with the given <see cref="ValuableType"/> and <c>value</c>.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="value"></param>
-        public void Grab(ValuableType type, double value) {
-            LastGrabTime = DateTime.Now;
-            throwables.Add(new Throwable(type, value));
+        public Hand() {
+            //Subscribe to the ThrowSingleEvent
+            Throwable.ThrowSingleEvent += HandleThrowSingleEvent;
         }
 
         /// <summary>
-        /// Removes all entries from <see cref="throwables"/>, adding their <see cref="Throwable.ThrowValue"/> via <see cref="FortuneFountainSaveData.AddKarma"/>
+        /// Adds <paramref name="throwable"/> to <see cref="throwables"/>.
         /// </summary>
-        public void Throw() {
-            LastThrowTime = DateTime.Now;
+        /// <param name="throwable"></param>
+        public void Grab(Throwable throwable) {
+            //TODO: Trigger a GRAB event!
+            LastGrabTime = DateTime.Now;
+            throwables.Add(throwable);
+        }
 
-            while (throwables.Count > 0) {
-                _saveData.AddKarma(throwables[0].ThrowValue);
-                throwables.RemoveAt(0);
-            }
+        /// <summary>
+        /// Triggers the <see cref="ThrowHandEvent"/>. which should in turn cause all <see cref="throwables"/> to trigger <see cref="Throwable.ThrowSingleEvent"/>s, removing all entries from <see cref="throwables"/>, adding their <see cref="Throwable.ThrowValue"/> via <see cref="FortuneFountainSaveData.AddKarma"/>
+        /// </summary>
+        /// <remarks>
+        /// Intended design as of 6/25/2020:
+        /// <list type="number">
+        /// <item>Trigger the .</item>
+        /// <item>Cause all <see cref="throwables"/> to trigger <see cref="Throwable.ThrowSingleEvent"/>s.</item>
+        /// <item>Consume each <see cref="Throwable.ThrowSingleEvent"/>, removing each <see cref="Throwable"/> from <see cref="throwables"/>.</item>
+        /// </list>
+        /// </remarks>
+        public void Throw() {
+            LogUtils.Log($"Setting {nameof(LastThrowTime)} to {DateTime.Now:HH:mm:ss.fff}");
+            LastThrowTime = DateTime.Now;
+            LogUtils.Log($"{nameof(LastThrowTime)} set to {DateTime.Now:HH:mm:ss.fff}");
+
+            ThrowHandEvent?.Invoke(this);
+
+            LogUtils.Log($"{nameof(ThrowHandEvent)} invocation finished at {DateTime.Now:HH:mm:ss.fff}");
+        }
+
+        /// <summary>
+        /// Handles the <see cref="Throwable.ThrowSingleEvent"/>.
+        /// </summary>
+        /// <param name="throwable"></param>
+        private void HandleThrowSingleEvent(Throwable throwable) {
+            RemoveFromHand(throwable);
+        }
+
+        /// <summary>
+        /// Removes <paramref name="throwable"/> from <see cref="throwables"/>.
+        /// </summary>
+        /// <param name="throwable"></param>
+        private void RemoveFromHand(Throwable throwable) {
+            throwables.Remove(throwable);
         }
     }
 }
