@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Packages.BrandonUtils.Runtime.Saving;
 using Runtime.Valuables;
 using UnityEngine;
@@ -21,6 +22,9 @@ namespace Runtime.Saving {
 
         /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="GrabTimeLimit_Default"/>.
         public float GrabTimeLimit = GrabTimeLimit_Default;
+
+        /// Holds information about the player's valuables <i>(<b>un-instantiated</b> types of <see cref="Throwable"/>s)</i>, such as upgrades.
+        public Dictionary<ValuableType, PlayerValuable> Valuables;
 
         public FortuneFountainSaveData() {
             Hand = new Hand();
