@@ -1,14 +1,23 @@
 ﻿using System;
+using Packages.BrandonUtils.Runtime;
 using Runtime.Saving;
 using UnityEngine;
 
 namespace Runtime.Valuables {
     public class PlayerValuable {
+        /// <summary>
+        ///
         /// Controls how often checks should be made to generate new items. An interval of 0 will check every <c>update</c>.
-        private static readonly TimeSpan GenerateCheckInterval = new TimeSpan(0, 0, 0, 0, 100);
+        /// </summary>
+        /// <remarks>
+        /// This value applies to <b>all valuables!</b>
+        /// It is included in <see cref="PlayerValuable"/> for convenience and clarity: I generally like to keep constants close to the code that depends on them (particularly when they are very specific).
+        /// However, I understand that many people prefer to group constants like that into a single location, so that might happen eventually.
+        /// </remarks>
+        private static readonly TimeSpan GenerateCheckInterval = TimeSpan.FromSeconds(0.1);
 
         /// The rate that a given Valuable is generated, measured in items per second.
-        public int Rate;
+        public double Rate;
 
         /// <summary>
         /// The <see cref="DateTime.Ticks"/> of the time the last time-dependent <see cref="Hand.Grab"/> was triggered.
@@ -26,11 +35,27 @@ namespace Runtime.Valuables {
         /// </summary>
         private bool ShouldCheckGenerate => DateTime.Now - LastGenerateTime >= GenerateCheckInterval;
 
-        public void CheckGenerate() {
-            throw new NotImplementedException("will check if the given valuable needs to be generated, based on the rate");
+        /// <see cref="Rate"/> converted to a <see cref="TimeSpan"/>.
+        private TimeSpan GenerateInterval => TimeSpan.FromSeconds(1 / Rate);
+
+        /// <summary>
+        /// Checks if this valuable should be generated, based on its <see cref="Rate"/>
+        /// </summary>
+        private void CheckGenerate() {
+            var deltaTime = DateTime.Now - LastGenerateTime;
+            if ((long) deltaTime.Quotient(GenerateInterval) > 0) {
+                throw new NotImplementedException("does this make sense, since NumberToGenerate sets the LastGenerateTime?");
+            }
         }
 
-        public void Generate() {
+        private long NumberToGenerate(out DateTime setLastGenerateTime) {
+            //TODO: Should this set the LastGenerateTime, or just do the calculations?
+            var deltaTime = DateTime.Now - LastGenerateTime;
+            setLastGenerateTime = LastGenerateTime + deltaTime.DivSpan(GenerateInterval);
+            return (long) deltaTime.Quotient(GenerateInterval);
+        }
+
+        private void Generate() {
             throw new NotImplementedException("tbd");
         }
     }
