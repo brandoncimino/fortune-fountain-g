@@ -24,7 +24,11 @@ namespace Runtime.Valuables {
         /// <summary>
         /// <c>true</c> if <see cref="GenerateCheckInterval"/> has passed since <see cref="LastGenerateTime"/>.
         /// </summary>
-        private bool ShouldGenerate => DateTime.Now - LastGenerateTime >= GenerateCheckInterval;
+        private bool ShouldCheckGenerate => DateTime.Now - LastGenerateTime >= GenerateCheckInterval;
+
+        public void CheckGenerate() {
+            throw new NotImplementedException("will check if the given valuable needs to be generated, based on the rate");
+        }
 
         public void Generate() {
             throw new NotImplementedException("tbd");
