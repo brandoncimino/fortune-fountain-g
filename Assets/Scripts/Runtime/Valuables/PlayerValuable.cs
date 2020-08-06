@@ -57,6 +57,11 @@ namespace Runtime.Valuables {
         /// Relies on <see cref="IncrementalUtils.NumberOfTimesCompleted"/>
         /// </remarks>
         private void CheckGenerate() {
+            //check if GenerateInterval has passed - if not, don't even try to generate anything (to improve performance)
+            if (!ShouldCheckGenerate) {
+                return;
+            }
+
             int numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(
                 LastGenerateTime,
                 DateTime.Now,
