@@ -51,7 +51,7 @@ namespace Runtime.Valuables {
         private long NumberToGenerate(out DateTime setLastGenerateTime) {
             //TODO: Should this set the LastGenerateTime, or just do the calculations?
             var deltaTime = DateTime.Now - LastGenerateTime;
-            setLastGenerateTime = LastGenerateTime + deltaTime.DivSpan(GenerateInterval);
+            setLastGenerateTime = LastGenerateTime + deltaTime.QuotientSpan(GenerateInterval);
             return (long) deltaTime.Quotient(GenerateInterval);
         }
 
