@@ -50,10 +50,12 @@ namespace Runtime.Saving {
         /// Adds <paramref name="throwable"/> to <see cref="throwables"/>.
         /// </summary>
         /// <param name="throwable"></param>
-        public void Grab(Throwable throwable) {
+        public void Grab(Throwable throwable, int amount = 1) {
             //TODO: Trigger a GRAB event!
             LastGrabTime = DateTime.Now;
-            throwables.Add(throwable);
+            for (var i = 0; i < amount; i++) {
+                throwables.Add(throwable);
+            }
         }
 
         /// <summary>
