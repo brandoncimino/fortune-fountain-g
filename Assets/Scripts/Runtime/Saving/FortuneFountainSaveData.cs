@@ -17,11 +17,11 @@ namespace Runtime.Saving {
 
         //Generation-related stuff
 
-        /// The default, immutable value for <see cref="GrabTimeLimit"/>
-        private const long GrabTimeLimit_Default = 5;
+        /// The default, immutable value for <see cref="GenerateTimeLimit"/>
+        private const long GenerateTimeLimit_Default = 5;
 
-        /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="GrabTimeLimit_Default"/>.
-        public float GrabTimeLimit = GrabTimeLimit_Default;
+        /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="GenerateTimeLimit_Default"/>.
+        public float GenerateTimeLimit = GenerateTimeLimit_Default;
 
         /// Holds information about the player's valuables <i>(<b>un-instantiated</b> types of <see cref="Throwable"/>s)</i>, such as upgrades.
         public Dictionary<ValuableType, PlayerValuable> Valuables;
