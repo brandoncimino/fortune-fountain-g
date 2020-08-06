@@ -9,7 +9,9 @@ namespace Tests.Runtime {
             var nickName = nameof(TestFirstValuableEnabledOnNewSave);
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nickName);
 
-            Assert.That(fortuneFountainSaveData.PlayerValuables.Keys, Contains.Key(0), $"The new save file didn't contain PlayerValuable type 0 ({(ValuableType) 0})!");
+            const ValuableType expectedFirstValuableType = 0;
+
+            Assert.That(fortuneFountainSaveData.PlayerValuables, Contains.Key(expectedFirstValuableType), $"The new save file didn't contain PlayerValuable type 0 ({expectedFirstValuableType})!");
             Assert.That(fortuneFountainSaveData.PlayerValuables.Keys.Count, Is.EqualTo(1), "The save file contained extra player valuables!");
         }
     }
