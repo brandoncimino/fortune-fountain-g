@@ -25,7 +25,7 @@ namespace Runtime.Saving {
         public float GenerateTimeLimit = GenerateTimeLimit_Default;
 
         /// Holds information about the player's valuables <i>(<b>un-instantiated</b> types of <see cref="Throwable"/>s)</i>, such as upgrades.
-        public Dictionary<ValuableType, PlayerValuable> PlayerValuables;
+        public Dictionary<ValuableType, PlayerValuable> PlayerValuables = new Dictionary<ValuableType, PlayerValuable>();
 
         public FortuneFountainSaveData() {
             Hand = new Hand();
