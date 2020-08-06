@@ -18,16 +18,21 @@ namespace Runtime.Saving {
         //Generation-related stuff
 
         /// The default, immutable value for <see cref="GenerateTimeLimit"/>
+        // ReSharper disable once InconsistentNaming
         private const long GenerateTimeLimit_Default = 5;
 
         /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="GenerateTimeLimit_Default"/>.
         public float GenerateTimeLimit = GenerateTimeLimit_Default;
 
         /// Holds information about the player's valuables <i>(<b>un-instantiated</b> types of <see cref="Throwable"/>s)</i>, such as upgrades.
-        public Dictionary<ValuableType, PlayerValuable> Valuables;
+        public Dictionary<ValuableType, PlayerValuable> PlayerValuables;
 
         public FortuneFountainSaveData() {
             Hand = new Hand();
+
+            //enabling the first PlayerValuable
+            const ValuableType firstValuableType = (ValuableType) 0;
+            PlayerValuables.Add(firstValuableType, new PlayerValuable(firstValuableType));
 
             //subscribing to events
             Throwable.ThrowSingleEvent += HandleThrowSingleEvent;
