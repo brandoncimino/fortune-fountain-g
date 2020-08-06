@@ -1,10 +1,12 @@
 ﻿using System;
-using Packages.BrandonUtils.Runtime;
 using Runtime.Saving;
+using Runtime.Utils;
 using UnityEngine;
 
 namespace Runtime.Valuables {
     public class PlayerValuable {
+        public readonly ValuableType ValuableType;
+
         /// <summary>
         ///
         /// Controls how often checks should be made to generate new items. An interval of 0 will check every <c>update</c>.
@@ -19,10 +21,18 @@ namespace Runtime.Valuables {
         /// The rate that a given Valuable is generated, measured in items per second.
         public double Rate;
 
+        /// The fully calculated karma value of valuables of this type.
+        /// TODO: Right now this just returns the <see cref="ValuableModel.ImmutableValue"/>, but this will eventually combine upgrades, etc.
+        public double KarmaValue => ValuableDatabase.Models[ValuableType].ImmutableValue;
+
         /// <summary>
         /// The <see cref="DateTime.Ticks"/> of the time the last time-dependent <see cref="Hand.Grab"/> was triggered.
         /// </summary>
         [SerializeField] private long lastGenerateTime;
+
+        public PlayerValuable(ValuableType valuableType) {
+            this.ValuableType = valuableType;
+        }
 
         //TODO: This "serialize as ticks, but manipulate as a DateTime" concept is something I like and am using a bunch - maybe I can create a "TimeStamp" class for BrandonUtils that is an extension of DateTime, but serializes as Ticks?
         public DateTime LastGenerateTime {
@@ -38,25 +48,26 @@ namespace Runtime.Valuables {
         /// <see cref="Rate"/> converted to a <see cref="TimeSpan"/>.
         private TimeSpan GenerateInterval => TimeSpan.FromSeconds(1 / Rate);
 
+        private Throwable Throwable => new Throwable(ValuableType, KarmaValue);
+
         /// <summary>
-        /// Checks if this valuable should be generated, based on its <see cref="Rate"/>
+        /// Checks if this valuable should be generated, based on its <see cref="Rate"/>, and if so, <see cref="Hand.Grab"/>s the appropriate amount and updates <see cref="LastGenerateTime"/>.
         /// </summary>
+        /// <remarks>
+        /// Relies on <see cref="IncrementalUtils.NumberOfTimesCompleted"/>
+        /// </remarks>
         private void CheckGenerate() {
-            var deltaTime = DateTime.Now - LastGenerateTime;
-            if ((long) deltaTime.Quotient(GenerateInterval) > 0) {
-                throw new NotImplementedException("does this make sense, since NumberToGenerate sets the LastGenerateTime?");
+            int numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(
+                LastGenerateTime,
+                DateTime.Now,
+                GenerateInterval,
+                out var timeOfGeneration
+            );
+
+            if (numberToGenerate > 0) {
+                GameManager.SaveData.Hand.Grab(Throwable, numberToGenerate);
+                LastGenerateTime = timeOfGeneration;
             }
-        }
-
-        private long NumberToGenerate(out DateTime setLastGenerateTime) {
-            //TODO: Should this set the LastGenerateTime, or just do the calculations?
-            var deltaTime = DateTime.Now - LastGenerateTime;
-            setLastGenerateTime = LastGenerateTime + deltaTime.QuotientSpan(GenerateInterval);
-            return (long) deltaTime.Quotient(GenerateInterval);
-        }
-
-        private void Generate() {
-            throw new NotImplementedException("tbd");
         }
     }
 }
