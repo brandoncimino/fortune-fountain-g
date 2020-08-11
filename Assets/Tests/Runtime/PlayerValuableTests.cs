@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 using Runtime;
 using Runtime.Saving;
 using Runtime.Valuables;
@@ -28,6 +29,15 @@ namespace Tests.Runtime {
                 GameManager.SaveData.PlayerValuables[0].CheckGenerate();
                 Assert.That(generateCounter, Is.EqualTo(0));
             }
+        }
+
+        [Test]
+        public void GenerateAllViaCollectionExtension() {
+            const string nickName = nameof(TestGenerateIsLimitedByRate);
+            GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nickName);
+
+            var generateCounters = new Dictionary<ValuableType, int>();
+            GameManager.SaveData.PlayerValuables.CheckGenerate();
         }
     }
 }
