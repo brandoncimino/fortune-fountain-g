@@ -34,7 +34,7 @@ namespace Packages.BrandonUtils.Runtime {
         /// <returns></returns>
         public static double Divide(this TimeSpan dividend, TimeSpan divisor) {
             ValidateDivisor(divisor);
-            return dividend.TotalSeconds / divisor.TotalSeconds;
+            return (double) dividend.Ticks / divisor.Ticks;
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Packages.BrandonUtils.Runtime {
         /// <param name="factor"></param>
         /// <returns></returns>
         public static TimeSpan Multiply(this TimeSpan timeSpan, double factor) {
-            return TimeSpan.FromSeconds(timeSpan.TotalSeconds * factor);
+            return TimeSpan.FromTicks((long) (timeSpan.Ticks * factor));
         }
 
         /// <inheritdoc cref="NormalizePrecision" />
