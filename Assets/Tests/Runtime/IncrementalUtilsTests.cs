@@ -20,47 +20,6 @@ namespace Tests.Runtime {
             21.123456
         };
 
-        [TestCase(1, 1, 1, 1)]
-        [TestCase(2, 1, 2, 2)]
-        [TestCase(7.25, 0.25, 21, 7.25)]
-        [TestCase(5.1324, 1, 0, 0)]
-        [TestCase(2000, 1, 2000, 2000)]
-        [TestCase(54, 99, 0, 0)]
-        [TestCase(3, 2, 1, 2)]
-        public void TestNumberOfTimesCompleted(
-            double deltaTimeInSeconds,
-            double timeToCompleteInSeconds,
-            int expectedNumberOfCompletions,
-            double expectedLastCompletionOffsetInSeconds
-        ) {
-            //"Normalizing" the minute values so that they match the correct TimeSpan precision
-            deltaTimeInSeconds = Time.NormalizeSeconds(deltaTimeInSeconds);
-            timeToCompleteInSeconds = Time.NormalizeSeconds(timeToCompleteInSeconds);
-
-            TestNumberOfTimesCompleted(
-                DateTime.Today,
-                DateTime.Today.AddSeconds(deltaTimeInSeconds),
-                TimeSpan.FromSeconds(timeToCompleteInSeconds),
-                expectedNumberOfCompletions,
-                DateTime.Today.AddSeconds(expectedLastCompletionOffsetInSeconds)
-            );
-        }
-
-        private static void TestNumberOfTimesCompleted(
-            DateTime startTime,
-            DateTime endTime,
-            TimeSpan duration,
-            int expectedNumberOfCompletions,
-            DateTime expectedLastCompletionTime
-        ) {
-            Assert.That(
-                IncrementalUtils.NumberOfTimesCompleted(startTime, endTime, duration, out var lastCompletionTime),
-                Is.EqualTo(expectedNumberOfCompletions)
-            );
-
-            Assert.That(lastCompletionTime, Is.EqualTo(expectedLastCompletionTime));
-        }
-
         [Test]
         [Combinatorial]
         public void TestNumberOfTimesCompletedCombinatorial(
