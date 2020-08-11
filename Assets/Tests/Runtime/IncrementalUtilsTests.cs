@@ -26,10 +26,10 @@ namespace Tests.Runtime {
             [ValueSource(nameof(seconds))] double deltaTimeInSeconds,
             [ValueSource(nameof(seconds))] double timeToCompleteInSeconds
         ) {
-            LogUtils.Log($"{nameof(deltaTimeInSeconds)} = {deltaTimeInSeconds} ~ {Time.NormalizeSeconds(deltaTimeInSeconds)}");
+            LogUtils.Log($"{nameof(deltaTimeInSeconds)} = {deltaTimeInSeconds} ~ {TimeUtils.NormalizeSeconds(deltaTimeInSeconds)}");
 
-            deltaTimeInSeconds = Time.NormalizeSeconds(deltaTimeInSeconds);
-            timeToCompleteInSeconds = Time.NormalizeSeconds(timeToCompleteInSeconds);
+            deltaTimeInSeconds = TimeUtils.NormalizeSeconds(deltaTimeInSeconds);
+            timeToCompleteInSeconds = TimeUtils.NormalizeSeconds(timeToCompleteInSeconds);
 
             if (timeToCompleteInSeconds == 0) Assert.Ignore($"Failure conditions with a {nameof(timeToCompleteInSeconds)} of <= 9 are a different test!");
 

@@ -6,12 +6,12 @@ namespace Packages.BrandonUtils.Runtime {
     /// <summary>
     ///     Contains utility methods that manipulate or extend <see cref="DateTime" />, <see cref="TimeSpan" />, etc.
     /// </summary>
-    public static class Time {
+    public static class TimeUtils {
         /// <summary>
         ///     Corresponds to <a href="https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.datavisualization.charting.datetimeintervaltype?view=netframework-4.8">DateTimeIntervalType</a> and <a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualbasic.dateinterval?view=netcore-3.1">DateInterval</a>, but I couldn't find a corresponding enum that was available inside of Unity.
         /// </summary>
         /// <remarks>
-        ///     <li>Specifically for use in <see cref="Time.NormalizePrecision" />.</li>
+        ///     <li>Specifically for use in <see cref="TimeUtils.NormalizePrecision" />.</li>
         ///     <li>These should have parity with the <see cref="TimeSpan" /> methods like <see cref="TimeSpan.FromDays" />.</li>
         /// </remarks>
         public enum IntervalType {

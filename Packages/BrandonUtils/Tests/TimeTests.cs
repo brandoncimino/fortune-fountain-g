@@ -26,8 +26,8 @@ namespace Packages.BrandonUtils.Tests {
             [ValueSource(nameof(valuesInSeconds))] double dividendSeconds,
             [ValueSource(nameof(valuesInSeconds))] double divisorSeconds
         ) {
-            dividendSeconds = Time.NormalizeSeconds(dividendSeconds);
-            divisorSeconds = Time.NormalizeSeconds(divisorSeconds);
+            dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
+            divisorSeconds = TimeUtils.NormalizeSeconds(divisorSeconds);
 
             if (divisorSeconds == 0) Assert.Ignore("Checking for division by zero is a different test!");
 
@@ -48,8 +48,8 @@ namespace Packages.BrandonUtils.Tests {
             [ValueSource(nameof(valuesInSeconds))] double dividendSeconds,
             [ValueSource(nameof(valuesInSeconds))] double divisorSeconds
         ) {
-            dividendSeconds = Time.NormalizeSeconds(dividendSeconds);
-            divisorSeconds = Time.NormalizeSeconds(divisorSeconds);
+            dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
+            divisorSeconds = TimeUtils.NormalizeSeconds(divisorSeconds);
 
             if (divisorSeconds == 0) Assert.Ignore("Checking for division by zero is a different test!");
 
@@ -70,8 +70,8 @@ namespace Packages.BrandonUtils.Tests {
             [ValueSource(nameof(valuesInSeconds))] double dividendSeconds,
             [ValueSource(nameof(valuesInSeconds))] double divisorSeconds
         ) {
-            dividendSeconds = Time.NormalizeSeconds(dividendSeconds);
-            divisorSeconds = Time.NormalizeSeconds(divisorSeconds);
+            dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
+            divisorSeconds = TimeUtils.NormalizeSeconds(divisorSeconds);
 
             if (divisorSeconds == 0) Assert.Ignore("The divisor must not be 0 - that's a different test.");
 
