@@ -2,8 +2,6 @@
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime;
 
-// ReSharper disable CompareOfFloatsByEqualityOperator
-
 namespace Packages.BrandonUtils.Tests {
     public class TimeTests {
         private static double[] valuesInSeconds = {
@@ -29,12 +27,14 @@ namespace Packages.BrandonUtils.Tests {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds = TimeUtils.NormalizeSeconds(divisorSeconds);
 
-            if (divisorSeconds == 0) Assert.Ignore("Checking for division by zero is a different test!");
+            Assume.That(divisorSeconds, Is.Not.EqualTo(0), "Checking for division by zero is a different test!");
 
             var dividend = TimeSpan.FromSeconds(dividendSeconds);
             var divisor = TimeSpan.FromSeconds(divisorSeconds);
 
-            Assert.That(dividend.Divide(divisor), Is.EqualTo(dividendSeconds / divisorSeconds));
+            var expectedDivisionResult = (double) dividend.Ticks / divisor.Ticks;
+
+            Assert.That(dividend.Divide(divisor), Is.EqualTo(expectedDivisionResult));
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace Packages.BrandonUtils.Tests {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds = TimeUtils.NormalizeSeconds(divisorSeconds);
 
-            if (divisorSeconds == 0) Assert.Ignore("Checking for division by zero is a different test!");
+            Assume.That(divisorSeconds, Is.Not.EqualTo(0), "Checking for division by zero is a different test!");
 
             var dividend = TimeSpan.FromSeconds(dividendSeconds);
             var divisor = TimeSpan.FromSeconds(divisorSeconds);
@@ -73,7 +73,7 @@ namespace Packages.BrandonUtils.Tests {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds = TimeUtils.NormalizeSeconds(divisorSeconds);
 
-            if (divisorSeconds == 0) Assert.Ignore("The divisor must not be 0 - that's a different test.");
+            Assume.That(divisorSeconds, Is.Not.EqualTo(0), "Checking for division by zero is a different test!");
 
             var dividend = TimeSpan.FromSeconds(dividendSeconds);
             var divisor = TimeSpan.FromSeconds(divisorSeconds);
