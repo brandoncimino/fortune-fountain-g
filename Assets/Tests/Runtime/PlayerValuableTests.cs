@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using NUnit.Framework;
+using Packages.BrandonUtils.Runtime;
 using Runtime;
 using Runtime.Saving;
 using Runtime.Valuables;
@@ -36,8 +39,32 @@ namespace Tests.Runtime {
             const string nickName = nameof(TestGenerateIsLimitedByRate);
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nickName);
 
+            const int valuableRate = 1;
+            GameManager.SaveData.PlayerValuables.ForEach(it => it.Rate = valuableRate);
+
+            var generateCounters = AddValuableCounters();
+            foreach (var playerValuable in GameManager.SaveData.PlayerValuables.Values) playerValuable.LastGenerateTime = DateTime.Now.Subtract(playerValuable.GenerateInterval);
+
+            GameManager.SaveData.PlayerValuables.ForEach(it => it.CheckGenerate());
+
+            foreach (var gCounter in generateCounters) Assert.That(gCounter.Value, Is.EqualTo(1), $"The valuable {gCounter.Key} was generated {gCounter.Value} times!");
+
+            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval);
+
+            GameManager.SaveData.PlayerValuables.ForEach(it => it.CheckGenerate());
+
+            foreach (var gCounter in generateCounters) Assert.That(gCounter.Value, Is.EqualTo(2), $"The valuable {gCounter.Key} was generated {gCounter.Value} times!");
+        }
+
+        private Dictionary<ValuableType, int> AddValuableCounters() {
             var generateCounters = new Dictionary<ValuableType, int>();
-            GameManager.SaveData.PlayerValuables.CheckGenerate();
+
+            foreach (var playerValuable in GameManager.SaveData.PlayerValuables.Values) {
+                generateCounters.Add(playerValuable.ValuableType, 0);
+                playerValuable.GeneratePlayerValuableEvent += valuable => generateCounters[valuable.ValuableType] = generateCounters[valuable.ValuableType + 1];
+            }
+
+            return generateCounters;
         }
     }
 }
