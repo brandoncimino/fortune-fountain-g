@@ -1,6 +1,9 @@
 ﻿using System;
 
 namespace Packages.BrandonUtils.Runtime {
+    /// <summary>
+    ///     Contains utility methods that manipulate or extend <see cref="DateTime" />, <see cref="TimeSpan" />, etc.
+    /// </summary>
     public static class Time {
         /// <summary>
         ///     Mimics .NET Core's <a href="https://docs.microsoft.com/en-us/dotnet/api/system.timespan.divide">TimeSpan.Divide</a>.
@@ -41,6 +44,16 @@ namespace Packages.BrandonUtils.Runtime {
 
         private static void ValidateDivisor(TimeSpan divisor) {
             if (divisor == TimeSpan.Zero) throw new DivideByZeroException("Cannot divide by a zero TimeSpan!");
+        }
+
+        /// <summary>
+        ///     Multiplies <paramref name="timeSpan" /> by <paramref name="factor" />, returning a new <see cref="TimeSpan" />.
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        /// <param name="factor"></param>
+        /// <returns></returns>
+        public static TimeSpan Multiply(this TimeSpan timeSpan, double factor) {
+            return TimeSpan.FromSeconds(timeSpan.TotalSeconds * factor);
         }
     }
 }
