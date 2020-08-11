@@ -33,26 +33,10 @@ namespace Packages.BrandonUtils.Runtime {
         /// </summary>
         /// <param name="dividend">The number to be divided (i.e. top of the fraction)</param>
         /// <param name="divisor">The number by which <paramref name="dividend" /> will be divided (i.e. the bottom of the fraction)</param>
-        /// <seealso cref="QuotientSpan" />
         /// <returns></returns>
         public static TimeSpan Modulus(this TimeSpan dividend, TimeSpan divisor) {
             ValidateDivisor(divisor);
             return TimeSpan.FromTicks(dividend.Ticks % divisor.Ticks);
-        }
-
-        /// <summary>
-        ///     Performs division similar to <see cref="Quotient" />, but returns the result as a <see cref="TimeSpan" />.
-        /// </summary>
-        /// <remarks>
-        ///     Should be equivalent to multiplying <paramref name="dividend" /> by the result of <see cref="Quotient" />, but is simpler in its actual execution.
-        /// </remarks>
-        /// <param name="dividend">The number to be divided (i.e. top of the fraction)</param>
-        /// <param name="divisor">The number by which <paramref name="dividend" /> will be divided (i.e. the bottom of the fraction)</param>
-        /// <seealso cref="Modulus" />
-        /// <returns></returns>
-        public static TimeSpan QuotientSpan(this TimeSpan dividend, TimeSpan divisor) {
-            ValidateDivisor(divisor);
-            return TimeSpan.FromTicks(dividend.Ticks / divisor.Ticks);
         }
 
         private static void ValidateDivisor(TimeSpan divisor) {
