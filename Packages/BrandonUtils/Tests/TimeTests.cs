@@ -13,7 +13,11 @@ namespace Packages.BrandonUtils.Tests {
             2,
             10,
             264576.523,
-            7801.623
+            7801.623,
+            15.623,
+            0.123,
+            234678.234,
+            345.4 * 645.2
         };
 
         [Test]
@@ -22,6 +26,9 @@ namespace Packages.BrandonUtils.Tests {
             [ValueSource(nameof(valuesInSeconds))] double dividendSeconds,
             [ValueSource(nameof(valuesInSeconds))] double divisorSeconds
         ) {
+            dividendSeconds = Time.NormalizeSeconds(dividendSeconds);
+            divisorSeconds = Time.NormalizeSeconds(divisorSeconds);
+
             if (divisorSeconds == 0) Assert.Ignore("Checking for division by zero is a different test!");
 
             var dividend = TimeSpan.FromSeconds(dividendSeconds);
@@ -41,6 +48,9 @@ namespace Packages.BrandonUtils.Tests {
             [ValueSource(nameof(valuesInSeconds))] double dividendSeconds,
             [ValueSource(nameof(valuesInSeconds))] double divisorSeconds
         ) {
+            dividendSeconds = Time.NormalizeSeconds(dividendSeconds);
+            divisorSeconds = Time.NormalizeSeconds(divisorSeconds);
+
             if (divisorSeconds == 0) Assert.Ignore("Checking for division by zero is a different test!");
 
             var dividend = TimeSpan.FromSeconds(dividendSeconds);
@@ -56,16 +66,19 @@ namespace Packages.BrandonUtils.Tests {
 
         [Test]
         [Combinatorial]
-        public void TestModulus(
+        public void TestModulusCombinatorial(
             [ValueSource(nameof(valuesInSeconds))] double dividendSeconds,
             [ValueSource(nameof(valuesInSeconds))] double divisorSeconds
         ) {
+            dividendSeconds = Time.NormalizeSeconds(dividendSeconds);
+            divisorSeconds = Time.NormalizeSeconds(divisorSeconds);
+
             if (divisorSeconds == 0) Assert.Ignore("The divisor must not be 0 - that's a different test.");
 
             var dividend = TimeSpan.FromSeconds(dividendSeconds);
             var divisor = TimeSpan.FromSeconds(divisorSeconds);
-            var expectedModTicks = dividend.Ticks % divisor.Ticks;
-            var expectedModSpan = TimeSpan.FromTicks(expectedModTicks);
+            var expectedModSeconds = dividend.TotalSeconds % divisor.TotalSeconds;
+            var expectedModSpan = TimeSpan.FromSeconds(expectedModSeconds);
 
             Assert.That(
                 dividend.Modulus(divisor),
