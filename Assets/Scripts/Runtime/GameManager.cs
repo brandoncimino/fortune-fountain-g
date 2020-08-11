@@ -12,6 +12,8 @@ namespace Runtime {
         /// </summary>
         /// <remarks>
         ///     Ideally, this would be marked as <c>readonly</c>, but <see cref="SystemInfo.deviceName" /> cannot be used inside of a static initializer and must instead be used inside of <see cref="Awake" /> or <see cref="Start" />.
+        ///     <br />
+        ///     Update 8/11/2020 - Actually, that's probably ok; if someone changes devices, then this will probably need to be updated after they start the game since it will have to contact something like Google Play to get the appropriate information
         /// </remarks>
         private static string SaveFileName;
 
