@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Packages.BrandonUtils.Runtime {
     public static class StringUtils {
@@ -28,6 +31,7 @@ namespace Packages.BrandonUtils.Runtime {
             return string.Join(separator, list);
         }
 
+        /// <inheritdoc cref="Repeat(string,int,string)" />
         public static string Repeat(this char toRepeat, int repetitions, string separator = "") {
             return Repeat(toRepeat.ToString(), repetitions, separator);
         }
@@ -62,6 +66,53 @@ namespace Packages.BrandonUtils.Runtime {
         /// <returns></returns>
         public static string Join(this string baseString, string stringToJoin, string separator = "") {
             return string.IsNullOrEmpty(baseString) ? stringToJoin : string.Join(separator, baseString, stringToJoin);
+        }
+
+        public static string Prettify(object thing, bool recursive = true, int recursionCount = 0) {
+            const int recursionMax = 10;
+            var type = thing.GetType().ToString();
+            string method = null;
+            string prettyString = null;
+
+            switch (thing) {
+                //don't do anything special with strings
+                //check for value types (int, char, etc.), which we shouldn't do anything fancy with
+                case string s:
+                    method = "string";
+                    prettyString = s;
+                    break;
+                case ValueType _:
+                    method = nameof(ValueType);
+                    prettyString = thing.ToString();
+                    break;
+                case IEnumerable enumerableThing:
+                    method = $"recursion, {recursionCount}";
+
+                    if (!recursive || recursionCount >= recursionMax) goto default;
+
+                    foreach (var entry in enumerableThing)
+                        if (entry is IEnumerable)
+                            prettyString = "\n" + Prettify(enumerableThing, true, recursionCount + 1);
+
+                    break;
+                default:
+                    try {
+                        method = "JSON";
+                        prettyString = JsonUtility.ToJson(thing, true);
+                    }
+                    catch (Exception) {
+                        method = "JSON - FAILED!";
+                    }
+
+                    break;
+            }
+
+            // account for null prettyString and method
+            // (we're doing this here, rather than initializing them to default values, so we can trigger things if there's a failure)
+            prettyString = prettyString ?? thing.ToString();
+            method = method ?? "NO METHOD FOUND";
+
+            return $"[{type}][{method}]{prettyString}".Indent(recursionCount);
         }
     }
 }
