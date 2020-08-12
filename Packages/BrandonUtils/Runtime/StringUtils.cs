@@ -70,34 +70,38 @@ namespace Packages.BrandonUtils.Runtime {
 
         public static string Prettify(object thing, bool recursive = true, int recursionCount = 0) {
             const int recursionMax = 10;
-            var type = thing.GetType().ToString();
-            string method = null;
-            string prettyString = null;
+            var       type         = thing.GetType().ToString();
+            string    method       = null;
+            string    prettyString = null;
 
             switch (thing) {
                 //don't do anything special with strings
                 //check for value types (int, char, etc.), which we shouldn't do anything fancy with
                 case string s:
-                    method = "string";
+                    method       = "string";
                     prettyString = s;
                     break;
                 case ValueType _:
-                    method = nameof(ValueType);
+                    method       = nameof(ValueType);
                     prettyString = thing.ToString();
                     break;
                 case IEnumerable enumerableThing:
                     method = $"recursion, {recursionCount}";
 
-                    if (!recursive || recursionCount >= recursionMax) goto default;
+                    recursionCount++;
 
-                    foreach (var entry in enumerableThing)
-                        if (entry is IEnumerable)
-                            prettyString = "\n" + Prettify(enumerableThing, true, recursionCount + 1);
+                    if (!recursive || recursionCount >= recursionMax) {
+                        goto default;
+                    }
+
+                    foreach (var entry in enumerableThing) {
+                        prettyString += "\n" + Prettify(entry, true, recursionCount);
+                    }
 
                     break;
                 default:
                     try {
-                        method = "JSON";
+                        method       = "JSON";
                         prettyString = JsonUtility.ToJson(thing, true);
                     }
                     catch (Exception) {
@@ -110,9 +114,10 @@ namespace Packages.BrandonUtils.Runtime {
             // account for null prettyString and method
             // (we're doing this here, rather than initializing them to default values, so we can trigger things if there's a failure)
             prettyString = prettyString ?? thing.ToString();
-            method = method ?? "NO METHOD FOUND";
+            method       = method ?? "NO METHOD FOUND";
 
-            return $"[{type}][{method}]{prettyString}".Indent(recursionCount);
+
+            return $"[{method}]{prettyString}".Indent(indentCount: recursionCount);
         }
     }
 }
