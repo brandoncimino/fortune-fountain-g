@@ -16,7 +16,7 @@ namespace Runtime.Valuables {
 
         /// The rate that a given Valuable is generated, measured in items per second.
         /// TODO: Currently defaults to 1, but will eventually combine upgrades, etc.
-        public double Rate = 1;
+        public double Rate { get; set; } = 1;
 
         public PlayerValuable(ValuableType valuableType) {
             ValuableType     = valuableType;
@@ -24,9 +24,7 @@ namespace Runtime.Valuables {
         }
 
         /// The fully calculated karma value of valuables of this type.
-        /// TODO: Right now this just returns the
-        /// <see cref="ValuableModel.ImmutableValue" />
-        /// , but this will eventually combine upgrades, etc.
+        /// TODO: Right now this just returns the <see cref="ValuableModel.ImmutableValue" />, but this will eventually combine upgrades, etc.
         public double KarmaValue => ValuableDatabase.Models[ValuableType].ImmutableValue;
 
         //TODO: This "serialize as ticks, but manipulate as a DateTime" concept is something I like and am using a bunch - maybe I can create a "TimeStamp" class for BrandonUtils that is an extension of DateTime, but serializes as Ticks?
@@ -35,10 +33,7 @@ namespace Runtime.Valuables {
             set => lastGenerateTime = value.Ticks;
         }
 
-        /// <see cref="Rate" />
-        /// converted to a
-        /// <see cref="TimeSpan" />
-        /// .
+        /// <see cref="Rate" /> converted to a <see cref="TimeSpan" />.
         public TimeSpan GenerateInterval {
             get {
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
