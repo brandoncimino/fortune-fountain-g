@@ -19,7 +19,7 @@ namespace Runtime.Valuables {
         public double Rate = 1;
 
         public PlayerValuable(ValuableType valuableType) {
-            ValuableType = valuableType;
+            ValuableType     = valuableType;
             LastGenerateTime = DateTime.Now;
         }
 
@@ -58,18 +58,17 @@ namespace Runtime.Valuables {
         ///     Relies on <see cref="IncrementalUtils.NumberOfTimesCompleted" />
         /// </remarks>
         public void CheckGenerate() {
-            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(
-                LastGenerateTime,
-                DateTime.Now,
-                GenerateInterval,
-                out var timeOfGeneration
-            );
+            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(LastGenerateTime, DateTime.Now, GenerateInterval, out var timeOfGeneration);
 
             if (numberToGenerate > 0) {
                 GameManager.SaveData.Hand.Grab(Throwable, numberToGenerate);
                 LastGenerateTime = timeOfGeneration;
                 GeneratePlayerValuableEvent?.Invoke(this);
             }
+        }
+
+        public override string ToString() {
+            return JsonUtility.ToJson(this);
         }
     }
 }
