@@ -3,7 +3,7 @@ using NUnit.Framework.Constraints;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Packages.BrandonUtils.Runtime {
+namespace Packages.BrandonUtils.Runtime.Testing {
     public static class TestUtils {
         /// <summary>
         /// Assert that <paramref name="expectedList"/> and <see cref="actualList"/> match <b>exactly</b>.

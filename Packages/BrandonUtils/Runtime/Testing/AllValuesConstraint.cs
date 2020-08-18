@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework.Constraints;
 
-namespace Packages.BrandonUtils.Runtime {
+namespace Packages.BrandonUtils.Runtime.Testing {
     /// <summary>
     /// A convenient shortcut for a <see cref="PropertyConstraint"/> with the <see cref="PropertyConstraint.name"/> "Value".
     /// </summary>

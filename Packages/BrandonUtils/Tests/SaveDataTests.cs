@@ -5,29 +5,29 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using NUnit.Framework;
-using Packages.BrandonUtils.Runtime;
 using Packages.BrandonUtils.Runtime.Saving;
+using Packages.BrandonUtils.Runtime.Testing;
 using UnityEngine;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Packages.BrandonUtils.Tests {
     public class SaveDataTests {
-        const string DummyNickName = "DummySaveFile";
+        const  string       DummyNickName = "DummySaveFile";
         static List<string> DummySaveFiles;
 
         static readonly Dictionary<string, DateTime> DummySaveDates = new Dictionary<string, DateTime>() {
-            [DummyNickName + "_000000000000000000"] = new DateTime(1, 1, 1, 0, 0, 0, 0),
-            [DummyNickName + "_000000036610010000"] = new DateTime(1, 1, 1, 1, 1, 1, 1),
-            [DummyNickName + "_628771195208760000"] = new DateTime(1993, 7, 1, 10, 32, 0, 876),
-            [DummyNickName + "_628771627200000000"] = new DateTime(1993, 7, 1, 22, 32, 0, 0),
-            [DummyNickName + "_628771627200010000"] = new DateTime(1993, 7, 1, 22, 32, 0, 1),
+            [DummyNickName + "_000000000000000000"] = new DateTime(1,    1,  1,  0,  0,  0,  0),
+            [DummyNickName + "_000000036610010000"] = new DateTime(1,    1,  1,  1,  1,  1,  1),
+            [DummyNickName + "_628771195208760000"] = new DateTime(1993, 7,  1,  10, 32, 0,  876),
+            [DummyNickName + "_628771627200000000"] = new DateTime(1993, 7,  1,  22, 32, 0,  0),
+            [DummyNickName + "_628771627200010000"] = new DateTime(1993, 7,  1,  22, 32, 0,  1),
             [DummyNickName + "_630822815999990000"] = new DateTime(1999, 12, 31, 23, 59, 59, 999),
-            [DummyNickName + "_630822816000000000"] = new DateTime(2000, 1, 1, 0, 0, 0, 0),
-            [DummyNickName + "_630877604740270000"] = new DateTime(2000, 3, 4, 9, 54, 34, 27),
-            [DummyNickName + "_637082333146780000"] = new DateTime(2019, 11, 1, 19, 28, 34, 678),
-            [DummyNickName + "_637082333151010000"] = new DateTime(2019, 11, 1, 19, 28, 35, 101),
-            [DummyNickName + "_637263971400020000"] = new DateTime(2020, 5, 30, 0, 59, 0, 2),
-            [DummyNickName + "_645217199999990000"] = new DateTime(2045, 08, 12, 3, 59, 59, 999),
+            [DummyNickName + "_630822816000000000"] = new DateTime(2000, 1,  1,  0,  0,  0,  0),
+            [DummyNickName + "_630877604740270000"] = new DateTime(2000, 3,  4,  9,  54, 34, 27),
+            [DummyNickName + "_637082333146780000"] = new DateTime(2019, 11, 1,  19, 28, 34, 678),
+            [DummyNickName + "_637082333151010000"] = new DateTime(2019, 11, 1,  19, 28, 35, 101),
+            [DummyNickName + "_637263971400020000"] = new DateTime(2020, 5,  30, 0,  59, 0,  2),
+            [DummyNickName + "_645217199999990000"] = new DateTime(2045, 08, 12, 3,  59, 59, 999),
         };
 
         [OneTimeSetUp]
@@ -38,9 +38,7 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         private static List<string> GetExistingSaveFiles(string nickName = DummyNickName) {
-            return Directory
-                   .GetFiles(SaveDataTestImpl.SaveFolderPath, $"{nickName}*{SaveDataTestImpl.SaveFileExtension}")
-                   .ToList();
+            return Directory.GetFiles(SaveDataTestImpl.SaveFolderPath, $"{nickName}*{SaveDataTestImpl.SaveFileExtension}").ToList();
         }
 
         [Test]
@@ -60,8 +58,7 @@ namespace Packages.BrandonUtils.Tests {
 
         private static string MakeDummyFile(string fileName) {
             Log("Creating dummy file: " + fileName);
-            string newFilePath = Path.ChangeExtension(Path.Combine(SaveDataTestImpl.SaveFolderPath, fileName),
-                                                      SaveDataTestImpl.SaveFileExtension);
+            string newFilePath = Path.ChangeExtension(Path.Combine(SaveDataTestImpl.SaveFolderPath, fileName), SaveDataTestImpl.SaveFileExtension);
 
             //create the save folder if it doesn't already exist:
             Directory.CreateDirectory(SaveDataTestImpl.SaveFolderPath);
@@ -74,8 +71,7 @@ namespace Packages.BrandonUtils.Tests {
         private static void DeleteSaveFiles(string nickName = DummyNickName) {
             Log($"Clearing old save files named {nickName}...");
             GetExistingSaveFiles(nickName).ForEach(File.Delete);
-            Assume.That(GetExistingSaveFiles(nickName), Is.Empty,
-                        "There were still dummy files left after we tried to delete them all!");
+            Assume.That(GetExistingSaveFiles(nickName), Is.Empty, "There were still dummy files left after we tried to delete them all!");
         }
 
         /*
@@ -101,11 +97,7 @@ namespace Packages.BrandonUtils.Tests {
             }
 
             Log("Finished creating dummy save files:\n" + string.Join("\n", allSaves));
-            Assume.That(
-                GetExistingSaveFiles().Count,
-                Is.EqualTo(DummySaveDates.Count),
-                "Didn't generate the proper number of save files!"
-            );
+            Assume.That(GetExistingSaveFiles().Count, Is.EqualTo(DummySaveDates.Count), "Didn't generate the proper number of save files!");
             return allSaves;
         }
 
@@ -135,11 +127,7 @@ namespace Packages.BrandonUtils.Tests {
             Assume.That(trimTo, Is.LessThanOrEqualTo(DummySaveDates.Count));
             MakeDummyFiles();
             SaveDataTestImpl.TrimSaves(DummyNickName, trimTo);
-            Assert.That(
-                GetExistingSaveFiles().Count,
-                Is.EqualTo(trimTo),
-                "The incorrect number of files remained after trimming!"
-            );
+            Assert.That(GetExistingSaveFiles().Count, Is.EqualTo(trimTo), "The incorrect number of files remained after trimming!");
         }
 
         [Test]
@@ -148,17 +136,11 @@ namespace Packages.BrandonUtils.Tests {
             DeleteSaveFiles(nickName);
             var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestBackupSaveSlots));
 
-            for (int numberOfSaveFiles = 1;
-                 numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2;
-                 numberOfSaveFiles++) {
+            for (int numberOfSaveFiles = 1; numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2; numberOfSaveFiles++) {
                 Thread.Sleep(SaveDataTestImpl.ReSaveDelay);
                 newSave.Save();
                 Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
-                Assert.AreEqual(
-                    Math.Min(numberOfSaveFiles + 1, SaveDataTestImpl.BackupSaveSlots),
-                    SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName).Length,
-                    $"Didn't find the correct number of saves!\n\t{string.Join("\n\t", SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName))}"
-                );
+                Assert.AreEqual(Math.Min(numberOfSaveFiles + 1, SaveDataTestImpl.BackupSaveSlots), SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName).Length, $"Didn't find the correct number of saves!\n\t{string.Join("\n\t", SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName))}");
             }
         }
 
@@ -167,7 +149,7 @@ namespace Packages.BrandonUtils.Tests {
         /// </summary>
         [Test]
         public void TestSerializeLastSaveTime() {
-            var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestSerializeLastSaveTime));
+            var newSave  = SaveDataTestImpl.NewSaveFile(nameof(TestSerializeLastSaveTime));
             var saveJson = JsonUtility.ToJson(newSave, true);
             Log($"{nameof(saveJson)}: {saveJson}");
             Assert.IsTrue(saveJson.Contains($"\"lastSaveTime\": {newSave.LastSaveTime.Ticks}"));
@@ -175,8 +157,8 @@ namespace Packages.BrandonUtils.Tests {
 
         [Test]
         public void TestToStringMatchesToJson() {
-            var newSave = SaveDataTestImpl.NewSaveFile(MethodBase.GetCurrentMethod().Name);
-            var saveJson = JsonUtility.ToJson(newSave, true);
+            var newSave    = SaveDataTestImpl.NewSaveFile(MethodBase.GetCurrentMethod().Name);
+            var saveJson   = JsonUtility.ToJson(newSave, true);
             var saveString = newSave.ToString();
             Assert.That(saveString, Is.EqualTo(saveJson));
         }
@@ -184,8 +166,8 @@ namespace Packages.BrandonUtils.Tests {
         [Test]
         public void TestLoadMostRecentSaveFile() {
             //save a few files
-            int saveCount = 3;
-            string nickName = nameof(TestLoadMostRecentSaveFile);
+            int    saveCount = 3;
+            string nickName  = nameof(TestLoadMostRecentSaveFile);
 
             //create a new save file with the desired nickname
             SaveDataTestImpl saveData = SaveDataTestImpl.NewSaveFile(nickName);
