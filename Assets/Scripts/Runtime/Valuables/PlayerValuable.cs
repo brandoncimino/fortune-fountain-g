@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Runtime.Valuables {
     public class PlayerValuable {
-        public delegate void GeneratePlayerValuableDelegate(PlayerValuable playerValuable);
+        public delegate void GeneratePlayerValuableDelegate(PlayerValuable playerValuable, int count);
 
         public readonly ValuableType ValuableType;
 
@@ -58,7 +58,7 @@ namespace Runtime.Valuables {
             if (numberToGenerate > 0) {
                 GameManager.SaveData.Hand.Grab(Throwable, numberToGenerate);
                 LastGenerateTime = timeOfGeneration;
-                GeneratePlayerValuableEvent?.Invoke(this);
+                GeneratePlayerValuableEvent?.Invoke(this, numberToGenerate);
             }
         }
 
