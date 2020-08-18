@@ -4,7 +4,9 @@
 
 namespace Packages.BrandonUtils.Runtime {
     /// <summary>
-    ///     Contains utility methods that manipulate or extend <see cref="DateTime" />, <see cref="TimeSpan" />, etc.
+    /// Contains utility methods that manipulate or extend <see cref="DateTime" />, <see cref="TimeSpan" />, etc.
+    ///
+    /// TODO: Allow for the syntax <c>TimeSpan * 2</c>. I think that would require a namespace-specific extension of <see cref="TimeSpan"/> that is also called <see cref="TimeSpan"/>...
     /// </summary>
     public static class TimeUtils {
         /// <summary>
