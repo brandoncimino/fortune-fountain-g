@@ -88,8 +88,14 @@ namespace Tests.Runtime {
             }
 
             public bool Equals(ValuableGenerationCounter other) {
-                if (ReferenceEquals(null, other)) return false;
-                if (ReferenceEquals(this, other)) return true;
+                if (ReferenceEquals(null, other)) {
+                    return false;
+                }
+
+                if (ReferenceEquals(this, other)) {
+                    return true;
+                }
+
                 return Events == other.Events && Amount == other.Amount;
             }
         }

@@ -20,7 +20,9 @@ namespace Packages.BrandonUtils.Runtime {
         public static List<T> Randomize<T>(this List<T> oldList) {
             var backupList = oldList.Clone();
             oldList.Clear();
-            while (backupList.Count > 0) oldList.Add(GrabRandom(backupList));
+            while (backupList.Count > 0) {
+                oldList.Add(GrabRandom(backupList));
+            }
 
             return oldList;
         }
@@ -86,7 +88,9 @@ namespace Packages.BrandonUtils.Runtime {
         /// <seealso cref="ForEach{T,T2}(System.Collections.Generic.IDictionary{T,T2},System.Action{T2})" />
         /// <seealso cref="List{T}.ForEach" />
         public static void ForEach<T, T2>(this IDictionary<T, T2> dictionary, Action<KeyValuePair<T, T2>> action) {
-            foreach (var pair in dictionary) action.Invoke(pair);
+            foreach (var pair in dictionary) {
+                action.Invoke(pair);
+            }
         }
 
         /// <inheritdoc cref="ForEach{T,T2}(System.Collections.Generic.Dictionary{T,T2},System.Action{System.Collections.Generic.KeyValuePair{T,T2}})" />

@@ -48,17 +48,15 @@ namespace Runtime.Valuables {
         /// <param name="displayName"><see cref="DisplayName"/>. Defaults to <paramref name="type"/>.</param>
         /// <exception cref="ArgumentException">if <paramref name="magnitudes"/> is empty.</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="magnitudes"/> or any of its items are null.</exception>
-        public ValuableModel(
-            ValuableType type,
-            long immutableValue,
-            [NotNull] [ItemNotNull] Noun[] magnitudes,
-            Noun displayName = null
-        ) {
-            if (magnitudes.Length == 0) throw new ArgumentException("Value cannot be an empty collection.", nameof(magnitudes));
-            Type = type;
+        public ValuableModel(ValuableType type, long immutableValue, [NotNull] [ItemNotNull] Noun[] magnitudes, Noun displayName = null) {
+            if (magnitudes.Length == 0) {
+                throw new ArgumentException("Value cannot be an empty collection.", nameof(magnitudes));
+            }
+
+            Type           = type;
             ImmutableValue = immutableValue;
-            DisplayName = displayName ?? new Noun(Type.ToString());
-            Magnitudes = magnitudes ?? throw new ArgumentNullException(nameof(magnitudes));
+            DisplayName    = displayName ?? new Noun(Type.ToString());
+            Magnitudes     = magnitudes ?? throw new ArgumentNullException(nameof(magnitudes));
         }
     }
 }

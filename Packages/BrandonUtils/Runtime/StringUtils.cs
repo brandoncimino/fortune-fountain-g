@@ -26,7 +26,9 @@ namespace Packages.BrandonUtils.Runtime {
         /// <returns></returns>
         public static string Repeat(this string toRepeat, int repetitions, string separator = "") {
             var list = new List<string>();
-            for (var i = 0; i < repetitions; i++) list.Add(toRepeat);
+            for (var i = 0; i < repetitions; i++) {
+                list.Add(toRepeat);
+            }
 
             return string.Join(separator, list);
         }

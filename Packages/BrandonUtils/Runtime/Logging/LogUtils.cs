@@ -14,9 +14,9 @@ namespace Packages.BrandonUtils.Runtime.Logging {
             All = Console | Unity | UI
         }
 
-        public static List<string> lines = new List<string>();
-        public static Locations locations = Locations.All;
-        private Text _text;
+        public static List<string> lines     = new List<string>();
+        public static Locations    locations = Locations.All;
+        private       Text         _text;
 
         private void Awake() {
             _text = GetComponent<Text>();
@@ -28,13 +28,19 @@ namespace Packages.BrandonUtils.Runtime.Logging {
         }
 
         public static void Log(Color? color, params object[] stuffToLog) {
-            foreach (var thing in stuffToLog) lines.Add(Colorize(thing, color));
+            foreach (var thing in stuffToLog) {
+                lines.Add(Colorize(thing, color));
+            }
 
             var joinedLines = string.Join("\n", stuffToLog);
 
-            if (locations.HasFlag(Locations.Console)) Console.WriteLine(joinedLines);
+            if (locations.HasFlag(Locations.Console)) {
+                Console.WriteLine(joinedLines);
+            }
 
-            if (locations.HasFlag(Locations.Unity)) Debug.Log(joinedLines);
+            if (locations.HasFlag(Locations.Unity)) {
+                Debug.Log(joinedLines);
+            }
         }
 
         public static string Colorize(object thing, Color? color) {

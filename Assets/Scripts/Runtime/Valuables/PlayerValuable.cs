@@ -37,7 +37,10 @@ namespace Runtime.Valuables {
         public TimeSpan GenerateInterval {
             get {
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (Rate == 0) throw new ArgumentException("The rate for this item is 0!");
+                if (Rate == 0) {
+                    throw new ArgumentException("The rate for this item is 0!");
+                }
+
                 return TimeSpan.FromSeconds(1 / Rate);
             }
         }
