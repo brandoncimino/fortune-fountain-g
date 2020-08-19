@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Runtime.Valuables;
 
 namespace Runtime.Utils {
@@ -7,14 +8,15 @@ namespace Runtime.Utils {
     /// </summary>
     public static class FortuneFountainUtils {
         /// <summary>
-        /// Calls <see cref="PlayerValuable.CheckGenerate"/> against all <see cref="IDictionary{TKey,TValue}.Values"/> in <paramref name="playerValuables"/>.
+        /// Calls <see cref="PlayerValuable.CheckGenerate()"/> against all <see cref="IDictionary{TKey,TValue}.Values"/> in <paramref name="playerValuables"/>.
         ///
         /// TODO: Can this be placed somewhere closer to <see cref="PlayerValuable"/>?
         /// </summary>
         /// <param name="playerValuables"></param>
-        public static void CheckGenerate<T>(this IDictionary<T, PlayerValuable> playerValuables) {
+        /// <param name="endTime"></param>
+        public static void CheckGenerate<T>(this IDictionary<T, PlayerValuable> playerValuables, DateTime? endTime = null) {
             foreach (var pair in playerValuables) {
-                pair.Value.CheckGenerate();
+                pair.Value.CheckGenerate(endTime);
             }
         }
 
@@ -23,9 +25,10 @@ namespace Runtime.Utils {
         /// </summary>
         /// <seealso cref="CheckGenerate{T}"/>
         /// <param name="playerValuables"></param>
-        public static void CheckGenerate(this IEnumerable<PlayerValuable> playerValuables) {
+        /// <param name="endTime"></param>
+        public static void CheckGenerate(this IEnumerable<PlayerValuable> playerValuables, DateTime? endTime = null) {
             foreach (var playerValuable in playerValuables) {
-                playerValuable.CheckGenerate();
+                playerValuable.CheckGenerate(endTime);
             }
         }
     }

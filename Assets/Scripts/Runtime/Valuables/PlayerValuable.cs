@@ -52,11 +52,12 @@ namespace Runtime.Valuables {
         /// <summary>
         ///     Checks if this valuable should be generated, based on its <see cref="Rate" />, and if so, <see cref="Hand.Grab" />s the appropriate amount and updates <see cref="LastGenerateTime" />.
         /// </summary>
+        /// <param name="endTime">The end time that generation should be checked against. Defaults to <see cref="DateTime.Now"/> if <c>null</c> is passed or <paramref name="endTime"/> is omitted.</param>
         /// <remarks>
         ///     Relies on <see cref="IncrementalUtils.NumberOfTimesCompleted" />
         /// </remarks>
-        public void CheckGenerate() {
-            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(LastGenerateTime, DateTime.Now, GenerateInterval, out var timeOfGeneration);
+        public void CheckGenerate(DateTime? endTime = null) {
+            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(LastGenerateTime, endTime ?? DateTime.Now, GenerateInterval, out var timeOfGeneration);
 
             if (numberToGenerate > 0) {
                 GameManager.SaveData.Hand.Grab(Throwable, numberToGenerate);

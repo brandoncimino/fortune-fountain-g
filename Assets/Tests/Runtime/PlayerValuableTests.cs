@@ -32,7 +32,7 @@ namespace Tests.Runtime {
             GameManager.SaveData.PlayerValuables[0].GeneratePlayerValuableEvent += (valuable, amount) => generateCounter++;
 
             for (var i = 0; i < 10; i++) {
-                GameManager.SaveData.PlayerValuables[0].CheckGenerate();
+                GameManager.SaveData.PlayerValuables[0].CheckGenerate(DateTime.Now);
                 Assert.That(generateCounter, Is.EqualTo(0));
             }
         }
@@ -58,21 +58,21 @@ namespace Tests.Runtime {
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 0, Amount = 0}));
 
             //Generate stuff
-            GameManager.SaveData.PlayerValuables.CheckGenerate();
+            GameManager.SaveData.PlayerValuables.CheckGenerate(DateTime.Now);
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 1, Amount = 1}));
 
             //sleep so we can expect to generate another item
             Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval);
 
             //Generate stuff
-            GameManager.SaveData.PlayerValuables.CheckGenerate();
+            GameManager.SaveData.PlayerValuables.CheckGenerate(DateTime.Now);
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 2, Amount = 2}));
 
             //sleep so that we can expect to generate _2_ more items
             Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(2));
 
             //Generate stuff
-            GameManager.SaveData.PlayerValuables.CheckGenerate();
+            GameManager.SaveData.PlayerValuables.CheckGenerate(DateTime.Now);
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 3, Amount = 4}));
         }
 
