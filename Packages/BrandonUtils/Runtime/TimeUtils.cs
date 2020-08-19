@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 // ReSharper disable MemberCanBePrivate.Global
 
@@ -138,6 +139,28 @@ namespace Packages.BrandonUtils.Runtime {
                 default:
                     throw new ArgumentOutOfRangeException(nameof(unit), unit, $"I don't know how to make a {nameof(TimeSpan)} out of {unit}s!");
             }
+        }
+
+        /// <summary>
+        /// Corresponds to <see cref="Math.Min(int, int)"/>, etc.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static DateTime Min(this DateTime a, DateTime b, params DateTime[] c) {
+            return c.Append(a).Append(b).Min();
+        }
+
+        /// <summary>
+        /// Corresponds to <see cref="Math.Max(byte,byte)"/>, etc.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static DateTime Max(this DateTime a, DateTime b, params DateTime[] c) {
+            return c.Append(a).Append(b).Max();
         }
     }
 }
