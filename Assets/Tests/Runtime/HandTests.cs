@@ -14,41 +14,24 @@ namespace Tests.Runtime {
         public void LastGrabTime() {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
 
-            Assert.That(
-                fortuneFountainSaveData.Hand.LastGrabTime,
-                Is.EqualTo(new DateTime())
-            );
+            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(new DateTime()));
 
             fortuneFountainSaveData.Hand.Grab(new Throwable(ValuableType.Coin, 10));
-            Assert.That(
-                fortuneFountainSaveData.Hand.LastGrabTime,
-                Is.EqualTo(DateTime.Now)
-            );
+            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(DateTime.Now));
         }
 
         [Test]
         public void LastThrowTime() {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
 
-            Assert.That(
-                fortuneFountainSaveData.Hand.LastThrowTime,
-                Is.EqualTo(new DateTime())
-            );
+            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(new DateTime()));
 
             var initialTime = fortuneFountainSaveData.Hand.LastThrowTime;
 
             fortuneFountainSaveData.Hand.Throw();
 
             //Because of the milliseconds of time it takes to do these assertions and stuff, the LastThrowTime isn't going to be exactly DateTime.Now, so we're instead asserting that the time is between the range of initialTime (exclusive) and DateTime.Now (inclusive).
-            Assert.That(
-                fortuneFountainSaveData.Hand.LastThrowTime,
-                Is.GreaterThan(initialTime)
-            );
-
-            Assert.That(
-                fortuneFountainSaveData.Hand.LastThrowTime,
-                Is.LessThanOrEqualTo(DateTime.Now)
-            );
+            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.InRange(initialTime, DateTime.Now));
         }
 
         [Test]
@@ -57,19 +40,13 @@ namespace Tests.Runtime {
 
             foreach (var valuableType in ValuableDatabase.ValuableTypes) {
                 //assert that it doesn't contain the item before we grab it
-                Assert.That(
-                    fortuneFountainSaveData.Hand.throwables.Select(it => it.ValuableType),
-                    new NotConstraint(Contains.Item(valuableType))
-                );
+                Assert.That(fortuneFountainSaveData.Hand.throwables.Select(it => it.ValuableType), new NotConstraint(Contains.Item(valuableType)));
 
                 //grab the item
                 fortuneFountainSaveData.Hand.Grab(new Throwable(valuableType, 10));
 
                 //assert that we're now holding it
-                Assert.That(
-                    fortuneFountainSaveData.Hand.throwables.Select(it => it.ValuableType),
-                    Contains.Item(valuableType)
-                );
+                Assert.That(fortuneFountainSaveData.Hand.throwables.Select(it => it.ValuableType), Contains.Item(valuableType));
             }
         }
 
@@ -115,7 +92,7 @@ namespace Tests.Runtime {
             Throwable.ThrowSingleEvent += throwable => throwCount++;
 
             save1.Hand.Throw();
-            Assert.That(throwCount, Is.EqualTo(1));
+            Assert.That(throwCount,            Is.EqualTo(1));
             Assert.That(save1.Hand.throwables, Is.Empty);
 
             save1.Hand.Throw();
@@ -159,18 +136,18 @@ namespace Tests.Runtime {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData {
                 Hand = {
                     throwables = new List<Throwable>() {
-                        new Throwable(ValuableType.Coin, 10),
-                        new Throwable(ValuableType.Fiduciary, 54),
-                        new Throwable(ValuableType.Coin, 87),
-                        new Throwable(ValuableType.Gem, 98),
-                        new Throwable(ValuableType.Livestock, 12341435),
+                        new Throwable(ValuableType.Coin,        10),
+                        new Throwable(ValuableType.Fiduciary,   54),
+                        new Throwable(ValuableType.Coin,        87),
+                        new Throwable(ValuableType.Gem,         98),
+                        new Throwable(ValuableType.Livestock,   12341435),
                         new Throwable(ValuableType.Collectible, 7845687),
-                        new Throwable(ValuableType.Metal, 0),
-                        new Throwable(ValuableType.Scrip, -123),
-                        new Throwable(ValuableType.Coin, 1.5),
-                        new Throwable(ValuableType.Scrip, Math.PI),
-                        new Throwable(ValuableType.Fiduciary, Math.E),
-                        new Throwable(ValuableType.Fiduciary, -238475.52349578),
+                        new Throwable(ValuableType.Metal,       0),
+                        new Throwable(ValuableType.Scrip,       -123),
+                        new Throwable(ValuableType.Coin,        1.5),
+                        new Throwable(ValuableType.Scrip,       Math.PI),
+                        new Throwable(ValuableType.Fiduciary,   Math.E),
+                        new Throwable(ValuableType.Fiduciary,   -238475.52349578),
                     }
                 }
             };
@@ -185,7 +162,7 @@ namespace Tests.Runtime {
             var fortuneFountainSaveData = SimpleSaveData();
 
             int expectedThrowEvents = fortuneFountainSaveData.Hand.throwables.Count;
-            int actualThrowEvents = 0;
+            int actualThrowEvents   = 0;
 
             //register an anonymous method to the ThrowSingleEvent that will count the number of events
             Throwable.ThrowSingleEvent += throwable => actualThrowEvents++;
