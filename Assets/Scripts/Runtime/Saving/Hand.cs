@@ -25,6 +25,20 @@ namespace Runtime.Saving {
 
         [SerializeField] [NotNull] public List<Throwable> throwables = new List<Throwable>();
 
+        //Generation-related stuff
+        /// The default, immutable value for <see cref="GenerateTimeLimit"/>
+        // ReSharper disable once InconsistentNaming
+        private static readonly TimeSpan ImmutableGenerateTimeLimit = TimeSpan.FromSeconds(5);
+
+        /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="ImmutableGenerateTimeLimit"/>.
+        [SerializeField]
+        public TimeSpan GenerateTimeLimit => ImmutableGenerateTimeLimit;
+
+        /// <summary>
+        /// The <see cref="DateTime"/> when the <see cref="GenerateTimeLimit"/> will be reached.
+        /// </summary>
+        public DateTime GenerateEndLimit => LastThrowTime + GenerateTimeLimit;
+
         public double KarmaInHand => throwables.Select(it => it.ThrowValue).Sum();
 
         public delegate void ThrowHandDelegate(Hand hand);
