@@ -1,4 +1,6 @@
-﻿using Runtime.Saving;
+﻿using System;
+using Runtime.Saving;
+using Runtime.Utils;
 using UnityEngine;
 
 namespace Runtime {
@@ -37,14 +39,16 @@ namespace Runtime {
         private void Start() { }
 
         // Update is called once per frame
-        private void Update() { }
+        private void Update() {
+            SaveData.PlayerValuables.CheckGenerate(DateTime.Now);
+        }
 
         /// <summary>
         ///     "Starts" the game, doing things such as loading the appropriate save file.
         /// </summary>
         public void LoadFortuneFountain() {
             SaveFileName = GetAppropriateSaveFileName();
-            SaveData = FortuneFountainSaveData.Load(SaveFileName);
+            SaveData     = FortuneFountainSaveData.Load(SaveFileName);
         }
 
         /// <summary>
@@ -55,6 +59,15 @@ namespace Runtime {
         /// <returns>The appropriate name for this user's save file.</returns>
         private static string GetAppropriateSaveFileName() {
             return SystemInfo.deviceName;
+        }
+
+        /// <summary>
+        /// The callback event for clicking on the throw button.
+        ///
+        /// TODO: Since the call to <see cref="Hand.Throw"/> can be static, <see cref="ThrowButton"/> can be static - it looks like there might be some fancy ways to reference static methods from buttons...maybe have them trigger generic events instead of specifically targeted objects? It would make things a bit more flexible...
+        /// </summary>
+        public void ThrowButton() {
+            SaveData.Hand.Throw();
         }
     }
 }
