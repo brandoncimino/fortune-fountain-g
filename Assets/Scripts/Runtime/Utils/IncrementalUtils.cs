@@ -33,7 +33,8 @@ namespace Runtime.Utils {
         /// <param name="lastCompletionTime">The time that the previous "completion" finished.</param>
         /// <returns></returns>
         public static double NumberOfTimesCompleted(DateTime startTime, DateTime endTime, TimeSpan durationToComplete, out DateTime lastCompletionTime) {
-            Contract.Assert(endTime >= startTime,               $"The given {nameof(endTime)} ({endTime}, {endTime.Ticks}) was before the given {nameof(startTime)} ({startTime}, {startTime.Ticks})!");
+            Contract.Assert(endTime >= startTime, $"The given {nameof(endTime)} ({endTime}, {endTime.Ticks}) was before the given {nameof(startTime)} ({startTime}, {startTime.Ticks})!");
+
             Contract.Assert(durationToComplete > TimeSpan.Zero, $"The given {nameof(durationToComplete)} ({durationToComplete}) must be greater than 0!");
 
             var deltaTime = endTime - startTime;
