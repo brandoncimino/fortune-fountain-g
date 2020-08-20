@@ -14,7 +14,12 @@ namespace Packages.BrandonUtils.Tests {
             15.623,
             0.123,
             234678.234,
-            345.4 * 645.2
+            345.4 * 645.2,
+            Math.PI,
+            0.1,
+            0.01,
+            0.001,
+            0.00001,
         };
 
         [Test]
@@ -52,7 +57,7 @@ namespace Packages.BrandonUtils.Tests {
             var dividend = TimeSpan.FromSeconds(dividendSeconds);
             var divisor  = TimeSpan.FromSeconds(divisorSeconds);
 
-            Assert.That(dividend.Quotient(divisor), Is.EqualTo(Math.Floor(dividendSeconds / divisorSeconds)));
+            Assert.That(dividend.Quotient(divisor), Is.EqualTo(dividend.Ticks / divisor.Ticks));
         }
 
         [Test]
@@ -70,12 +75,14 @@ namespace Packages.BrandonUtils.Tests {
 
             Assume.That(divisorSeconds, Is.Not.EqualTo(0), "Checking for division by zero is a different test!");
 
-            var dividend           = TimeSpan.FromSeconds(dividendSeconds);
-            var divisor            = TimeSpan.FromSeconds(divisorSeconds);
-            var expectedModSeconds = dividend.TotalSeconds % divisor.TotalSeconds;
-            var expectedModSpan    = TimeSpan.FromSeconds(expectedModSeconds);
+            var dividend         = TimeSpan.FromSeconds(dividendSeconds);
+            var divisor          = TimeSpan.FromSeconds(divisorSeconds);
+            var dividendTicks    = dividend.Ticks;
+            var divisorTicks     = divisor.Ticks;
+            var expectedModTicks = dividendTicks % divisorTicks;
+            var expectedModSpan  = TimeSpan.FromTicks(expectedModTicks);
 
-            Assert.That(dividend.Modulus(divisor), Is.EqualTo(expectedModSpan), $"The modulus of {dividend} % {divisor} = {expectedModSpan}");
+            Assert.That(dividend.Modulus(divisor), Is.EqualTo(expectedModSpan), $"The modulus of {dividend} % {divisor} = {expectedModSpan}\n\tIn Ticks: {dividendTicks} % {divisorTicks} = {expectedModTicks}");
         }
 
         [Test]
