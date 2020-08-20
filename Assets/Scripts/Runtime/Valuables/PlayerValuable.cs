@@ -43,7 +43,7 @@ namespace Runtime.Valuables {
                     throw new ArgumentException("The rate for this item is 0!");
                 }
 
-                return TimeSpan.FromSeconds(1 / Rate);
+                return TimeSpan.FromTicks((long) (TimeSpan.TicksPerSecond / Rate));
             }
         }
 
