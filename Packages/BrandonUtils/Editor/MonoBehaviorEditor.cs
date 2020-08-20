@@ -9,13 +9,7 @@ namespace Packages.BrandonUtils.Editor {
         public override void OnInspectorGUI() {
             base.OnInspectorGUI();
 
-            var type = target.GetType();
-
-            if (GUILayout.Button($"Button for [{type.Name}]")) {
-                LogUtils.Log($"My type is: {type}");
-            }
-
-            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)) {
+            foreach (var method in target.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)) {
                 var buttonAttribute = method.GetCustomAttribute<EditorInvocationButtonAttribute>();
                 if (buttonAttribute != null) {
                     buttonAttribute.ValidateMethod(method);
