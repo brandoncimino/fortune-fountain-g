@@ -31,13 +31,9 @@ namespace Runtime.Saving {
         private static readonly TimeSpan ImmutableGenerateTimeLimit = TimeSpan.FromSeconds(5);
 
         /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="ImmutableGenerateTimeLimit"/>.
-        [SerializeField]
-        public TimeSpan GenerateTimeLimit => ImmutableGenerateTimeLimit;
+        [SerializeField] public TimeSpan GenerateTimeLimit = ImmutableGenerateTimeLimit;
 
-        /// <summary>
-        /// The <see cref="DateTime"/> when the <see cref="GenerateTimeLimit"/> will be reached.
-        /// </summary>
-        public DateTime GenerateEndLimit => LastThrowTime + GenerateTimeLimit;
+        private DateTime initializedTime = DateTime.Now;
 
         public double KarmaInHand => throwables.Select(it => it.ThrowValue).Sum();
 
