@@ -8,6 +8,7 @@ namespace Packages.BrandonUtils.Runtime.Logging {
     public class LogUtils : MonoBehaviour {
         [Flags]
         public enum Locations {
+            None,
             Console,
             Unity,
             UI,
