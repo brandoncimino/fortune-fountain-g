@@ -1,5 +1,4 @@
-﻿using System;
-using Runtime.Saving;
+﻿using Runtime.Saving;
 using Runtime.Utils;
 using UnityEngine;
 
@@ -40,7 +39,8 @@ namespace Runtime {
 
         // Update is called once per frame
         private void Update() {
-            SaveData.PlayerValuables.CheckGenerate(DateTime.Now);
+            //call CheckGenerate(), using DateTime.Now limited by GenerateEndLimit
+            SaveData.PlayerValuables.CheckGenerate();
         }
 
         /// <summary>
@@ -65,6 +65,8 @@ namespace Runtime {
         /// The callback event for clicking on the throw button.
         ///
         /// TODO: Since the call to <see cref="Hand.Throw"/> can be static, <see cref="ThrowButton"/> can be static - it looks like there might be some fancy ways to reference static methods from buttons...maybe have them trigger generic events instead of specifically targeted objects? It would make things a bit more flexible...
+        ///
+        /// TODO: Make a class specifically to handle these small UI callback methods? Also, what does "callback" mean, really?
         /// </summary>
         public void ThrowButton() {
             SaveData.Hand.Throw();
