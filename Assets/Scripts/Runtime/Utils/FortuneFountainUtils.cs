@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Runtime.Valuables;
 
 namespace Runtime.Utils {
@@ -13,10 +12,9 @@ namespace Runtime.Utils {
         /// TODO: Can this be placed somewhere closer to <see cref="PlayerValuable"/>?
         /// </summary>
         /// <param name="playerValuables"></param>
-        /// <param name="endTime"></param>
-        public static void CheckGenerate<T>(this IDictionary<T, PlayerValuable> playerValuables, DateTime? endTime = null) {
+        public static void CheckGenerate<T>(this IDictionary<T, PlayerValuable> playerValuables) {
             foreach (var pair in playerValuables) {
-                pair.Value.CheckGenerate(endTime);
+                pair.Value.CheckGenerate();
             }
         }
 
@@ -26,9 +24,9 @@ namespace Runtime.Utils {
         /// <seealso cref="CheckGenerate{T}"/>
         /// <param name="playerValuables"></param>
         /// <param name="endTime"></param>
-        public static void CheckGenerate(this IEnumerable<PlayerValuable> playerValuables, DateTime? endTime = null) {
+        public static void CheckGenerate(this IEnumerable<PlayerValuable> playerValuables) {
             foreach (var playerValuable in playerValuables) {
-                playerValuable.CheckGenerate(endTime);
+                playerValuable.CheckGenerate();
             }
         }
     }
