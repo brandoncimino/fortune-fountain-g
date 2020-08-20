@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace Packages.BrandonUtils.Runtime {
@@ -120,6 +122,41 @@ namespace Packages.BrandonUtils.Runtime {
 
 
             return $"[{method}]{prettyString}".Indent(indentCount: recursionCount);
+        }
+
+        public static string ListVariables(object obj) {
+            return ListMembers(obj, MemberTypes.Property | MemberTypes.Field);
+        }
+
+        public static string ListProperties(object obj) {
+            return ListMembers(obj, MemberTypes.Property);
+        }
+
+        public static string ListFields(object obj) {
+            return ListMembers(obj, MemberTypes.Field);
+        }
+
+        public static string ListMembers(object obj, MemberTypes memberTypes = MemberTypes.All) {
+            //if obj is a already a type, cast it and use it; otherwise, grab its type
+            Type objType = obj is Type type ? type : obj.GetType();
+            return objType.GetMembers().Where(member => memberTypes.HasFlag(member.MemberType)).Aggregate($"[{objType}] {memberTypes}:", (current, member) => current + $"\n\t{FormatMember(member, obj)}");
+        }
+
+        public static string FormatMember(MemberInfo memberInfo, object obj = null) {
+            var result = $"[{memberInfo.MemberType}] {memberInfo}";
+
+            if (obj != null) {
+                switch (memberInfo) {
+                    case PropertyInfo propertyInfo:
+                        result += $": {propertyInfo.GetValue(obj)}";
+                        break;
+                    case FieldInfo fieldInfo:
+                        result += $": {fieldInfo.GetValue(obj)}";
+                        break;
+                }
+            }
+
+            return result;
         }
     }
 }
