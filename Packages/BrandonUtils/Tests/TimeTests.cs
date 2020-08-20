@@ -90,5 +90,17 @@ namespace Packages.BrandonUtils.Tests {
                                       double dividendSeconds) {
             Assert.Throws<DivideByZeroException>(() => TimeSpan.FromSeconds(dividendSeconds).Modulus(TimeSpan.Zero));
         }
+
+        [Test]
+        public void TestMultiply([ValueSource(                              nameof(valuesInSeconds)), Values(0)]
+                                 double multiplicandInSeconds, [ValueSource(nameof(valuesInSeconds)), Values(0)]
+                                 double multiplier) {
+            var multiplicand                 = TimeSpan.FromSeconds(multiplicandInSeconds);
+            var multiplicandTicks            = multiplicand.Ticks;
+            var expectedProductTicks         = (long) (multiplicandTicks * multiplier);
+            var expectedProductSpanFromTicks = TimeSpan.FromTicks(expectedProductTicks);
+
+            Assert.That(multiplicand.Multiply(multiplier), Is.EqualTo(expectedProductSpanFromTicks));
+        }
     }
 }
