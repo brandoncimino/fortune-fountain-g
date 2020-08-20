@@ -16,7 +16,7 @@ namespace Packages.BrandonUtils.Editor {
             }
 
             foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)) {
-                var buttonAttribute = method.GetCustomAttribute<EditorButtonAttribute>();
+                var buttonAttribute = method.GetCustomAttribute<EditorInvocationButtonAttribute>();
                 if (buttonAttribute != null) {
                     buttonAttribute.ValidateMethod(method);
 
