@@ -54,12 +54,12 @@ namespace Runtime.Valuables {
         /// <summary>
         ///     Checks if this valuable should be generated, based on its <see cref="Rate" />, and if so, <see cref="Hand.Grab" />s the appropriate amount and updates <see cref="LastGenerateTime" />.
         /// </summary>
-        /// <param name="generateLimit">The maximum amount of time that items can be generated. Defaults to <see cref="Hand.GenerateTimeLimit"/> if omitted <b><i>or <c>null</c></i></b>.</param>
+        /// <param name="generateLimitOverride">The maximum amount of time that items can be generated. Defaults to <see cref="Hand.GenerateTimeLimit"/> if omitted <b><i>or <c>null</c></i></b>.</param>
         /// <remarks>
         ///     Relies on <see cref="IncrementalUtils.NumberOfTimesCompleted" />
         /// </remarks>
-        public void CheckGenerate(TimeSpan? generateLimit = null) {
-            DateTime endTime = LastGenerateTime + generateLimit.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit);
+        public void CheckGenerate(TimeSpan? generateLimitOverride = null) {
+            DateTime endTime = LastGenerateTime + generateLimitOverride.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit);
 
             var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(LastGenerateTime, endTime, GenerateInterval, out var timeOfGeneration);
 
