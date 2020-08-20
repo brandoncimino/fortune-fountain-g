@@ -1,4 +1,5 @@
 ﻿using System;
+using Packages.BrandonUtils.Runtime;
 using Runtime.Saving;
 using Runtime.Utils;
 using UnityEngine;
@@ -7,7 +8,7 @@ namespace Runtime.Valuables {
     public class PlayerValuable {
         public delegate void GeneratePlayerValuableDelegate(PlayerValuable playerValuable, int count);
 
-        public readonly ValuableType ValuableType;
+        [field: SerializeField] public ValuableType ValuableType { get; private set; }
 
         /// <summary>
         ///     The <see cref="DateTime.Ticks" /> of the time the last time-dependent <see cref="Hand.Grab" /> was triggered.
@@ -16,6 +17,7 @@ namespace Runtime.Valuables {
 
         /// The rate that a given Valuable is generated, measured in items per second.
         /// TODO: Currently defaults to 1, but will eventually combine upgrades, etc.
+        [field: SerializeField]
         public double Rate { get; set; } = 1;
 
         public PlayerValuable(ValuableType valuableType) {
@@ -52,12 +54,14 @@ namespace Runtime.Valuables {
         /// <summary>
         ///     Checks if this valuable should be generated, based on its <see cref="Rate" />, and if so, <see cref="Hand.Grab" />s the appropriate amount and updates <see cref="LastGenerateTime" />.
         /// </summary>
-        /// <param name="endTime">The end time that generation should be checked against. Defaults to <see cref="DateTime.Now"/> if <c>null</c> is passed or <paramref name="endTime"/> is omitted.</param>
+        /// <param name="generateLimit">The maximum amount of time that items can be generated. Defaults to <see cref="Hand.GenerateTimeLimit"/> if omitted <b><i>or <c>null</c></i></b>.</param>
         /// <remarks>
         ///     Relies on <see cref="IncrementalUtils.NumberOfTimesCompleted" />
         /// </remarks>
-        public void CheckGenerate(DateTime? endTime = null) {
-            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(LastGenerateTime, endTime ?? DateTime.Now, GenerateInterval, out var timeOfGeneration);
+        public void CheckGenerate(TimeSpan? generateLimit = null) {
+            DateTime endTime = LastGenerateTime + generateLimit.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit);
+
+            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(LastGenerateTime, endTime, GenerateInterval, out var timeOfGeneration);
 
             if (numberToGenerate > 0) {
                 GameManager.SaveData.Hand.Grab(Throwable, numberToGenerate);
@@ -67,7 +71,7 @@ namespace Runtime.Valuables {
         }
 
         public override string ToString() {
-            return JsonUtility.ToJson(this);
+            return StringUtils.ListVariables(this);
         }
     }
 }
