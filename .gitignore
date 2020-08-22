@@ -132,4 +132,8 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # Excluded by Brandon on 5/12/2020 - not sure what it is but it doesn't seem important
+# Update from Brandon on 8/21/2020 - this includes settings like "Use experimental .NET features." When / why we'd want that, I'm still not sure of.
 /com.fowlfever.fortunefountaing.runtime.csproj.DotSettings
+
+# Use this folder for things you want to play with locally but not commit
+Assets/Scripts/Runtime/Sketchbook/
