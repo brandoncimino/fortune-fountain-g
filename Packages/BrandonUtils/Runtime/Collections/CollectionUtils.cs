@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Packages.BrandonUtils.Runtime {
+namespace Packages.BrandonUtils.Runtime.Collections {
     /// <summary>
     ///     Contains utility and extension methods for collections, such as <see cref="IList{T}" /> and <see cref="IDictionary{TKey,TValue}" />.
     /// </summary>
