@@ -7,31 +7,41 @@ namespace Packages.BrandonUtils.Runtime.Collections {
     ///     Contains utility and extension methods for collections, such as <see cref="IList{T}" /> and <see cref="IDictionary{TKey,TValue}" />.
     /// </summary>
     public static class CollectionUtils {
-        public static T Random<T>(this List<T> list) {
-            return list[UnityEngine.Random.Range(0, list.Count() - 1)];
+        public static T Random<T>(this IEnumerable<T> enumerable) {
+            var array = enumerable as T[] ?? enumerable.ToArray();
+            return array.ElementAt(new System.Random().Next(0, array.Length));
         }
 
-        public static T GrabRandom<T>(this List<T> list) {
+        public static T GrabRandom<T>(this ICollection<T> list) {
             var random = list.Random();
             list.Remove(random);
             return random;
         }
 
-        public static List<T> Randomize<T>(this List<T> oldList) {
-            var backupList = oldList.Clone();
+        public static ICollection<T> Randomize<T>(this ICollection<T> oldList) {
+            var backupList = oldList.Clone<T>();
             oldList.Clear();
-            while (backupList.Count > 0) {
+
+            while (backupList.Any()) {
                 oldList.Add(GrabRandom(backupList));
             }
 
             return oldList;
         }
 
-        public static List<T> RandomCopy<T>(this IEnumerable<T> oldList) {
+        public static ICollection<T> RandomCopy<T>(this ICollection<T> oldList) {
             return oldList.Clone().Randomize();
         }
 
-        public static List<T> Clone<T>(this IEnumerable<T> oldList) {
+        public static IList<T> Clone<T>(this IList<T> oldCollection) {
+            return oldCollection.Select(it => it).ToList();
+        }
+
+        public static ICollection<T> Clone<T>(this ICollection<T> oldCollection) {
+            return (ICollection<T>) oldCollection.Select(it => it);
+        }
+
+        public static IEnumerable<T> Clone<T>(this IEnumerable<T> oldList) {
             return oldList.Select(it => it).ToList();
         }
 
@@ -48,37 +58,25 @@ namespace Packages.BrandonUtils.Runtime.Collections {
         /// </summary>
         /// <example>
         ///     Which variation of <see cref="ForEach{T,T2}(System.Collections.Generic.Dictionary{T,T2},System.Action{System.Collections.Generic.KeyValuePair{T,T2}})">ForEach</see> is called depends on the first time the <paramref name="action" />'s <see cref="Delegate.Target" /> parameter is accessed.
-        ///     <p />For example, given:
-        ///     <code><![CDATA[
+        /// <p />For example, given:
+        /// <code><![CDATA[
         /// Dictionary dictionary = new Dictionary<string, string>();
         /// ]]></code>
-        ///     <p />Then the following would treat
-        ///     <b>
-        ///         <i>
-        ///             <c>it</c>
-        ///         </i>
-        ///     </b>
-        ///     as a <see cref="KeyValuePair{TKey,TValue}" />:
-        ///     <code><![CDATA[
+        /// Then the following would treat <b><i><c>it</c></i></b> as a <see cref="KeyValuePair{TKey,TValue}" />:
+        /// <code><![CDATA[
         /// dictionary.ForEach(it => Console.WriteLine(it.Key);
         /// ]]></code>
-        ///     <p />While the following would treat
-        ///     <b>
-        ///         <i>
-        ///             <c>it</c>
-        ///         </i>
-        ///     </b>
-        ///     as a <see cref="string" />:
-        ///     <code><![CDATA[
-        ///     dictionary.ForEach(it => Console.WriteLine(it.Length));
+        /// While the following would treat <b><i><c>it</c></i></b> as a <see cref="string" />:
+        /// <code><![CDATA[
+        /// dictionary.ForEach(it => Console.WriteLine(it.Length));
         /// ]]></code>
-        ///     <p />While the following would <b>fail to compile</b>, due to attempting to treating <c>it</c> as both a <see cref="KeyValuePair{TKey,TValue}" /> and a <see cref="string" />:
-        ///     <code><![CDATA[
-        ///     dictionary.ForEach(it => Console.WriteLine($"{it.Key}, {it.Length}"));
+        /// While the following would <b>fail to compile</b>, due to attempting to treating <c>it</c> as both a <see cref="KeyValuePair{TKey,TValue}" /> and a <see cref="string" />:
+        /// <code><![CDATA[
+        /// dictionary.ForEach(it => Console.WriteLine($"{it.Key}, {it.Length}"));
         /// ]]></code>
-        ///     <p />And the following would <b>fail to compile</b>, due to being ambiguous:
-        ///     <code><![CDATA[
-        ///     dictionary.ForEach(it => Console.WriteLine(it));
+        /// And the following would <b>fail to compile</b>, due to being ambiguous:
+        /// <code><![CDATA[
+        /// dictionary.ForEach(it => Console.WriteLine(it));
         /// ]]></code>
         /// </example>
         /// <param name="dictionary">The <see cref="Dictionary{TKey,TValue}" /> you would like to iterate over.</param>
