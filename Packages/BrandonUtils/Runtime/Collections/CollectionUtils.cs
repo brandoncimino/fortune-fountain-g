@@ -19,7 +19,7 @@ namespace Packages.BrandonUtils.Runtime.Collections {
         }
 
         public static ICollection<T> Randomize<T>(this ICollection<T> oldList) {
-            var backupList = oldList.Clone<T>();
+            var backupList = oldList.Copy();
             oldList.Clear();
 
             while (backupList.Any()) {
@@ -30,18 +30,18 @@ namespace Packages.BrandonUtils.Runtime.Collections {
         }
 
         public static ICollection<T> RandomCopy<T>(this ICollection<T> oldList) {
-            return oldList.Clone().Randomize();
+            return oldList.Copy().Randomize();
         }
 
-        public static IList<T> Clone<T>(this IList<T> oldCollection) {
+        public static IList<T> Copy<T>(this IList<T> oldCollection) {
             return oldCollection.Select(it => it).ToList();
         }
 
-        public static ICollection<T> Clone<T>(this ICollection<T> oldCollection) {
+        public static ICollection<T> Copy<T>(this ICollection<T> oldCollection) {
             return (ICollection<T>) oldCollection.Select(it => it);
         }
 
-        public static IEnumerable<T> Clone<T>(this IEnumerable<T> oldList) {
+        public static IEnumerable<T> Copy<T>(this IEnumerable<T> oldList) {
             return oldList.Select(it => it).ToList();
         }
 
