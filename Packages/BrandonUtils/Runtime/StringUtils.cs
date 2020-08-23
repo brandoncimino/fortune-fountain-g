@@ -145,15 +145,20 @@ namespace Packages.BrandonUtils.Runtime {
         public static string FormatMember(MemberInfo memberInfo, object obj = null) {
             var result = $"[{memberInfo.MemberType}] {memberInfo}";
 
-            if (obj != null) {
-                switch (memberInfo) {
-                    case PropertyInfo propertyInfo:
-                        result += $": {propertyInfo.GetValue(obj)}";
-                        break;
-                    case FieldInfo fieldInfo:
-                        result += $": {fieldInfo.GetValue(obj)}";
-                        break;
+            try {
+                if (obj != null) {
+                    switch (memberInfo) {
+                        case PropertyInfo propertyInfo:
+                            result += $": {propertyInfo.GetValue(obj)}";
+                            break;
+                        case FieldInfo fieldInfo:
+                            result += $": {fieldInfo.GetValue(obj)}";
+                            break;
+                    }
                 }
+            }
+            catch (Exception e) {
+                result += $"ERROR: {e.Message}";
             }
 
             return result;
