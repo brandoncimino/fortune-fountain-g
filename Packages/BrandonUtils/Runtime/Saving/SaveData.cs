@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Assertions;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
@@ -39,14 +40,8 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public static readonly string   SaveFolderPath  = Path.Combine(Application.persistentDataPath, SaveFolderName);
         public static readonly TimeSpan ReSaveDelay     = TimeSpan.FromSeconds(1);
 
-        /// <summary>
-        ///     The time of the last <see cref="Save" />
-        /// </summary>
-        [SerializeField] private long lastSaveTime;
-
+        [JsonProperty]
         public string nickName;
-
-        [SerializeField] private long saveCreatedTime;
 
         /// <summary>
         ///     Static initializer that makes sure the <see cref="SaveFolderPath" /> exists.
@@ -58,24 +53,22 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             }
         }
 
-        protected SaveData() {
-            SaveCreatedTime = DateTime.Now;
-        }
+        protected SaveData() { }
 
-        public DateTime LastSaveTime {
-            get => new DateTime(lastSaveTime);
-            private set => lastSaveTime = value.Ticks;
-        }
+        [JsonProperty]
+        public DateTime LastSaveTime;
 
-        private DateTime SaveCreatedTime {
-            get => new DateTime(saveCreatedTime);
-            set => saveCreatedTime = value.Ticks;
-        }
+        [JsonIgnore]
+        public string[] AllSaveFilePaths => GetAllSaveFilePaths(nickName);
 
-        public string[] AllSaveFilePaths   => GetAllSaveFilePaths(nickName);
-        public string   LatestSaveFilePath => GetAllSaveFilePaths(nickName).Last();
-        public string   OldestSaveFilePath => GetAllSaveFilePaths(nickName).First();
-        public bool     Exists             => SaveFileExists(nickName);
+        [JsonIgnore]
+        public string LatestSaveFilePath => GetAllSaveFilePaths(nickName).Last();
+
+        [JsonIgnore]
+        public string OldestSaveFilePath => GetAllSaveFilePaths(nickName).First();
+
+        [JsonIgnore]
+        public bool Exists => SaveFileExists(nickName);
 
         public static T Load(string nickName) {
             Debug.Log("Loading save file: " + nickName);
@@ -138,7 +131,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             //create the save folder if it doesn't already exist
             Directory.CreateDirectory(Path.GetDirectoryName(GetNewSaveFilePath(nickname)) ?? throw new SaveDataException<T>($"The path {GetNewSaveFilePath(nickname)} didn't have a valid directory name!", new DirectoryNotFoundException()));
 
-            //create a new, blank save data, and save it to as the new file
+            //create a new, blank save data, and save it as the new file
             return Save(new T(), nickname);
         }
 
@@ -225,11 +218,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         /// <summary>
-        ///     Sorts the given save file paths
-        ///     <b>
-        ///         <i>CHRONOLOGICALLY</i>
-        ///     </b>
-        ///     by their <see cref="GetSaveDate" />.
+        ///     Sorts the given save file paths<b><i>CHRONOLOGICALLY</i></b>by their <see cref="GetSaveDate" />.
         /// </summary>
         /// <param name="saveFilePaths"></param>
         private static void SortSaveFilePaths(string[] saveFilePaths) {
@@ -279,12 +268,11 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         /// <summary>
-        ///     Contains the serialization of the <see cref="SaveData{T}" />.
-        ///     While this is currently a simple <see cref="JsonUtility.ToJson(object)" />, putting it inside of a method ensures that if/when this ever changes, everything is using the same method.
+        ///     The canon way to convert a <see cref="SaveData{T}"/> to a json.
         /// </summary>
         /// <returns></returns>
         public string ToJson() {
-            return JsonUtility.ToJson(this, true);
+            return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
 
         public override string ToString() {

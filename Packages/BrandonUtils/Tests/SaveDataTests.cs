@@ -144,21 +144,10 @@ namespace Packages.BrandonUtils.Tests {
             }
         }
 
-        /// <summary>
-        /// Tests that the save file is serialized with the <see cref="DateTime.Ticks"/> of the save time, not the <see cref="DateTime"/>.
-        /// </summary>
-        [Test]
-        public void TestSerializeLastSaveTime() {
-            var newSave  = SaveDataTestImpl.NewSaveFile(nameof(TestSerializeLastSaveTime));
-            var saveJson = JsonUtility.ToJson(newSave, true);
-            Log($"{nameof(saveJson)}: {saveJson}");
-            Assert.IsTrue(saveJson.Contains($"\"lastSaveTime\": {newSave.LastSaveTime.Ticks}"));
-        }
-
         [Test]
         public void TestToStringMatchesToJson() {
             var newSave    = SaveDataTestImpl.NewSaveFile(MethodBase.GetCurrentMethod().Name);
-            var saveJson   = JsonUtility.ToJson(newSave, true);
+            var saveJson   = newSave.ToJson();
             var saveString = newSave.ToString();
             Assert.That(saveString, Is.EqualTo(saveJson));
         }
@@ -184,7 +173,7 @@ namespace Packages.BrandonUtils.Tests {
 
                 Log($"Saved {nickName} #{i}:\n{saveData}");
 
-                //Assert that the timestamp in the filename matches the lastsavetime
+                //Assert that the timestamp in the filename matches the lastSaveTime
                 Assert.That(saveData.LastSaveTime, Is.EqualTo(SaveDataTestImpl.GetSaveDate(saveData.LatestSaveFilePath)));
 
                 //load the save data and check the unique value
