@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using NUnit.Framework;
+using Packages.BrandonUtils.Runtime.Logging;
 using UnityEngine;
-using UnityEngine.Assertions;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Packages.BrandonUtils.Runtime.Saving {
@@ -25,7 +26,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public const int    BackupSaveSlots   = 10;
 
         /// <summary>
-        ///     The length required length of timestamps in save file names generated via <see cref="GetSaveFileNameWithDate" />
+        ///     The required length of timestamps in save file names generated via <see cref="GetSaveFileNameWithDate" />
         /// </summary>
         private const int TimeStampLength = 18;
 
@@ -48,7 +49,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// </summary>
         static SaveData() {
             if (!Directory.Exists(SaveFolderPath)) {
-                Debug.LogWarning($"{nameof(SaveFolderPath)} at {SaveFolderPath} didn't exist, so it is being created...");
+                Log(Color.yellow, $"{nameof(SaveFolderPath)} at {SaveFolderPath} didn't exist, so it is being created...");
                 Directory.CreateDirectory(SaveFolderPath);
             }
         }
@@ -71,7 +72,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public bool Exists => SaveFileExists(nickName);
 
         public static T Load(string nickName) {
-            Debug.Log("Loading save file: " + nickName);
+            Log("Loading save file: " + nickName);
             var attemptCount = 0;
             while (!SaveFileExists(nickName)) {
                 if (attemptCount >= LoadRetryLimit) {
@@ -80,7 +81,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
 
                 attemptCount++;
 
-                Debug.LogWarning($"[Attempt {attemptCount}] No save files for {nickName} exist! Attempting to create a new one...");
+                Log(Color.yellow, $"[Attempt {attemptCount}] No save files for {nickName} exist! Attempting to create a new one...");
                 NewSaveFile(nickName);
             }
 
@@ -127,7 +128,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// <param name="nickname"></param>
         /// <returns>the newly created <see cref="SaveData{T}" /></returns>
         public static T NewSaveFile(string nickname) {
-            Debug.Log($"Creating a new save file: {nickname} ({GetNewSaveFilePath(nickname)}), of type {typeof(T)}");
+            Log($"Creating a new save file: {nickname} ({GetNewSaveFilePath(nickname)}), of type {typeof(T)}");
             //create the save folder if it doesn't already exist
             Directory.CreateDirectory(Path.GetDirectoryName(GetNewSaveFilePath(nickname)) ?? throw new SaveDataException<T>($"The path {GetNewSaveFilePath(nickname)} didn't have a valid directory name!", new DirectoryNotFoundException()));
 
@@ -172,9 +173,9 @@ namespace Packages.BrandonUtils.Runtime.Saving {
 
             var newFilePath = GetNewSaveFilePath(nickName);
             File.WriteAllText(newFilePath, saveData.ToJson());
-            Assert.IsTrue(File.Exists(newFilePath));
+            FileAssert.Exists(newFilePath);
 
-            Debug.Log($"Finished saving {nickName}! Trimming previous saves down to {BackupSaveSlots}...");
+            Log($"Finished saving {nickName}! Trimming previous saves down to {BackupSaveSlots}...");
             TrimSaves(nickName);
 
             return saveData as T;
@@ -191,10 +192,10 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         public static void TrimSaves(string nickName, int trimTo = BackupSaveSlots) {
-            Debug.Log($"Trimming save files named '{nickName}' down to {trimTo} saves");
+            LogUtils.Log($"Trimming save files named '{nickName}' down to {trimTo} saves");
             var saveFiles = GetAllSaveFilePaths(nickName);
             if (saveFiles.Length <= trimTo) {
-                Debug.Log($"There were {saveFiles.Length} files, which is less than the requested trim count of {trimTo}, so we aren't going to trim anything.");
+                LogUtils.Log($"There were {saveFiles.Length} files, which is less than the requested trim count of {trimTo}, so we aren't going to trim anything.");
                 return;
             }
 
@@ -258,12 +259,12 @@ namespace Packages.BrandonUtils.Runtime.Saving {
 
         public static bool Delete(string nickName) {
             if (File.Exists(GetNewSaveFilePath(nickName))) {
-                Debug.LogWarning("About to delete the save file: " + nickName + "!!");
+                Log(Color.yellow, "About to delete the save file: " + nickName + "!!");
                 File.Delete(GetNewSaveFilePath(nickName));
                 return true;
             }
 
-            Debug.Log("Can't delete the save file " + nickName + " because it doesn't exist!");
+            Log("Can't delete the save file " + nickName + " because it doesn't exist!");
             return false;
         }
 
