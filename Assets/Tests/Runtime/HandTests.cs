@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
-using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Collections;
 using Runtime.Saving;
 using Runtime.Valuables;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
@@ -59,7 +59,7 @@ namespace Tests.Runtime {
 
             double expectedKarmaTotal = 0;
 
-            var throwablesCopy = fortuneFountainSaveData.Hand.throwables.Clone();
+            var throwablesCopy = fortuneFountainSaveData.Hand.throwables.Copy();
 
             foreach (var throwable in throwablesCopy) {
                 expectedKarmaTotal += throwable.ThrowValue;
