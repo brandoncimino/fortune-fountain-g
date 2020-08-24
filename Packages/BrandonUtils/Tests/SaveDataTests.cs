@@ -210,5 +210,27 @@ namespace Packages.BrandonUtils.Tests {
                 }
             }
         }
+
+        [Test]
+        public void LoadMostRecentFromInstance() {
+            var saveData  = SaveDataTestImpl.NewSaveFile(nameof(LoadMostRecentFromInstance));
+            var firstEdit = "First Edit";
+            saveData.Word = firstEdit;
+            saveData.Save(false);
+
+            var saveData2  = SaveDataTestImpl.NewSaveFile(saveData.nickName);
+            var secondEdit = "Second Edit";
+            saveData2.Word = secondEdit;
+            saveData2.Save(false);
+
+            Assert.That(saveData.Word, Is.EqualTo(firstEdit));
+            Assert.That(saveData,      Is.Not.SameAs(saveData2));
+
+            var loadedSave = saveData.Reload();
+
+            Assert.That(loadedSave,    Is.SameAs(saveData));
+            Assert.That(saveData.Word, Is.Not.EqualTo(firstEdit));
+            Assert.That(saveData.Word, Is.EqualTo(secondEdit));
+        }
     }
 }

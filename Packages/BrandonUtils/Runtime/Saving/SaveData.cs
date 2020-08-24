@@ -76,7 +76,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             var attemptCount = 0;
             while (!SaveFileExists(nickName)) {
                 if (attemptCount >= LoadRetryLimit) {
-                    throw new SaveDataException<T>($"Unable to load the any save files for {nickName} after {attemptCount} attempts!");
+                    throw new SaveDataException<T>($"Unable to load any save files for {nickName} after {attemptCount} attempts - even a blank new one!");
                 }
 
                 attemptCount++;
@@ -91,8 +91,18 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             return FromSaveFile(latestSaveFilePath);
         }
 
+        /// <summary>
+        /// Loads the most recent version of the save file.
+        /// </summary>
+        /// <returns></returns>
+        public T Reload() {
+            Log($"Reloading save file: {nickName}");
+            JsonConvert.PopulateObject(File.ReadAllText(LatestSaveFilePath), this);
+            return (T) this;
+        }
+
         private static T FromSaveFile(string saveFilePath) {
-            return JsonUtility.FromJson<T>(File.ReadAllText(saveFilePath));
+            return JsonConvert.DeserializeObject<T>(File.ReadAllText(saveFilePath));
         }
 
         /// <summary>
