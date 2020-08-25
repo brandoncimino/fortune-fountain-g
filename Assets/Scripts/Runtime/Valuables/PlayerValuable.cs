@@ -1,41 +1,42 @@
 ﻿using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Collections;
 using Runtime.Saving;
 using Runtime.Utils;
-using UnityEngine;
 
 namespace Runtime.Valuables {
-    public class PlayerValuable {
+    public class PlayerValuable : IPrimaryKeyed<ValuableType> {
         public delegate void GeneratePlayerValuableDelegate(PlayerValuable playerValuable, int count);
 
-        [field: SerializeField] public ValuableType ValuableType { get; private set; }
+        public static event GeneratePlayerValuableDelegate GeneratePlayerValuableEvent;
 
-        /// <summary>
-        ///     The <see cref="DateTime.Ticks" /> of the time the last time-dependent <see cref="Hand.Grab" /> was triggered.
-        /// </summary>
-        [SerializeField] private long lastGenerateTime;
+        [JsonProperty]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public ValuableType ValuableType { get; private set; }
 
         /// The rate that a given Valuable is generated, measured in items per second.
         /// TODO: Currently defaults to 1, but will eventually combine upgrades, etc.
-        [field: SerializeField]
+        [JsonProperty]
         public double Rate { get; set; } = 1;
-
-        public PlayerValuable(ValuableType valuableType) {
-            ValuableType     = valuableType;
-            LastGenerateTime = DateTime.Now;
-        }
 
         /// The fully calculated karma value of valuables of this type.
         /// TODO: Right now this just returns the <see cref="ValuableModel.ImmutableValue" />, but this will eventually combine upgrades, etc.
+        [JsonProperty]
         public double KarmaValue => ValuableDatabase.Models[ValuableType].ImmutableValue;
 
-        //TODO: This "serialize as ticks, but manipulate as a DateTime" concept is something I like and am using a bunch - maybe I can create a "TimeStamp" class for BrandonUtils that is an extension of DateTime, but serializes as Ticks?
-        public DateTime LastGenerateTime {
-            get => new DateTime(lastGenerateTime);
-            set => lastGenerateTime = value.Ticks;
-        }
+        /// <summary>
+        ///     The <see cref="DateTime" /> that the time the last time-dependent <see cref="Hand.Grab" /> was triggered.
+        /// </summary>
+        /// <remarks>
+        /// Initialized as <see cref="DateTime.Now"/>.
+        /// </remarks>
+        [JsonProperty]
+        public DateTime LastGenerateTime { get; set; } = DateTime.Now;
 
         /// <see cref="Rate" /> converted to a <see cref="TimeSpan" />.
+        [JsonIgnore]
         public TimeSpan GenerateInterval {
             get {
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -47,9 +48,12 @@ namespace Runtime.Valuables {
             }
         }
 
+        [JsonIgnore]
         private Throwable Throwable => new Throwable(ValuableType, KarmaValue);
 
-        public event GeneratePlayerValuableDelegate GeneratePlayerValuableEvent;
+        public PlayerValuable(ValuableType valuableType) {
+            ValuableType = valuableType;
+        }
 
         /// <summary>
         ///     Checks if this valuable should be generated, based on its <see cref="Rate" />, and if so, <see cref="Hand.Grab" />s the appropriate amount and updates <see cref="LastGenerateTime" />.
@@ -58,20 +62,62 @@ namespace Runtime.Valuables {
         /// <remarks>
         ///     Relies on <see cref="IncrementalUtils.NumberOfTimesCompleted" />
         /// </remarks>
-        public void CheckGenerate(TimeSpan? generateLimitOverride = null) {
-            DateTime endTime = LastGenerateTime + generateLimitOverride.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit);
+        public int CheckGenerate(TimeSpan? generateLimitOverride = null) {
+            //Check to see if we've completed a generation since loading the game. If not, then we have to do extra calculations using the time from the previous session.
+            var partialGenerationDuringPreviousSession = GameManager.SaveData.LastLoadTime > LastGenerateTime;
+            //Will hold the maximum amount of time that we _could_ have generated for.
+            TimeSpan unlimitedDuration;
 
-            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(LastGenerateTime, endTime, GenerateInterval, out var timeOfGeneration);
+            if (partialGenerationDuringPreviousSession) {
+                //Calculate the time we spent generating during the previous session (which will always have ENDED with a SAVE)
+                var previousSessionDuration = GameManager.SaveData.LastSaveTime - LastGenerateTime;
 
+                //Calculate the time spent generating during the current session (which will always have STARTED with a LOAD, and ENDED with NOW)
+                var currentSessionDuration = DateTime.Now - GameManager.SaveData.LastLoadTime;
+
+                unlimitedDuration = previousSessionDuration + currentSessionDuration;
+            }
+            else {
+                //If our generation is taking place entirely during the session, then we can ignore SAVE and LOAD times.
+                unlimitedDuration = DateTime.Now - LastGenerateTime;
+            }
+
+            //Resolve the actualGenerateLimit, based on whether "null" was passed or not
+            var actualGenerateLimit = generateLimitOverride.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit);
+
+            //limit the duration to actualGenerateLimit
+            var limitedDuration = unlimitedDuration.Min(actualGenerateLimit);
+
+            //record whether or not we reached the generate limit (because we need to do things differently if we did)
+            var durationLimitReached = actualGenerateLimit < unlimitedDuration;
+
+            //calculate the number of items to generate, finally!
+            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(limitedDuration, this.GenerateInterval, out TimeSpan timeUtilized);
+
+            //Check if we actually need to generate anything
             if (numberToGenerate > 0) {
-                GameManager.SaveData.Hand.Grab(Throwable, numberToGenerate);
-                LastGenerateTime = timeOfGeneration;
+                //Grab the items
+                this.Grab(numberToGenerate);
+
+                //Set the "LastGenerateTime" - aka the "time of last completion" - which is DateTime.Now IF we've surpassed the duration limit
+                LastGenerateTime = durationLimitReached ? DateTime.Now : LastGenerateTime + timeUtilized;
+
+                //Invoke the GeneratePlayerValuableEvent
                 GeneratePlayerValuableEvent?.Invoke(this, numberToGenerate);
             }
+
+            //return the number of items we generated
+            return numberToGenerate;
+        }
+
+        public void Grab(int amount = 1) {
+            GameManager.SaveData.Hand.Grab(Throwable, amount);
         }
 
         public override string ToString() {
-            return StringUtils.ListVariables(this);
+            return JsonConvert.SerializeObject(this, Formatting.Indented);
         }
+
+        public ValuableType PrimaryKey => ValuableType;
     }
 }

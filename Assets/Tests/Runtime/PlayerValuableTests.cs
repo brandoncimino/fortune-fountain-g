@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Collections;
+using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Testing;
 using Runtime;
 using Runtime.Saving;
 using Runtime.Utils;
 using Runtime.Valuables;
-using UnityEngine;
 
 namespace Tests.Runtime {
     public class PlayerValuableTests {
@@ -29,16 +32,21 @@ namespace Tests.Runtime {
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nickName);
 
             var generateCounter = 0;
-            GameManager.SaveData.PlayerValuables[0].GeneratePlayerValuableEvent += (valuable, amount) => generateCounter++;
+            PlayerValuable.GeneratePlayerValuableEvent += (valuable, amount) => generateCounter++;
+
+            LogUtils.Log(GameManager.SaveData.PlayerValuables[0]);
+            LogUtils.Log(JsonConvert.SerializeObject(GameManager.SaveData.PlayerValuables[0]));
 
             for (var i = 0; i < 10; i++) {
                 GameManager.SaveData.PlayerValuables[0].CheckGenerate();
-                Assert.That(generateCounter, Is.EqualTo(0));
+                Assert.That(generateCounter, Is.EqualTo(0), $"Error on {i + 1}th generation!");
             }
         }
 
         [Test]
-        public void GenerateAllViaCollectionExtension() {
+        [TestCase(true)]
+        [TestCase(false)]
+        public void GenerateAllViaCollectionExtension(bool checkThrowables) {
             const string nickName = nameof(TestGenerateIsLimitedByRate);
             GameManager.SaveData                 = FortuneFountainSaveData.NewSaveFile(nickName);
             GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
@@ -57,9 +65,17 @@ namespace Tests.Runtime {
             //Check that nothing has been generated yet
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 0, Amount = 0}));
 
+            if (checkThrowables) {
+                Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.EqualTo(0));
+            }
+
             //Generate stuff
             GameManager.SaveData.PlayerValuables.CheckGenerate();
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 1, Amount = 1}));
+
+            if (checkThrowables) {
+                Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.EqualTo(generateCounters.Sum(it => it.Value.Amount)));
+            }
 
             //sleep so we can expect to generate another item
             Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval);
@@ -68,12 +84,20 @@ namespace Tests.Runtime {
             GameManager.SaveData.PlayerValuables.CheckGenerate();
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 2, Amount = 2}));
 
+            if (checkThrowables) {
+                Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.EqualTo(generateCounters.Sum(it => it.Value.Amount)));
+            }
+
             //sleep so that we can expect to generate _2_ more items
             Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(2));
 
             //Generate stuff
             GameManager.SaveData.PlayerValuables.CheckGenerate();
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 3, Amount = 4}));
+
+            if (checkThrowables) {
+                Assert.That(GameManager.SaveData.Hand.throwables, Has.Property(nameof(Hand.throwables.Count)).EqualTo(generateCounters.Sum(it => it.Value.Amount)));
+            }
         }
 
         /// <summary>
@@ -84,7 +108,7 @@ namespace Tests.Runtime {
             public int Amount { get; set; }
 
             public override string ToString() {
-                return JsonUtility.ToJson(this);
+                return JsonConvert.SerializeObject(this);
             }
 
             public bool Equals(ValuableGenerationCounter other) {
@@ -109,11 +133,12 @@ namespace Tests.Runtime {
 
             foreach (var playerValuable in GameManager.SaveData.PlayerValuables.Values) {
                 generateCounters.Add(playerValuable.ValuableType, new ValuableGenerationCounter());
-                playerValuable.GeneratePlayerValuableEvent += (valuable, amount) => {
-                    generateCounters[valuable.ValuableType].Events += 1;
-                    generateCounters[valuable.ValuableType].Amount += amount;
-                };
             }
+
+            PlayerValuable.GeneratePlayerValuableEvent += (valuable, amount) => {
+                generateCounters[valuable.ValuableType].Events += 1;
+                generateCounters[valuable.ValuableType].Amount += amount;
+            };
 
             return generateCounters;
         }
@@ -160,7 +185,9 @@ namespace Tests.Runtime {
         [TestCase(500,   19,   1)]
         [TestCase(50,    19,   1)]
         [TestCase(5,     19,   1)]
-        public void GenerateEventsLimitedByMaxGenerateTime([ValueSource(nameof(seconds))] double generateTimeLimitInSeconds, [ValueSource(nameof(rates))] double itemsPerSecond, [ValueSource(nameof(seconds)), Values(0)]
+        public void GenerateEventsLimitedByMaxGenerateTime([ValueSource(                                   nameof(seconds))]
+                                                           double generateTimeLimitInSeconds, [ValueSource(nameof(rates))]
+                                                           double itemsPerSecond,             [ValueSource(nameof(seconds)), Values(0)]
                                                            double extraGenerationSeconds) {
             Assume.That(generateTimeLimitInSeconds, Is.GreaterThan(0),          $"{nameof(generateTimeLimitInSeconds)} must be greater than 0!");
             Assume.That(itemsPerSecond,             Is.GreaterThan(0),          $"{nameof(itemsPerSecond)} must be greater than 0!");
@@ -195,12 +222,183 @@ namespace Tests.Runtime {
         [TestCase(1)]
         [TestCase(5)]
         [TestCase(19)]
-        public void TestGenerateInterval([ValueSource(nameof(rates))] double rateInItemsPerSecond) {
+        public void TestGenerateInterval([ValueSource(nameof(rates))]
+                                         double rateInItemsPerSecond) {
             var pv = new PlayerValuable(ValuableType.Coin) {Rate = rateInItemsPerSecond};
 
             Assert.That(TimeSpan.FromSeconds(1).Divide(pv.GenerateInterval), Is.InRange(Math.Floor(rateInItemsPerSecond), rateInItemsPerSecond * 1.00001));
 
             Assert.That(pv.GenerateInterval, Is.EqualTo(TimeSpan.FromTicks((long) (TimeSpan.TicksPerSecond / rateInItemsPerSecond))));
+        }
+
+        /// <summary>
+        /// TODO: This test...is a nightmare. It definitely should be broken up.
+        /// </summary>
+        /// <param name="firstEventAmount"></param>
+        /// <param name="afkSeconds"></param>
+        /// <param name="secondEventAmount"></param>
+        [Test]
+        [TestCase(2, 6, 4)]
+        public void TestSerializeLastGenerateTime(int firstEventAmount, double afkSeconds, int secondEventAmount) {
+            var saveInitializeBefore = DateTime.Now;
+            GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestSerializeLastGenerateTime));
+            var initializeBefore = DateTime.Now;
+            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
+            var initializeAfter = DateTime.Now;
+            LogUtils.Log($"Initialize time: {initializeBefore} + {initializeAfter - initializeBefore}");
+
+            var generateCounters = CreateValuableGenerationCounters();
+
+            Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(initializeBefore, initializeAfter));
+            Assert.That(GameManager.SaveData.Hand,            Has.Property(nameof(Hand.LastThrowTime)).InRange(saveInitializeBefore, initializeBefore));
+
+            //wait & check generate
+            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(firstEventAmount));
+
+            var beforeGenerate1 = DateTime.Now;
+            GameManager.SaveData.PlayerValuables.CheckGenerate();
+            var afterGenerate1 = DateTime.Now;
+            LogUtils.Log($"Generate time: {beforeGenerate1} + {afterGenerate1 - beforeGenerate1}");
+
+            Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = firstEventAmount, Events = 1}));
+
+            //Assert that the LastGenerateTimes DID CHANGE
+            Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).Not.InRange(initializeBefore, initializeAfter));
+
+            var genInterval     = GameManager.SaveData.PlayerValuables[0].GenerateInterval;
+            var expectedGenTime = GameManager.SaveData.Hand.LastThrowTime + genInterval.Multiply(firstEventAmount);
+
+            /* A bunch of nicely formatted logging statements for debugging
+            var now = DateTime.Now;
+            LogUtils.Log($"{nameof(now)}             {now}");
+            LogUtils.Log($"{nameof(expectedGenTime)} {expectedGenTime.Ticks} ({now.Ticks - expectedGenTime.Ticks} ticks ago; {((double) now.Ticks - expectedGenTime.Ticks)/genInterval.Ticks} intervals ago)");
+            LogUtils.Log($"{nameof(afterGenerate1)}  {afterGenerate1.Ticks}  ({now.Ticks - afterGenerate1.Ticks}  ticks ago; {((double) now.Ticks - afterGenerate1.Ticks)/genInterval.Ticks} intervals ago)");
+            LogUtils.Log($"Interval = {genInterval} ({genInterval.TotalSeconds} seconds, {genInterval.Ticks} ticks)");
+            */
+
+            Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.GreaterThan(0));
+            Assert.That(GameManager.SaveData.PlayerValuables,       Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(beforeGenerate1 - genInterval,               afterGenerate1));
+            Assert.That(GameManager.SaveData.PlayerValuables,       Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(expectedGenTime - genInterval.Multiply(0.5), expectedGenTime + genInterval.Multiply(0.5)));
+
+            //Save the file
+            var beforeSave = DateTime.Now;
+            GameManager.SaveData.Save(false);
+            var afterSave = DateTime.Now;
+            LogUtils.Log($"Save time: {beforeSave} + {afterSave - beforeSave}");
+
+            //Wait a bit & reload
+            Thread.Sleep(TimeSpan.FromSeconds(afkSeconds));
+
+            var beforeReload = DateTime.Now;
+            GameManager.SaveData.Reload();
+            var afterReload = DateTime.Now;
+            LogUtils.Log($"Reload time: {beforeReload} + {afterReload - beforeReload}");
+
+            Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(beforeGenerate1 - genInterval, afterGenerate1));
+
+            LogUtils.Log($"{nameof(generateCounters)} after reload: {JsonConvert.SerializeObject(generateCounters, Formatting.Indented)}");
+
+            Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = firstEventAmount, Events = 1}));
+
+            var beforeGenerate2 = DateTime.Now;
+            GameManager.SaveData.PlayerValuables.CheckGenerate();
+            var afterGenerate2 = DateTime.Now;
+            LogUtils.Log($"generate2 time: {beforeGenerate2} + {afterGenerate2 - beforeGenerate2}");
+
+            Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = firstEventAmount, Events = 1}));
+
+            Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(beforeGenerate1 - genInterval, afterGenerate1));
+
+            //Wait to generate the second event
+            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(secondEventAmount));
+
+            //Check generation (which should be enough to trigger the second event)
+            var beforeGenerate3 = DateTime.Now;
+            GameManager.SaveData.PlayerValuables.CheckGenerate();
+            var afterGenerate3 = DateTime.Now;
+            LogUtils.Log($"generate3 time: {beforeGenerate3} + {afterGenerate3 - beforeGenerate3}");
+
+            Assert.That(generateCounters,                     Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = firstEventAmount + secondEventAmount, Events = 2}));
+            Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(beforeGenerate3, afterGenerate3));
+        }
+
+        [Test]
+        [TestCase(4, 2)]
+        public void TestCompleteButUncheckedGenDuringPreviousSession(int uniformValuableGenerationRate, int itemsPerWait) {
+            GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestCompleteButUncheckedGenDuringPreviousSession));
+
+            //Set the uniform gen rates to a decent number, so that we don't have to wait very long to get meaningful results
+            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables(uniformValuableGenerationRate);
+            var genInterval = GameManager.SaveData.PlayerValuables[0].GenerateInterval;
+
+            //Create the generation counters
+            var genCounters = CreateValuableGenerationCounters();
+
+            var oldLastGenTimes = GameManager.SaveData.PlayerValuables.Select(it => it.Value.LastGenerateTime);
+
+            //Wait long enough to generate something (but DON'T check for it)
+            Thread.Sleep(genInterval.Multiply(itemsPerWait));
+
+            //Save the game - still without checking for any generation
+            GameManager.SaveData.Save(false);
+
+            //Wait long enough that we COULD have generated something if we were playing; then reload
+            Thread.Sleep(genInterval.Multiply(itemsPerWait));
+
+            GameManager.SaveData.Reload();
+
+            //Wait long enough to generate something during THIS session as well
+            Thread.Sleep(genInterval.Multiply(itemsPerWait));
+
+            //Make sure that we still haven't generated anything, and that that LastGenerationTime values haven't changed
+            Assert.That(genCounters,                                                                  Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = 0, Events = 0}));
+            Assert.That(GameManager.SaveData.PlayerValuables.Select(it => it.Value.LastGenerateTime), Is.EqualTo(oldLastGenTimes));
+
+            //Check for generation
+            var itemsGenerated = GameManager.SaveData.PlayerValuables.CheckGenerate();
+
+            //Assert that we've now had exactly 1 generation event, where we generated 2 * itemsPerWait
+            Assert.That(genCounters,    Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = 2 * itemsPerWait, Events = 1}));
+            Assert.That(itemsGenerated, Has.All.EqualTo(2 * itemsPerWait));
+        }
+
+        /// <summary>
+        /// This is a stripped-down version of <see cref="TestCompleteButUncheckedGenDuringPreviousSession"/>
+        /// </summary>
+        /// <param name="firstEventAmount"></param>
+        /// <param name="secondEventAmount"></param>
+        [Test]
+        [TestCase(2, 5)]
+        public void EventSubscribersPersistAfterReloadMultiple(int firstEventAmount, int secondEventAmount) {
+            GameManager.SaveData                 = FortuneFountainSaveData.NewSaveFile(nameof(EventSubscribersPersistAfterReloadMultiple));
+            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
+
+            PlayerValuable.GeneratePlayerValuableEvent += EventSubscriber;
+
+            GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateTime = DateTime.Now - it.GenerateInterval.Multiply(firstEventAmount));
+
+            GameManager.SaveData.PlayerValuables.CheckGenerate();
+
+            Assert.That(_eventCounter,  Is.EqualTo(GameManager.SaveData.PlayerValuables.Count));
+            Assert.That(_amountCounter, Is.EqualTo(GameManager.SaveData.PlayerValuables.Count * firstEventAmount));
+
+            GameManager.SaveData.Save(false);
+            GameManager.SaveData.Reload();
+
+            GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateTime = DateTime.Now - it.GenerateInterval.Multiply(secondEventAmount + 0.1));
+
+            GameManager.SaveData.PlayerValuables.CheckGenerate();
+
+            Assert.That(_eventCounter,  Is.EqualTo(GameManager.SaveData.PlayerValuables.Count * 2));
+            Assert.That(_amountCounter, Is.EqualTo(GameManager.SaveData.PlayerValuables.Count * (firstEventAmount + secondEventAmount)));
+        }
+
+        private static int _eventCounter  = 0;
+        private static int _amountCounter = 0;
+
+        private static void EventSubscriber(PlayerValuable playerValuable, int amount) {
+            _eventCounter  += 1;
+            _amountCounter += amount;
         }
     }
 }
