@@ -1,4 +1,6 @@
-﻿using Runtime.Saving;
+﻿using Packages.BrandonUtils.Editor;
+using Packages.BrandonUtils.Runtime.Logging;
+using Runtime.Saving;
 using Runtime.Utils;
 using UnityEngine;
 
@@ -30,6 +32,14 @@ namespace Runtime {
         /// </remarks>
         public static FortuneFountainSaveData SaveData;
 
+        [Header("Development Options")]
+        [Tooltip("The save file name to use when executing from the Editor.")]
+        public string DevSaveFileName;
+
+        public bool UseDevSaveFile;
+
+        public bool ClearDevSaveFileOnPlay;
+
         private void Awake() {
             LoadFortuneFountain();
         }
@@ -48,7 +58,19 @@ namespace Runtime {
         /// </summary>
         public void LoadFortuneFountain() {
             SaveFileName = GetAppropriateSaveFileName();
-            SaveData     = FortuneFountainSaveData.Load(SaveFileName);
+
+            if (Application.isEditor && ClearDevSaveFileOnPlay) {
+                ClearDevSaveFile();
+            }
+
+            SaveData = FortuneFountainSaveData.Load(SaveFileName);
+
+            LogUtils.Log(SaveData);
+        }
+
+        [EditorInvocationButton]
+        private void ClearDevSaveFile() {
+            FortuneFountainSaveData.Delete(DevSaveFileName);
         }
 
         /// <summary>
@@ -57,8 +79,13 @@ namespace Runtime {
         ///     TODO: This is currently the same as <see cref="SystemInfo.deviceName" />, but in the future will likely include some logic based on Google Play identifiers (whatever those are).
         /// </summary>
         /// <returns>The appropriate name for this user's save file.</returns>
-        private static string GetAppropriateSaveFileName() {
-            return SystemInfo.deviceName;
+        private string GetAppropriateSaveFileName() {
+            if (Application.isEditor && UseDevSaveFile && !string.IsNullOrEmpty(DevSaveFileName)) {
+                return DevSaveFileName;
+            }
+            else {
+                return SystemInfo.deviceName;
+            }
         }
 
         /// <summary>
