@@ -1,14 +1,15 @@
 ﻿using System;
-using Packages.BrandonUtils.Runtime.Logging;
 using Runtime.Saving;
 using UnityEngine;
 
 namespace Runtime.Valuables {
     [Serializable]
     public class Throwable {
-        [SerializeField] public ValuableType ValuableType;
+        [SerializeField]
+        public ValuableType ValuableType;
 
-        [SerializeField] public double ThrowValue;
+        [SerializeField]
+        public double ThrowValue;
 
         /// <summary>
         /// The delegate for <see cref="Throwable.ThrowSingleEvent"/>.
@@ -36,7 +37,7 @@ namespace Runtime.Valuables {
 
         public Throwable(ValuableType valuableType, double throwValue) {
             ValuableType = valuableType;
-            ThrowValue = throwValue;
+            ThrowValue   = throwValue;
 
             //subscribing to the ThrowHandEvent
             Hand.ThrowHandEvent += HandleThrowHandEvent;
@@ -48,11 +49,11 @@ namespace Runtime.Valuables {
 
         public void Throw() {
             if (_alreadyThrown) {
-                LogUtils.Log($"{this} has already been thrown, so it won't be thrown again!");
+                // LogUtils.Log($"{this} has already been thrown, so it won't be thrown again!");
                 return;
             }
 
-            LogUtils.Log($"{this} is being thrown at {DateTime.Now:HH:mm:ss.fff}");
+            // LogUtils.Log($"{this} is being thrown at {DateTime.Now:HH:mm:ss.fff}");
             ThrowSingleEvent?.Invoke(this);
             _alreadyThrown = true;
         }
