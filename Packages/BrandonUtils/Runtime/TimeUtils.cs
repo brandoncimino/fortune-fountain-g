@@ -41,17 +41,18 @@ namespace Packages.BrandonUtils.Runtime {
         }
 
         /// <summary>
-        /// Divides <paramref name="dividend"/> by <paramref name="divisor"/>.
+        /// Divides <paramref name="dividend"/> by <paramref name="divisor"/>, returning a new <see cref="TimeSpan"/>.
         /// </summary>
         /// <param name="dividend"></param>
         /// <param name="divisor"></param>
         /// <returns></returns>
-        public static double Divide(this TimeSpan dividend, double divisor) {
-            return dividend.Ticks / divisor;
+        public static TimeSpan Divide(this TimeSpan dividend, double divisor) {
+            return TimeSpan.FromTicks((long) (dividend.Ticks / divisor));
         }
 
 
         /// <inheritdoc cref="Divide(System.TimeSpan,double)"/>
+        /// TODO: Check if there's a clean way to convert between DateTime and TimeSpan, and if so, have the TimSpan and DateTime versions of methods call each other rather than be duplicates
         public static double Divide(this DateTime dividend, double divisor) {
             return dividend.Ticks / divisor;
         }
@@ -185,6 +186,28 @@ namespace Packages.BrandonUtils.Runtime {
 
         public static TimeSpan Max(this TimeSpan a, TimeSpan b, params TimeSpan[] c) {
             return c.Append(a).Append(b).Max();
+        }
+
+        /// <summary>
+        /// Converts <see cref="DateTime"/> <paramref name="dateTime"/> into a <see cref="TimeSpan"/> representing the elapsed time since <see cref="DateTime.MinValue"/>.
+        /// </summary>
+        /// <remarks>
+        /// A bunch of people on the stackoverflow that shows up as the first search result, <a href="https://stackoverflow.com/questions/17959440/convert-datetime-to-timespan">Convert DateTime to TimeSpan</a>, suggest using <see cref="DateTime.TimeOfDay"/> - which is an absolutely bafflingly incorrect answer because <see cref="DateTime.TimeOfDay"/> gives you the time elapsed <b><i>today</i></b>, discarding almost all of the information in the <see cref="DateTime"/>...
+        /// <p/>Sidenote - "stackoverflow" and "stackexchange" might be different websites...?
+        /// </remarks>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static TimeSpan AsTimeSpan(this DateTime dateTime) {
+            return TimeSpan.FromTicks(dateTime.Ticks);
+        }
+
+        /// <summary>
+        /// Converts <see cref="TimeSpan"/> <paramref name="timeSpan"/> into a <see cref="DateTime"/> representing the date if <paramref name="timeSpan"/> had elapsed since <see cref="DateTime.MinValue"/>.
+        /// </summary>
+        /// <param name="timeSpan"></param>
+        /// <returns></returns>
+        public static DateTime AsDateTime(this TimeSpan timeSpan) {
+            return new DateTime(timeSpan.Ticks);
         }
     }
 }
