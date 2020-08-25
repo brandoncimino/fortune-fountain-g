@@ -52,9 +52,8 @@ namespace Packages.BrandonUtils.Runtime {
 
 
         /// <inheritdoc cref="Divide(System.TimeSpan,double)"/>
-        /// TODO: Check if there's a clean way to convert between DateTime and TimeSpan, and if so, have the TimSpan and DateTime versions of methods call each other rather than be duplicates
-        public static double Divide(this DateTime dividend, double divisor) {
-            return dividend.Ticks / divisor;
+        public static TimeSpan Divide(this DateTime dividend, double divisor) {
+            return dividend.AsTimeSpan().Divide(divisor);
         }
 
         /// <summary>
