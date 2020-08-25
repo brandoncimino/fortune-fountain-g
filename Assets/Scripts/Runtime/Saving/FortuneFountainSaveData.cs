@@ -1,21 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using Packages.BrandonUtils.Runtime.Saving;
 using Runtime.Valuables;
 using UnityEngine;
 
 namespace Runtime.Saving {
     /// <inheritdoc />
-    [Serializable]
     public class FortuneFountainSaveData : SaveData<FortuneFountainSaveData> {
         /// A reference to the player's <see cref="Hand"/>.
         /// <br/>
         /// Must <b>not</b> be <c>readonly</c> for the <see cref="SerializeField"/> attribute to work properly.
-        [SerializeField] public Hand Hand;
+        [JsonProperty]
+        public Hand Hand;
 
+        [JsonProperty]
         public double Karma;
 
         /// Holds information about the player's valuables <i>(<b>un-instantiated</b> types of <see cref="Throwable"/>s)</i>, such as upgrades.
+        [JsonProperty]
         public Dictionary<ValuableType, PlayerValuable> PlayerValuables = new Dictionary<ValuableType, PlayerValuable>();
 
         public FortuneFountainSaveData() {
