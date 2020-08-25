@@ -2,54 +2,40 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Packages.BrandonUtils.Runtime.Logging;
 using Runtime.Valuables;
-using UnityEngine;
 
 namespace Runtime.Saving {
-    [Serializable]
     public class Hand {
-        /// <summary>
-        /// The <see cref="DateTime.Ticks"/> of the time <see cref="Grab"/> was last called.
-        /// <p/>
-        /// A value of 0 means that <see cref="Grab"/> was <b>never</b> called.
-        /// </summary>
-        [SerializeField] private long lastGrabTime;
+        [JsonProperty]
+        [NotNull]
+        public List<Throwable> throwables = new List<Throwable>();
 
-        /// <summary>
-        /// The <see cref="DateTime.Ticks"/> of the time <see cref="Throw"/> was last called.
-        /// <p/>
-        /// A value of 0 means that <see cref="Throw"/> was <b>never</b> called.
-        /// </summary>
-        [SerializeField] private long lastThrowTime;
-
-        [SerializeField] [NotNull] public List<Throwable> throwables = new List<Throwable>();
+        public IEnumerable<IGrouping<ValuableType, Throwable>> GroupedThrowables => throwables.GroupBy(throwable => throwable.ValuableType);
 
         //Generation-related stuff
         /// The default, immutable value for <see cref="GenerateTimeLimit"/>
         // ReSharper disable once InconsistentNaming
+        [JsonIgnore]
         private static readonly TimeSpan ImmutableGenerateTimeLimit = TimeSpan.FromSeconds(5);
 
         /// The maximum amount of time between <see cref="Saving.Hand.Throw"/>s that items can be <see cref="Saving.Hand.Grab"/>-ed during before another <see cref="Saving.Hand.Throw"/> is required. Defaults to <see cref="ImmutableGenerateTimeLimit"/>.
-        [SerializeField] public TimeSpan GenerateTimeLimit = ImmutableGenerateTimeLimit;
+        [JsonProperty]
+        public TimeSpan GenerateTimeLimit = ImmutableGenerateTimeLimit;
 
-        private DateTime initializedTime = DateTime.Now;
-
-        public double KarmaInHand => throwables.Select(it => it.ThrowValue).Sum();
+        [JsonProperty]
+        public double KarmaInHand => throwables.Sum(it => it.ThrowValue);
 
         public delegate void ThrowHandDelegate(Hand hand);
 
         public static event ThrowHandDelegate ThrowHandEvent;
 
-        public DateTime LastThrowTime {
-            get => new DateTime(lastThrowTime);
-            set => lastThrowTime = value.Ticks;
-        }
+        [JsonProperty]
+        public DateTime LastThrowTime { get; set; } = DateTime.Now;
 
-        public DateTime LastGrabTime {
-            get => new DateTime(lastGrabTime);
-            set => lastGrabTime = value.Ticks;
-        }
+        [JsonProperty]
+        public DateTime LastGrabTime { get; set; } = DateTime.Now;
 
         public Hand() {
             //Subscribe to the ThrowSingleEvent
