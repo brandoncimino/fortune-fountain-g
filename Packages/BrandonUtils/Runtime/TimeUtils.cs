@@ -41,6 +41,22 @@ namespace Packages.BrandonUtils.Runtime {
         }
 
         /// <summary>
+        /// Divides <paramref name="dividend"/> by <paramref name="divisor"/>.
+        /// </summary>
+        /// <param name="dividend"></param>
+        /// <param name="divisor"></param>
+        /// <returns></returns>
+        public static double Divide(this TimeSpan dividend, double divisor) {
+            return dividend.Ticks / divisor;
+        }
+
+
+        /// <inheritdoc cref="Divide(System.TimeSpan,double)"/>
+        public static double Divide(this DateTime dividend, double divisor) {
+            return dividend.Ticks / divisor;
+        }
+
+        /// <summary>
         ///     Divides <paramref name="dividend" /> by <paramref name="divisor" />, returning the integer quotient.
         /// </summary>
         /// <param name="dividend">The number to be divided (i.e. top of the fraction)</param>
