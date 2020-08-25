@@ -232,5 +232,53 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(saveData.Word, Is.Not.EqualTo(firstEdit));
             Assert.That(saveData.Word, Is.EqualTo(secondEdit));
         }
+
+        [Test]
+        public void SaveTimeUnaffectedByLoading() {
+            DateTime beforeNewSave = DateTime.Now;
+            var      saveData      = SaveDataTestImpl.NewSaveFile(nameof(SaveTimeUnaffectedByLoading));
+            DateTime afterNewSave  = DateTime.Now;
+
+            Assert.That(saveData.LastSaveTime, Is.InRange(beforeNewSave, afterNewSave));
+            Assert.That(saveData.LastLoadTime, Is.InRange(beforeNewSave, afterNewSave));
+
+            var oldSaveTime = saveData.LastSaveTime;
+            var oldLoadTime = saveData.LastLoadTime;
+
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            DateTime beforeReload = DateTime.Now;
+            saveData.Reload();
+            DateTime afterReload = DateTime.Now;
+
+            Assert.That(saveData.LastSaveTime, Is.EqualTo(oldSaveTime), $"The {nameof(SaveDataTestImpl.LastSaveTime)} should not have changed, because we {nameof(SaveDataTestImpl.Reload)}-ed without {nameof(SaveDataTestImpl.Save)}-ing!");
+
+            Assert.That(saveData.LastLoadTime, Is.Not.EqualTo(oldLoadTime), $"The {nameof(SaveDataTestImpl.LastLoadTime)} should have changed, because we {nameof(SaveDataTestImpl.Reload)}-ed!");
+
+            Assert.That(saveData.LastLoadTime, Is.InRange(beforeReload, afterReload));
+        }
+
+        [Test]
+        public void LoadTimeUnaffectedBySaving() {
+            var beforeNewSave = DateTime.Now;
+            var saveData      = SaveDataTestImpl.NewSaveFile(nameof(LoadTimeUnaffectedBySaving));
+            var afterNewSave  = DateTime.Now;
+
+            Assert.That(saveData.LastSaveTime, Is.InRange(beforeNewSave, afterNewSave));
+            Assert.That(saveData.LastLoadTime, Is.InRange(beforeNewSave, afterNewSave));
+
+            var oldSaveTime = saveData.LastSaveTime;
+            var oldLoadTime = saveData.LastLoadTime;
+
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            var beforeReSave = DateTime.Now;
+            saveData.Save(false);
+            var afterReSave = DateTime.Now;
+
+            Assert.That(saveData.LastSaveTime, Is.InRange(beforeReSave, afterReSave));
+            Assert.That(saveData.LastSaveTime, Is.Not.EqualTo(oldSaveTime));
+            Assert.That(saveData.LastLoadTime, Is.EqualTo(oldLoadTime));
+        }
     }
 }
