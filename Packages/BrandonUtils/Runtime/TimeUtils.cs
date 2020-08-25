@@ -162,5 +162,13 @@ namespace Packages.BrandonUtils.Runtime {
         public static DateTime Max(this DateTime a, DateTime b, params DateTime[] c) {
             return c.Append(a).Append(b).Max();
         }
+
+        public static TimeSpan Min(this TimeSpan a, TimeSpan b, params TimeSpan[] c) {
+            return c.Append(a).Append(b).Min();
+        }
+
+        public static TimeSpan Max(this TimeSpan a, TimeSpan b, params TimeSpan[] c) {
+            return c.Append(a).Append(b).Max();
+        }
     }
 }
