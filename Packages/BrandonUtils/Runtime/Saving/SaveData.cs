@@ -44,18 +44,6 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         [JsonProperty]
         public string nickName;
 
-        /// <summary>
-        ///     Static initializer that makes sure the <see cref="SaveFolderPath" /> exists.
-        /// </summary>
-        static SaveData() {
-            if (!Directory.Exists(SaveFolderPath)) {
-                Log(Color.yellow, $"{nameof(SaveFolderPath)} at {SaveFolderPath} didn't exist, so it is being created...");
-                Directory.CreateDirectory(SaveFolderPath);
-            }
-        }
-
-        protected SaveData() { }
-
         [JsonProperty]
         public DateTime LastSaveTime;
 
@@ -70,6 +58,27 @@ namespace Packages.BrandonUtils.Runtime.Saving {
 
         [JsonIgnore]
         public bool Exists => SaveFileExists(nickName);
+
+        /// <summary>
+        /// The time that this <see cref="SaveData{T}"/> was loaded.
+        /// </summary>
+        /// <remarks>
+        /// Set to <see cref="DateTime.Now"/> when the data is initialized, <see cref="Load"/>-ed, or <see cref="Reload"/>-ed.
+        /// </remarks>
+        [JsonIgnore]
+        public DateTime LastLoadTime { get; private set; } = DateTime.Now;
+
+        /// <summary>
+        ///     Static initializer that makes sure the <see cref="SaveFolderPath" /> exists.
+        /// </summary>
+        static SaveData() {
+            if (!Directory.Exists(SaveFolderPath)) {
+                Log(Color.yellow, $"{nameof(SaveFolderPath)} at {SaveFolderPath} didn't exist, so it is being created...");
+                Directory.CreateDirectory(SaveFolderPath);
+            }
+        }
+
+        protected SaveData() { }
 
         public static T Load(string nickName) {
             Log("Loading save file: " + nickName);
@@ -88,7 +97,8 @@ namespace Packages.BrandonUtils.Runtime.Saving {
 
             var latestSaveFilePath = GetAllSaveFilePaths(nickName).Last();
             Log($"Found latest save file for {nickName} at path: {latestSaveFilePath}");
-            return FromSaveFile(latestSaveFilePath);
+            var deserializedSaveFile = LoadByPath(latestSaveFilePath);
+            return deserializedSaveFile;
         }
 
         /// <summary>
@@ -98,10 +108,11 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public T Reload() {
             Log($"Reloading save file: {nickName}");
             JsonConvert.PopulateObject(File.ReadAllText(LatestSaveFilePath), this);
+            LastLoadTime = DateTime.Now;
             return (T) this;
         }
 
-        private static T FromSaveFile(string saveFilePath) {
+        private static T LoadByPath(string saveFilePath) {
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(saveFilePath));
         }
 
