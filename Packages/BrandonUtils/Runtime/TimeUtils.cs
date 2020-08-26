@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 // ReSharper disable MemberCanBePrivate.Global
@@ -207,6 +208,18 @@ namespace Packages.BrandonUtils.Runtime {
         /// <returns></returns>
         public static DateTime AsDateTime(this TimeSpan timeSpan) {
             return new DateTime(timeSpan.Ticks);
+        }
+
+        /// <summary>
+        /// Equivalent to calling <see cref="Enumerable.Sum(System.Collections.Generic.IEnumerable{decimal})"/> against a <see cref="TimeSpan"/>.
+        /// </summary>
+        /// <remarks>
+        /// As of 8/26/2020, despite methods like <see cref="Enumerable.Min(System.Collections.Generic.IEnumerable{decimal})"/> having genericized versions (that I can't seem to create a direct link doc comment link to), <a href="https://stackoverflow.com/questions/4703046/sum-of-timespans-in-c-sharp">.Sum() does not</a>.
+        /// </remarks>
+        /// <param name="timeSpans"></param>
+        /// <returns></returns>
+        public static TimeSpan Sum(this IEnumerable<TimeSpan> timeSpans) {
+            return new TimeSpan(timeSpans.Sum(it => it.Ticks));
         }
     }
 }

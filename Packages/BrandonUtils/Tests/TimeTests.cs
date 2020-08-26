@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime;
 
@@ -25,7 +26,8 @@ namespace Packages.BrandonUtils.Tests {
         [Test]
         [Combinatorial]
         public void TestDivision([ValueSource(                        nameof(valuesInSeconds)), Values(0)]
-                                 double dividendSeconds, [ValueSource(nameof(valuesInSeconds))] double divisorSeconds) {
+                                 double dividendSeconds, [ValueSource(nameof(valuesInSeconds))]
+                                 double divisorSeconds) {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds  = TimeUtils.NormalizeSeconds(divisorSeconds);
 
@@ -48,7 +50,8 @@ namespace Packages.BrandonUtils.Tests {
         [Test]
         [Combinatorial]
         public void TestQuotient([ValueSource(                        nameof(valuesInSeconds)), Values(0)]
-                                 double dividendSeconds, [ValueSource(nameof(valuesInSeconds))] double divisorSeconds) {
+                                 double dividendSeconds, [ValueSource(nameof(valuesInSeconds))]
+                                 double divisorSeconds) {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds  = TimeUtils.NormalizeSeconds(divisorSeconds);
 
@@ -69,7 +72,8 @@ namespace Packages.BrandonUtils.Tests {
         [Test]
         [Combinatorial]
         public void TestModulusCombinatorial([ValueSource(                        nameof(valuesInSeconds)), Values(0)]
-                                             double dividendSeconds, [ValueSource(nameof(valuesInSeconds))] double divisorSeconds) {
+                                             double dividendSeconds, [ValueSource(nameof(valuesInSeconds))]
+                                             double divisorSeconds) {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds  = TimeUtils.NormalizeSeconds(divisorSeconds);
 
@@ -101,6 +105,20 @@ namespace Packages.BrandonUtils.Tests {
             var expectedProductSpanFromTicks = TimeSpan.FromTicks(expectedProductTicks);
 
             Assert.That(multiplicand.Multiply(multiplier), Is.EqualTo(expectedProductSpanFromTicks));
+        }
+
+        [Test, Pairwise]
+        public void TestSum([ValueSource(                  nameof(valuesInSeconds))]
+                            double a_seconds, [ValueSource(nameof(valuesInSeconds))]
+                            double b_seconds, [ValueSource(nameof(valuesInSeconds))]
+                            double c_seconds) {
+            var a_span = TimeSpan.FromSeconds(a_seconds);
+            var b_span = TimeSpan.FromSeconds(b_seconds);
+            var c_span = TimeSpan.FromSeconds(c_seconds);
+
+            var ls = new List<TimeSpan> {a_span, b_span, c_span};
+
+            Assert.That(ls.Sum(), Is.EqualTo(a_span + b_span + c_span));
         }
     }
 }
