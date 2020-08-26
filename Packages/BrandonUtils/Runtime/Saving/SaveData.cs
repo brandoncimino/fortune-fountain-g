@@ -117,6 +117,13 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         /// <summary>
+        /// Overrideable method called whenever a <see cref="Load"/> (or related method, like <see cref="Reload"/>) is called.
+        /// </summary>
+        protected virtual void OnLoad() {
+            //no-op
+        }
+
+        /// <summary>
         ///     Gets the path to a <b>theoretical</b> save file with the given <c>nickName</c> and <see cref="DateTime" />-stamp.
         ///     <br />
         ///     This method does <b>not</b> know or care if the save file exists!
@@ -210,6 +217,13 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// <exception cref="ReSaveDelayException{t}">If <paramref name="useReSaveDelay" /> is <c>true</c> and <see cref="ReSaveDelay" /> hasn't elapsed since <see cref="LastSaveTime" />.</exception>
         public void Save(bool useReSaveDelay = true) {
             Save(this, nickName, useReSaveDelay);
+        }
+
+        /// <summary>
+        /// Overrideable method called whenever the file is <see cref="Save(Packages.BrandonUtils.Runtime.Saving.SaveData{T},string,bool)"/>ed.
+        /// </summary>
+        protected virtual void OnSave() {
+            //no-op
         }
 
         public static void TrimSaves(string nickName, int trimTo = BackupSaveSlots) {
