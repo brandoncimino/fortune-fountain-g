@@ -27,7 +27,6 @@ namespace Runtime.Utils {
         /// </summary>
         /// <seealso cref="CheckGenerate{T}"/>
         /// <param name="playerValuables"></param>
-        /// <param name="endTime"></param>
         public static List<int> CheckGenerate(this IEnumerable<PlayerValuable> playerValuables) {
             return playerValuables.Select(it => it.CheckGenerate()).ToList();
         }
