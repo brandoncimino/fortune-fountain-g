@@ -400,5 +400,31 @@ namespace Tests.Runtime {
             _eventCounter  += 1;
             _amountCounter += amount;
         }
+
+        [Test]
+        [TestCase(0.5, 3)]
+        public void TestPartialUncheckedItemsGeneratedDuringLastSession(double previousGenTime, double totalItemsToGenerate) {
+            Assume.That(previousGenTime, Is.LessThan(1));
+
+            GameManager.SaveData                 = FortuneFountainSaveData.NewSaveFile(nameof(TestPartialUncheckedItemsGeneratedDuringLastSession));
+            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
+            GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateTime = DateTime.Now - it.GenerateInterval.Multiply(previousGenTime));
+            GameManager.SaveData.Save(false);
+
+            var genCounters = CreateValuableGenerationCounters();
+
+            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(2));
+
+            GameManager.SaveData.Reload();
+
+            var sleepIntervals = totalItemsToGenerate - previousGenTime + ((1 - previousGenTime) / 2);
+            LogUtils.Log($"{nameof(sleepIntervals)} = {sleepIntervals}");
+            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(sleepIntervals));
+
+            var itemsGenerated = GameManager.SaveData.PlayerValuables.CheckGenerate();
+
+            Assert.That(itemsGenerated, Has.All.EqualTo(totalItemsToGenerate));
+            Assert.That(genCounters,    Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = (int) totalItemsToGenerate, Events = 1}));
+        }
     }
 }
