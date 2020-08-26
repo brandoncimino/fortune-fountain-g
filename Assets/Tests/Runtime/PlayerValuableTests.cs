@@ -310,7 +310,7 @@ namespace Tests.Runtime {
             Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(beforeGenerate1 - genInterval, afterGenerate1));
 
             //Wait to generate the second event
-            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(secondEventAmount));
+            Thread.Sleep(genInterval.Multiply(secondEventAmount));
 
             //Check generation (which should be enough to trigger the second event)
             var beforeGenerate3 = DateTime.Now;
@@ -319,7 +319,7 @@ namespace Tests.Runtime {
             LogUtils.Log($"generate3 time: {beforeGenerate3} + {afterGenerate3 - beforeGenerate3}");
 
             Assert.That(generateCounters,                     Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = firstEventAmount + secondEventAmount, Events = 2}));
-            Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(beforeGenerate3, afterGenerate3));
+            Assert.That(GameManager.SaveData.PlayerValuables, Has.All.Values().Property(nameof(PlayerValuable.LastGenerateTime)).InRange(beforeGenerate3 - genInterval, afterGenerate3));
         }
 
         [Test]

@@ -92,7 +92,7 @@ namespace Runtime.Valuables {
             var durationLimitReached = actualGenerateLimit < unlimitedDuration;
 
             //calculate the number of items to generate, finally!
-            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(limitedDuration, this.GenerateInterval, out TimeSpan timeUtilized);
+            var numberToGenerate = (int) IncrementalUtils.NumberOfTimesCompleted(limitedDuration, this.GenerateInterval, out TimeSpan timeRefunded);
 
             //Check if we actually need to generate anything
             if (numberToGenerate > 0) {
@@ -100,7 +100,7 @@ namespace Runtime.Valuables {
                 this.Grab(numberToGenerate);
 
                 //Set the "LastGenerateTime" - aka the "time of last completion" - which is DateTime.Now IF we've surpassed the duration limit
-                LastGenerateTime = durationLimitReached ? DateTime.Now : LastGenerateTime + timeUtilized;
+                LastGenerateTime = durationLimitReached ? DateTime.Now : DateTime.Now - timeRefunded;
 
                 //Invoke the GeneratePlayerValuableEvent
                 GeneratePlayerValuableEvent?.Invoke(this, numberToGenerate);

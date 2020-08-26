@@ -39,14 +39,14 @@ namespace Runtime.Utils {
 
             var deltaTime = endTime - startTime;
 
-            var numberOfTimesCompleted = NumberOfTimesCompleted(deltaTime, durationToComplete, out TimeSpan timeUtilized);
-            lastCompletionTime = startTime + timeUtilized;
+            var numberOfTimesCompleted = NumberOfTimesCompleted(deltaTime, durationToComplete, out TimeSpan timeRefunded);
+            lastCompletionTime = startTime + timeRefunded;
             return numberOfTimesCompleted;
         }
 
-        public static double NumberOfTimesCompleted(TimeSpan elapsedTime, TimeSpan durationToComplete, out TimeSpan timeUtilized) {
+        public static double NumberOfTimesCompleted(TimeSpan elapsedTime, TimeSpan durationToComplete, out TimeSpan timeRefunded) {
             var numberOfTimesCompleted = elapsedTime.Quotient(durationToComplete);
-            timeUtilized = durationToComplete.Multiply(numberOfTimesCompleted);
+            timeRefunded = elapsedTime - durationToComplete.Multiply(numberOfTimesCompleted);
             return numberOfTimesCompleted;
         }
     }
