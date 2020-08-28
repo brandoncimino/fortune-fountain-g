@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework.Constraints;
 using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Packages.BrandonUtils.Runtime.Testing {
     public static class TestUtils {
+        public const double ApproximationThreshold = 0.001;
+
         /// <summary>
         /// Assert that <paramref name="expectedList"/> and <see cref="actualList"/> match <b>exactly</b>.
         ///
@@ -28,6 +31,28 @@ namespace Packages.BrandonUtils.Runtime.Testing {
         /// <returns></returns>
         public static ConstraintExpression Values(this ConstraintExpression constraintExpression) {
             return constraintExpression.Append(new ValuesOperator());
+        }
+
+        public static RangeConstraint Approximately<T>(this ConstraintExpression constraintExpression, T expectedValue, T threshold) {
+            return (RangeConstraint) constraintExpression.Append(new RangeConstraint((dynamic) expectedValue - threshold, (dynamic) expectedValue + threshold));
+        }
+
+        public static RangeConstraint Approximately<T>(this ConstraintExpression constraintExpression, T expectedValue) {
+            return Approximately(constraintExpression, expectedValue, (dynamic) expectedValue * ApproximationThreshold);
+        }
+
+        public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, DateTime expectedValue, TimeSpan threshold) {
+            return (RangeConstraint) constraintExpression.Append(new RangeConstraint(expectedValue - threshold, expectedValue + threshold));
+        }
+
+        public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, DateTime expectedValue) {
+            var threshold = TimeSpan.FromTicks((long) (expectedValue.Ticks * ApproximationThreshold));
+            return constraintExpression.Approximately(expectedValue, threshold);
+        }
+
+        public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, TimeSpan expectedValue) {
+            var threshold = TimeSpan.FromTicks((long) (expectedValue.Ticks * ApproximationThreshold));
+            return constraintExpression.Approximately(expectedValue, threshold);
         }
     }
 }
