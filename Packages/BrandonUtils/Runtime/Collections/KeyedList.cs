@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Packages.BrandonUtils.Runtime.Collections {
     /// <summary>
@@ -32,6 +33,10 @@ namespace Packages.BrandonUtils.Runtime.Collections {
 
         public KeyedList<TKey, TValue> Copy() {
             return new KeyedList<TKey, TValue>(this);
+        }
+
+        public void ForEach(Action<TValue> action) {
+            this.ToList().ForEach(action);
         }
     }
 }
