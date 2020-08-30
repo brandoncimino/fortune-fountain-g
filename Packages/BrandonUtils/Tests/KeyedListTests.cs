@@ -7,7 +7,7 @@ using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Logging;
 
 namespace Packages.BrandonUtils.Tests {
-    public class CollectionTests {
+    public class KeyedListTests {
         private class NoInterface : IEquatable<NoInterface> {
             public DayOfWeek DayOfWeek;
             public string    Info;
@@ -26,6 +26,10 @@ namespace Packages.BrandonUtils.Tests {
             public DayOfWeek PrimaryKey => DayOfWeek;
 
             public HasInterface(DayOfWeek dayOfWeek) : base(dayOfWeek) { }
+
+            public override string ToString() {
+                return JsonConvert.SerializeObject(this);
+            }
         }
 
         private class AlsoHasInterface : NoInterface, IPrimaryKeyed<DayOfWeek> {
@@ -199,6 +203,35 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(kl, Contains.Item(new HasInterface(DayOfWeek.Tuesday)));
             Assert.That(kl, Does.Not.Contains(new HasInterface(DayOfWeek.Monday)));
             Assert.That(kl, Has.Property(nameof(kl.Count)).EqualTo(initialLength - 1));
+        }
+
+        [Test]
+        public void TestJsonPopulateWithSameData() {
+            var kl = new KeyedList<DayOfWeek, HasInterface> {
+                new HasInterface(DayOfWeek.Monday),
+                new HasInterface(DayOfWeek.Tuesday)
+            };
+
+            var json = JsonConvert.SerializeObject(kl);
+            JsonConvert.PopulateObject(json, kl);
+        }
+
+        [Test]
+        public void TestJsonPopulateEmpty() {
+            var kl = new KeyedList<DayOfWeek, HasInterface> {
+                new HasInterface(DayOfWeek.Monday),
+                new HasInterface(DayOfWeek.Tuesday)
+            };
+
+            var json = JsonConvert.SerializeObject(kl);
+
+            var kl2 = new KeyedList<DayOfWeek, HasInterface>();
+
+            Assert.That(kl2, Is.Not.EqualTo(kl));
+
+            JsonConvert.PopulateObject(json, kl2);
+
+            Assert.That(kl2, Is.EqualTo(kl));
         }
     }
 }
