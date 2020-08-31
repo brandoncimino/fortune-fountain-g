@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
-using Packages.BrandonUtils.Runtime.Logging;
+using Newtonsoft.Json;
 
 namespace Packages.BrandonUtils.Runtime.Collections {
     /// <summary>
@@ -19,10 +19,7 @@ namespace Packages.BrandonUtils.Runtime.Collections {
 
         public new TValue this[TKey key] {
             get => base[key];
-            set {
-                LogUtils.Log($"PUTTING {key} to the keyed list {this} at {DateTime.Now}");
-                Put(value);
-            }
+            set => Put(value);
         }
 
         public KeyedList(IEnumerable<TValue> collection) {
@@ -42,26 +39,8 @@ namespace Packages.BrandonUtils.Runtime.Collections {
         }
 
         public new void Add(TValue item) {
-            LogUtils.Log($"ADDING {item} to {this}");
             base.Add(item);
         }
-
-        // protected override void InsertItem(int index, TValue item) {
-        //     LogUtils.Log($"INSERTING {item} at index {index}");
-        //     var targetKey = GetKeyForItem(item);
-        //     if (Contains(targetKey)) {
-        //         LogUtils.Log($"ALREADY CONTAINS ITEM {item}");
-        //         // var itemWithPrimaryKey = this.First(it => GetKeyForItem(it).Equals(GetKeyForItem(item)));
-        //         // this.Remove(targetKey);
-        //         var itemWithMatchingKey        = this[targetKey];
-        //         var indexOfItemWithMatchingKey = IndexOf(itemWithMatchingKey);
-        //         this.SetItem(indexOfItemWithMatchingKey, item);
-        //     }
-        //     else {
-        //         LogUtils.Log($"DOES NOT CONTAIN ITEM {item}");
-        //         base.InsertItem(index, item);
-        //     }
-        // }
 
         /// <summary>
         /// If the <see cref="GetKeyForItem">primary key</see> of <paramref name="item"/> already exists, update it.
@@ -82,6 +61,10 @@ namespace Packages.BrandonUtils.Runtime.Collections {
             return oldItem;
         }
 
+        /// <summary>
+        /// Method called with the object is de-serialized, e.g. via <see cref="JsonConvert.DeserializeObject{T}(string)"/>.
+        /// </summary>
+        /// <param name="streamingContext"></param>
         [OnDeserializing]
         internal void OnDeserializingMethod(StreamingContext streamingContext) {
             Clear();
