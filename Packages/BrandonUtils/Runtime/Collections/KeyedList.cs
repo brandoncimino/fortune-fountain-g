@@ -69,5 +69,17 @@ namespace Packages.BrandonUtils.Runtime.Collections {
         internal void OnDeserializingMethod(StreamingContext streamingContext) {
             Clear();
         }
+
+        /// <summary>
+        /// A parameterless override for <see cref="Enumerable.ToDictionary{TSource,TKey}(System.Collections.Generic.IEnumerable{TSource},System.Func{TSource,TKey})"/> that uses <see cref="GetKeyForItem"/> as the selector.
+        /// </summary>
+        /// <returns>A <i>new</i> <see cref="Dictionary{TKey,TValue}"/> where:
+        /// <li>The <see cref="Dictionary{TKey,TValue}.Values"/> are the <see cref="KeyedList{TKey,TValue}"/>'s items</li>
+        /// <li>The <see cref="Dictionary{TKey,TValue}.Keys"/> are the <see cref="KeyedList{TKey,TValue}"/>'s <see cref="GetKeyForItem"/>s.</li>
+        /// </returns>
+        /// <seealso cref="Enumerable.ToDictionary{TSource,TKey}(System.Collections.Generic.IEnumerable{TSource},System.Func{TSource,TKey})"/>
+        public Dictionary<TKey, TValue> ToDictionary() {
+            return this.ToDictionary(GetKeyForItem);
+        }
     }
 }
