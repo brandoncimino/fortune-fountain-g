@@ -4,9 +4,14 @@ using NUnit.Framework.Constraints;
 using UnityEngine;
 using UnityEngine.Assertions;
 
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Packages.BrandonUtils.Runtime.Testing {
     public static class TestUtils {
-        public const double ApproximationThreshold = 0.001;
+        public const           double   ApproximationThreshold     = 0.001;
+        public const           long     ApproximationTickThreshold = (long) (TimeSpan.TicksPerSecond * ApproximationThreshold);
+        public static readonly TimeSpan ApproximationTimeThreshold = TimeSpan.FromTicks(ApproximationTickThreshold);
+
 
         /// <summary>
         /// Assert that <paramref name="expectedList"/> and <see cref="actualList"/> match <b>exactly</b>.
@@ -46,13 +51,11 @@ namespace Packages.BrandonUtils.Runtime.Testing {
         }
 
         public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, DateTime expectedValue) {
-            var threshold = TimeSpan.FromTicks((long) (expectedValue.Ticks * ApproximationThreshold));
-            return constraintExpression.Approximately(expectedValue, threshold);
+            return constraintExpression.Approximately(expectedValue, ApproximationTimeThreshold);
         }
 
         public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, TimeSpan expectedValue) {
-            var threshold = TimeSpan.FromTicks((long) (expectedValue.Ticks * ApproximationThreshold));
-            return constraintExpression.Approximately(expectedValue, threshold);
+            return constraintExpression.Approximately(expectedValue, ApproximationTimeThreshold);
         }
     }
 }
