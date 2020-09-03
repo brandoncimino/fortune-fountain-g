@@ -8,10 +8,10 @@ using UnityEngine.Assertions;
 
 namespace Packages.BrandonUtils.Runtime.Testing {
     public static class TestUtils {
-        public const           double   ApproximationThreshold     = 0.001;
-        public const           long     ApproximationTickThreshold = (long) (TimeSpan.TicksPerSecond * ApproximationThreshold);
-        public static readonly TimeSpan ApproximationTimeThreshold = TimeSpan.FromTicks(ApproximationTickThreshold);
-
+        public const           double   ApproximationThreshold       = 0.001;
+        public const           double   ApproximationThreshold_Loose = 0.005;
+        public const           long     ApproximationTickThreshold   = (long) (TimeSpan.TicksPerSecond * ApproximationThreshold_Loose);
+        public static readonly TimeSpan ApproximationTimeThreshold   = TimeSpan.FromTicks(ApproximationTickThreshold);
 
         /// <summary>
         /// Assert that <paramref name="expectedList"/> and <see cref="actualList"/> match <b>exactly</b>.
@@ -38,23 +38,24 @@ namespace Packages.BrandonUtils.Runtime.Testing {
             return constraintExpression.Append(new ValuesOperator());
         }
 
-        public static RangeConstraint Approximately<T>(this ConstraintExpression constraintExpression, T expectedValue, T threshold) {
-            return (RangeConstraint) constraintExpression.Append(new RangeConstraint((dynamic) expectedValue - threshold, (dynamic) expectedValue + threshold));
+        public static ApproximationConstraint Approximately<T>(this ConstraintExpression constraintExpression, T expectedValue, T threshold) {
+            // return (RangeConstraint) constraintExpression.Append(new RangeConstraint((dynamic) expectedValue - threshold, (dynamic) expectedValue + threshold));
+            return (ApproximationConstraint) constraintExpression.Append(new ApproximationConstraint(expectedValue, threshold));
         }
 
-        public static RangeConstraint Approximately<T>(this ConstraintExpression constraintExpression, T expectedValue) {
+        public static ApproximationConstraint Approximately<T>(this ConstraintExpression constraintExpression, T expectedValue) {
             return Approximately(constraintExpression, expectedValue, (dynamic) expectedValue * ApproximationThreshold);
         }
 
-        public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, DateTime expectedValue, TimeSpan threshold) {
-            return (RangeConstraint) constraintExpression.Append(new RangeConstraint(expectedValue - threshold, expectedValue + threshold));
+        public static ApproximationConstraint Approximately(this ConstraintExpression constraintExpression, DateTime expectedValue, TimeSpan threshold) {
+            return (ApproximationConstraint) constraintExpression.Append(new ApproximationConstraint(expectedValue, threshold));
         }
 
-        public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, DateTime expectedValue) {
+        public static ApproximationConstraint Approximately(this ConstraintExpression constraintExpression, DateTime expectedValue) {
             return constraintExpression.Approximately(expectedValue, ApproximationTimeThreshold);
         }
 
-        public static RangeConstraint Approximately(this ConstraintExpression constraintExpression, TimeSpan expectedValue) {
+        public static ApproximationConstraint Approximately(this ConstraintExpression constraintExpression, TimeSpan expectedValue) {
             return constraintExpression.Approximately(expectedValue, ApproximationTimeThreshold);
         }
     }
