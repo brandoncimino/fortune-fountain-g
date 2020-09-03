@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Newtonsoft.Json;
+using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Saving;
 using Runtime.Valuables;
 using UnityEngine;
@@ -18,17 +20,26 @@ namespace Runtime.Saving {
 
         /// Holds information about the player's valuables <i>(<b>un-instantiated</b> types of <see cref="Throwable"/>s)</i>, such as upgrades.
         [JsonProperty]
-        public Dictionary<ValuableType, PlayerValuable> PlayerValuables = new Dictionary<ValuableType, PlayerValuable>();
+        public KeyedList<ValuableType, PlayerValuable> PlayerValuables = new KeyedList<ValuableType, PlayerValuable>();
+
+        /// The total time spent "out-of-game" since the last <see cref="Saving.Hand.Throw"/>.
+        /// <br/>
+        /// Equivalent to the <see cref="TimeUtils.Sum"/> of <see cref="OutOfGamePeriodsSinceLastThrow"/>.
+        [JsonProperty]
+        public TimeSpan OutOfGameTimeSinceLastThrow { get; private set; }
+
+        [JsonIgnore]
+        public TimeSpan InGameTimeSinceLastThrow => DateTime.Now - Hand.LastThrowTime - OutOfGameTimeSinceLastThrow;
 
         public FortuneFountainSaveData() {
             Hand = new Hand();
 
             //enabling the first PlayerValuable
-            const ValuableType firstValuableType = (ValuableType) 0;
-            PlayerValuables.Add(firstValuableType, new PlayerValuable(firstValuableType));
+            PlayerValuables.Add(new PlayerValuable(0));
 
             //subscribing to events
             Throwable.ThrowSingleEvent += HandleThrowSingleEvent;
+            Hand.ThrowHandEvent        += HandleThrowHandEvent;
         }
 
         public void AddKarma(double amount) {
@@ -41,6 +52,20 @@ namespace Runtime.Saving {
         /// <param name="throwable"></param>
         private void HandleThrowSingleEvent(Throwable throwable) {
             AddKarma(throwable.ThrowValue);
+        }
+
+        private void HandleThrowHandEvent(Hand hand) {
+            OutOfGameTimeSinceLastThrow = TimeSpan.Zero;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="SaveData{T}.OnLoad"/>
+        /// <p/>
+        /// Adds the time "lost" between <see cref="SaveData{T}.LastLoadTime"/> and <see cref="SaveData{T}.LastSaveTime"/> to <see cref="OutOfGameTimeSinceLastThrow"/>.
+        /// </summary>
+        protected override void OnLoad() {
+            base.OnLoad();
+            OutOfGameTimeSinceLastThrow += LastLoadTime - LastSaveTime;
         }
     }
 }
