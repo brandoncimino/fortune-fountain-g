@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Packages.BrandonUtils.Runtime.Collections;
 using Runtime.Saving;
 using Runtime.Valuables;
 
@@ -14,15 +15,15 @@ namespace Tests.Runtime {
         /// </summary>
         /// <param name="rate">The <see cref="PlayerValuable.Rate"/> that each <see cref="PlayerValuable"/> will have (defaults to 1)</param>
         /// <returns></returns>
-        public static Dictionary<ValuableType, PlayerValuable> GetUniformPlayerValuables(double rate = 1) {
-            var dic = new Dictionary<ValuableType, PlayerValuable>();
+        public static KeyedList<ValuableType, PlayerValuable> GetUniformPlayerValuables(double rate = 1) {
+            var keyedList = new KeyedList<ValuableType, PlayerValuable>();
 
             foreach (var valuableType in ValuableDatabase.ValuableTypes) {
-                dic.Add(valuableType, new PlayerValuable(valuableType));
-                dic[valuableType].Rate = rate;
+                keyedList.Add(new PlayerValuable(valuableType));
+                keyedList[valuableType].Rate = rate;
             }
 
-            return dic;
+            return keyedList;
         }
     }
 }
