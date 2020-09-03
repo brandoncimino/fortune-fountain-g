@@ -2,6 +2,7 @@
 using System.Threading;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Testing;
 using Runtime.Saving;
 using Runtime.Valuables;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
@@ -106,7 +107,7 @@ namespace Tests.Runtime {
         [TestCase(1.01)]
         public void TestOutOfGameTime(double secondsOutOfGame) {
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestOutOfGameTime));
-            fortuneFountainSaveData.Save(false);
+            fortuneFountainSaveData.Save(false); //For some reason, the first test fails if we don't save again here - something with NUnit causing slowdown for the first test, maybe?
 
             var outOfGameTime = TimeSpan.FromSeconds(secondsOutOfGame);
 
@@ -117,6 +118,34 @@ namespace Tests.Runtime {
             var tolerance = TimeSpan.FromSeconds(0.1);
 
             Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, Is.InRange(outOfGameTime - tolerance, outOfGameTime + tolerance));
+        }
+
+        [Test]
+        [TestCase(5, 3, 1)]
+        public void TestMultipleOutOfGameSessions(params double[] sessions) {
+            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestMultipleOutOfGameSessions));
+            fortuneFountainSaveData.Hand.LastThrowTime = DateTime.Now; //to "discard" the time spent creating the save file
+            fortuneFountainSaveData.Save(false);
+
+            var totalSessionTime = TimeSpan.Zero;
+
+            for (var index = 0; index < sessions.Length; index++) {
+                var sessionSeconds = sessions[index];
+                var sessionSpan    = TimeSpan.FromSeconds(sessionSeconds);
+                totalSessionTime += sessionSpan;
+
+                Thread.Sleep(sessionSpan);
+                fortuneFountainSaveData.Reload();
+
+                Thread.Sleep(TimeSpan.FromSeconds(sessionSeconds));
+                fortuneFountainSaveData.Save(false);
+
+                //threshold increases each time due to the overall slowness of saving/loading repeatedly
+                var threshold = TimeSpan.FromSeconds(0.1 * (index + 1) * 2);
+
+                Assert.That(fortuneFountainSaveData, Has.Property(nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)).Approximately(totalSessionTime, threshold));
+                Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).Approximately(totalSessionTime, threshold));
+            }
         }
     }
 }
