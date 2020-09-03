@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Runtime.Valuables;
 
@@ -8,7 +9,7 @@ namespace Runtime.Utils {
     /// </summary>
     public static class FortuneFountainUtils {
         /// <summary>
-        /// Calls <see cref="PlayerValuable.CheckGenerate()"/> against all <see cref="IDictionary{TKey,TValue}.Values"/> in <paramref name="playerValuables"/>.
+        /// Calls <see cref="PlayerValuable.CheckGeneration(System.DateTime,System.Nullable{System.TimeSpan})"/> against all <see cref="IDictionary{TKey,TValue}.Values"/> in <paramref name="playerValuables"/>.
         ///
         /// TODO: Can this be placed somewhere closer to <see cref="PlayerValuable"/>?
         /// </summary>
@@ -18,17 +19,16 @@ namespace Runtime.Utils {
         /// EDIT: It looks like we have to "close" the LINQ expression using <see cref="Enumerable.ToList{TSource}"/>.
         /// </remarks>
         /// <param name="playerValuables"></param>
-        public static List<int> CheckGenerate<T>(this IDictionary<T, PlayerValuable> playerValuables) {
-            return playerValuables.Values.Select(it => it.CheckGenerate()).ToList();
+        /// <param name="generateLimitOverride"></param>
+        /// <param name="now"></param>
+        public static List<int> CheckGenerate(this IEnumerable<PlayerValuable> playerValuables, TimeSpan? generateLimitOverride, DateTime? now = null) {
+            DateTime realNow = now.GetValueOrDefault(DateTime.Now);
+            return playerValuables.Select(it => it.CheckGeneration(realNow, generateLimitOverride)).ToList();
         }
 
-        /// <summary>
-        /// Calls <see cref="PlayerValuable.CheckGenerate"/> against all items in <paramref name="playerValuables"/>.
-        /// </summary>
-        /// <seealso cref="CheckGenerate{T}"/>
-        /// <param name="playerValuables"></param>
-        public static List<int> CheckGenerate(this IEnumerable<PlayerValuable> playerValuables) {
-            return playerValuables.Select(it => it.CheckGenerate()).ToList();
+        public static List<int> CheckGenerate(this IEnumerable<PlayerValuable> playerValuables, DateTime? now = null) {
+            DateTime realNow = now.GetValueOrDefault(DateTime.Now);
+            return playerValuables.Select(it => it.CheckGeneration(realNow)).ToList();
         }
     }
 }
