@@ -4,6 +4,7 @@ using Newtonsoft.Json.Converters;
 using Packages.BrandonUtils.Runtime;
 using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Exceptions;
+using Packages.BrandonUtils.Runtime.Testing;
 using Runtime.Saving;
 using Runtime.Utils;
 
@@ -208,8 +209,8 @@ namespace Runtime.Valuables {
                 throw new TimeParadoxException("How have we spent negative time playing?!");
             }
 
-            if (inGameTime > GameManager.SaveData.InGameTimeSinceLastThrow) {
-                throw new TimeParadoxException($"We can't have spent more time generating items than we did actually playing the game!!\n\t{nameof(inGameTime)} generating = {inGameTime}\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {GameManager.SaveData.InGameTimeSinceLastThrow}");
+            if (inGameTime - GameManager.SaveData.InGameTimeSinceLastThrow > TestUtils.ApproximationTimeThreshold) {
+                throw new TimeParadoxException($"We can't have spent more time generating items than we did actually playing the game!!" + $"\n\t{nameof(inGameTime)} ({ValuableType}) = {inGameTime}" + $"\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {GameManager.SaveData.InGameTimeSinceLastThrow}" + $"\n\tDifference = {inGameTime - GameManager.SaveData.InGameTimeSinceLastThrow}" + $"\n\t{nameof(TestUtils.ApproximationTimeThreshold)} = {TestUtils.ApproximationTimeThreshold}");
             }
 
             return inGameTime;
