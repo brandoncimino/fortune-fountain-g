@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
-using Packages.BrandonUtils.Runtime;
 using Packages.BrandonUtils.Runtime.Logging;
+using Packages.BrandonUtils.Runtime.Time;
 using Runtime.Utils;
 
 namespace Tests.Runtime {
@@ -25,7 +25,8 @@ namespace Tests.Runtime {
         [Test]
         [Combinatorial]
         public void TestNumberOfTimesCompletedCombinatorial([ValueSource(                           nameof(seconds)), Values(0)]
-                                                            double deltaTimeInSeconds, [ValueSource(nameof(seconds))] double timeToCompleteInSeconds) {
+                                                            double deltaTimeInSeconds, [ValueSource(nameof(seconds))]
+                                                            double timeToCompleteInSeconds) {
             Assume.That(timeToCompleteInSeconds, Is.GreaterThan(0), $"Failure conditions with a {nameof(timeToCompleteInSeconds)} ({timeToCompleteInSeconds}) <= 0 are a different test!");
 
             var deltaTime      = TimeSpan.FromSeconds(deltaTimeInSeconds);

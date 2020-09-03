@@ -4,7 +4,7 @@ using System.Linq;
 
 // ReSharper disable MemberCanBePrivate.Global
 
-namespace Packages.BrandonUtils.Runtime {
+namespace Packages.BrandonUtils.Runtime.Time {
     /// <summary>
     /// Contains utility methods that manipulate or extend <see cref="DateTime" />, <see cref="TimeSpan" />, etc.
     ///

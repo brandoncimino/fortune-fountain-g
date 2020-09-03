@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Time;
 
 namespace Runtime.Utils {
     /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Packages.BrandonUtils.Runtime;
+using Packages.BrandonUtils.Runtime.Time;
 
 namespace Packages.BrandonUtils.Tests {
     public class TimeTests {

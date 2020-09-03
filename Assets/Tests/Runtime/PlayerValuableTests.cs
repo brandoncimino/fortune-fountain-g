@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Packages.BrandonUtils.Runtime;
 using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Testing;
+using Packages.BrandonUtils.Runtime.Time;
 using Runtime;
 using Runtime.Saving;
 using Runtime.Utils;
@@ -63,7 +63,6 @@ namespace Tests.Runtime {
             GameManager.SaveData.Hand.LastThrowTime = setTime;
 
             GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateCheckTime = setTime);
-            FortuneFountainSaveData temp = GameManager.SaveData;
 
             if (checkThrowables) {
                 Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.EqualTo(0));
