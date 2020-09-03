@@ -20,10 +20,23 @@ namespace Packages.BrandonUtils.Runtime.Saving {
     /// <typeparam name="T">The inheriting class, e.g. <see cref="SaveDataTestImpl" /></typeparam>
     /// <seealso cref="SaveDataTestImpl" />
     public abstract class SaveData<T> where T : SaveData<T>, new() {
-        public const string SaveFolderName    = "SaveData";
-        public const string AutoSaveName      = "AutoSave";
+        [JsonIgnore]
+        public const string SaveFolderName = "SaveData";
+
+        [JsonIgnore]
+        public const string AutoSaveName = "AutoSave";
+
+        [JsonIgnore]
         public const string SaveFileExtension = "sav";
-        public const int    BackupSaveSlots   = 10;
+
+        [JsonIgnore]
+        public const int BackupSaveSlots = 10;
+
+        [JsonIgnore]
+        public static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings {
+            ObjectCreationHandling = ObjectCreationHandling.Replace,
+            Formatting             = Formatting.Indented
+        };
 
         /// <summary>
         ///     The required length of timestamps in save file names generated via <see cref="GetSaveFileNameWithDate" />
@@ -45,7 +58,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public string nickName;
 
         [JsonProperty]
-        public DateTime LastSaveTime;
+        public DateTime LastSaveTime { get; set; } = DateTime.Now;
 
         [JsonIgnore]
         public string[] AllSaveFilePaths => GetAllSaveFilePaths(nickName);
@@ -66,7 +79,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// Set to <see cref="DateTime.Now"/> when the data is initialized, <see cref="Load"/>-ed, or <see cref="Reload"/>-ed.
         /// </remarks>
         [JsonIgnore]
-        public DateTime LastLoadTime { get; private set; } = DateTime.Now;
+        public DateTime LastLoadTime { get; set; } = DateTime.Now;
 
         /// <summary>
         ///     Static initializer that makes sure the <see cref="SaveFolderPath" /> exists.
@@ -98,6 +111,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             var latestSaveFilePath = GetAllSaveFilePaths(nickName).Last();
             Log($"Found latest save file for {nickName} at path: {latestSaveFilePath}");
             var deserializedSaveFile = LoadByPath(latestSaveFilePath);
+            deserializedSaveFile.OnLoad();
             return deserializedSaveFile;
         }
 
@@ -109,6 +123,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             Log($"Reloading save file: {nickName}");
             JsonConvert.PopulateObject(File.ReadAllText(LatestSaveFilePath), this);
             LastLoadTime = DateTime.Now;
+            OnLoad();
             return (T) this;
         }
 
@@ -161,7 +176,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             Directory.CreateDirectory(Path.GetDirectoryName(GetNewSaveFilePath(nickname)) ?? throw new SaveDataException<T>($"The path {GetNewSaveFilePath(nickname)} didn't have a valid directory name!", new DirectoryNotFoundException()));
 
             //create a new, blank save data, and save it as the new file
-            return Save(new T(), nickname);
+            return Save(new T(), nickname, false);
         }
 
         /// <summary>
@@ -308,7 +323,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// </summary>
         /// <returns></returns>
         public string ToJson() {
-            return JsonConvert.SerializeObject(this, Formatting.Indented);
+            return JsonConvert.SerializeObject(this, JsonSerializerSettings);
         }
 
         public override string ToString() {
