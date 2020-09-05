@@ -25,9 +25,12 @@ namespace Packages.BrandonUtils.Tests {
 
         [Test]
         [Combinatorial]
-        public void TestDivision([ValueSource(                        nameof(valuesInSeconds)), Values(0)]
-                                 double dividendSeconds, [ValueSource(nameof(valuesInSeconds))]
-                                 double divisorSeconds) {
+        public void TestDivision(
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double dividendSeconds,
+            [ValueSource(nameof(valuesInSeconds))]
+            double divisorSeconds
+        ) {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds  = TimeUtils.NormalizeSeconds(divisorSeconds);
 
@@ -42,16 +45,21 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         [Test]
-        public void TestDivisionByZero([ValueSource(nameof(valuesInSeconds)), Values(0)]
-                                       double dividendSeconds) {
+        public void TestDivisionByZero(
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double dividendSeconds
+        ) {
             Assert.Throws<DivideByZeroException>(() => TimeSpan.FromSeconds(dividendSeconds).Divide(TimeSpan.Zero));
         }
 
         [Test]
         [Combinatorial]
-        public void TestQuotient([ValueSource(                        nameof(valuesInSeconds)), Values(0)]
-                                 double dividendSeconds, [ValueSource(nameof(valuesInSeconds))]
-                                 double divisorSeconds) {
+        public void TestQuotient(
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double dividendSeconds,
+            [ValueSource(nameof(valuesInSeconds))]
+            double divisorSeconds
+        ) {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds  = TimeUtils.NormalizeSeconds(divisorSeconds);
 
@@ -64,16 +72,21 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         [Test]
-        public void TestQuotientByZero([ValueSource(nameof(valuesInSeconds)), Values(0)]
-                                       double dividendSeconds) {
+        public void TestQuotientByZero(
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double dividendSeconds
+        ) {
             Assert.Throws<DivideByZeroException>(() => TimeSpan.FromSeconds(dividendSeconds).Quotient(TimeSpan.Zero));
         }
 
         [Test]
         [Combinatorial]
-        public void TestModulusCombinatorial([ValueSource(                        nameof(valuesInSeconds)), Values(0)]
-                                             double dividendSeconds, [ValueSource(nameof(valuesInSeconds))]
-                                             double divisorSeconds) {
+        public void TestModulusCombinatorial(
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double dividendSeconds,
+            [ValueSource(nameof(valuesInSeconds))]
+            double divisorSeconds
+        ) {
             dividendSeconds = TimeUtils.NormalizeSeconds(dividendSeconds);
             divisorSeconds  = TimeUtils.NormalizeSeconds(divisorSeconds);
 
@@ -90,15 +103,20 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         [Test]
-        public void TestModulusByZero([ValueSource(nameof(valuesInSeconds)), Values(0)]
-                                      double dividendSeconds) {
+        public void TestModulusByZero(
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double dividendSeconds
+        ) {
             Assert.Throws<DivideByZeroException>(() => TimeSpan.FromSeconds(dividendSeconds).Modulus(TimeSpan.Zero));
         }
 
         [Test]
-        public void TestMultiply([ValueSource(                              nameof(valuesInSeconds)), Values(0)]
-                                 double multiplicandInSeconds, [ValueSource(nameof(valuesInSeconds)), Values(0)]
-                                 double multiplier) {
+        public void TestMultiply(
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double multiplicandInSeconds,
+            [ValueSource(nameof(valuesInSeconds)), Values(0)]
+            double multiplier
+        ) {
             var multiplicand                 = TimeSpan.FromSeconds(multiplicandInSeconds);
             var multiplicandTicks            = multiplicand.Ticks;
             var expectedProductTicks         = (long) (multiplicandTicks * multiplier);
@@ -108,10 +126,14 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         [Test, Pairwise]
-        public void TestSum([ValueSource(                  nameof(valuesInSeconds))]
-                            double a_seconds, [ValueSource(nameof(valuesInSeconds))]
-                            double b_seconds, [ValueSource(nameof(valuesInSeconds))]
-                            double c_seconds) {
+        public void TestSum(
+            [ValueSource(nameof(valuesInSeconds))]
+            double a_seconds,
+            [ValueSource(nameof(valuesInSeconds))]
+            double b_seconds,
+            [ValueSource(nameof(valuesInSeconds))]
+            double c_seconds
+        ) {
             var a_span = TimeSpan.FromSeconds(a_seconds);
             var b_span = TimeSpan.FromSeconds(b_seconds);
             var c_span = TimeSpan.FromSeconds(c_seconds);
