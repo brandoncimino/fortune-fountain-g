@@ -15,9 +15,19 @@ namespace Packages.BrandonUtils.Runtime.Logging {
             All = Console | Unity | UI
         }
 
-        public static List<string> lines     = new List<string>();
-        public static Locations    locations = Locations.All;
-        private       Text         _text;
+        public const int LineLimit = 100;
+
+        public static List<string> lines = new List<string>();
+
+        public static string[] LimitedLines => lines
+                                               .GetRange(
+                                                   Math.Max(0, lines.Count - LineLimit),
+                                                   Math.Min(lines.Count, LineLimit)
+                                               )
+                                               .ToArray();
+
+        public static Locations locations = Locations.All;
+        private       Text      _text;
 
         private void Awake() {
             _text = GetComponent<Text>();
@@ -51,7 +61,11 @@ namespace Packages.BrandonUtils.Runtime.Logging {
         public void Update() {
             _text.enabled = locations.HasFlag(Locations.UI);
 
-            _text.text = string.Join("\n", lines);
+            //TODO: Is it necessary to check if _text.text needs to be changed before setting it, or is Unity smart enough to not do anything in that case?
+            string newText = string.Join("\n", LimitedLines);
+            if (_text.text != newText) {
+                _text.text = newText;
+            }
         }
     }
 }

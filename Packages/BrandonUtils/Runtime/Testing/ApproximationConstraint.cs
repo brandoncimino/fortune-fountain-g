@@ -12,8 +12,8 @@ namespace Packages.BrandonUtils.Runtime.Testing {
         public override string Description =>
             $"{FormatObject(ExpectedValue)} (approximately)" +
             $"\n\t{nameof(Threshold)} = {FormatObject(Threshold)}" +
-            $"\n\t{nameof(MinValue)} = {FormatObject(MinValue)}" +
-            $"\n\t{nameof(MaxValue)} = {FormatObject(MaxValue)}";
+            $"\n\t{nameof(MinValue)}  = {FormatObject(MinValue)}" +
+            $"\n\t{nameof(MaxValue)}  = {FormatObject(MaxValue)}";
 
         public ApproximationConstraint(object expectedValue, object threshold) : base((IComparable) GetMinValue(expectedValue, threshold), (IComparable) GetMaxValue(expectedValue, threshold)) {
             ExpectedValue = expectedValue;
