@@ -3,7 +3,7 @@ using System.Collections;
 using System.Threading;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime.Testing;
-using Packages.BrandonUtils.Runtime.Time;
+using Packages.BrandonUtils.Runtime.Timing;
 using UnityEngine;
 using UnityEngine.TestTools;
 

@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Exceptions;
 using Packages.BrandonUtils.Runtime.Testing;
-using Packages.BrandonUtils.Runtime.Time;
+using Packages.BrandonUtils.Runtime.Timing;
 using Runtime.Saving;
 using Runtime.Utils;
 

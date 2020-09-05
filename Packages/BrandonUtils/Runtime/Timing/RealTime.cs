@@ -4,7 +4,7 @@ using Packages.BrandonUtils.Runtime.Exceptions;
 using Packages.BrandonUtils.Runtime.Logging;
 using UnityEngine;
 
-namespace Packages.BrandonUtils.Runtime.Time {
+namespace Packages.BrandonUtils.Runtime.Timing {
     /// <summary>
     /// Utilities that interact with Unity's <see cref="Time"/> system.
     /// </summary>

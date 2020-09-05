@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Testing;
-using Packages.BrandonUtils.Runtime.Time;
+using Packages.BrandonUtils.Runtime.Timing;
 using Runtime;
 using Runtime.Saving;
 using Runtime.Utils;
@@ -185,10 +185,14 @@ namespace Tests.Runtime {
         [TestCase(50,    19,   1)]
         [TestCase(5,     19,   1)]
         [TestCase(5,     1,    2)]
-        public void GenerateEventsLimitedByMaxGenerateTime([ValueSource(                                   nameof(seconds))]
-                                                           double generateTimeLimitInSeconds, [ValueSource(nameof(rates))]
-                                                           double itemsPerSecond, [ValueSource(            nameof(seconds)), Values(0)]
-                                                           double extraGenerationSeconds) {
+        public void GenerateEventsLimitedByMaxGenerateTime(
+            [ValueSource(nameof(seconds))]
+            double generateTimeLimitInSeconds,
+            [ValueSource(nameof(rates))]
+            double itemsPerSecond,
+            [ValueSource(nameof(seconds)), Values(0)]
+            double extraGenerationSeconds
+        ) {
             Assume.That(generateTimeLimitInSeconds, Is.GreaterThan(0),          $"{nameof(generateTimeLimitInSeconds)} must be greater than 0!");
             Assume.That(itemsPerSecond,             Is.GreaterThan(0),          $"{nameof(itemsPerSecond)} must be greater than 0!");
             Assume.That(extraGenerationSeconds,     Is.GreaterThanOrEqualTo(0), $"{nameof(extraGenerationSeconds)} must be positive!");
@@ -223,8 +227,10 @@ namespace Tests.Runtime {
         [TestCase(1)]
         [TestCase(5)]
         [TestCase(19)]
-        public void TestGenerateInterval([ValueSource(nameof(rates))]
-                                         double rateInItemsPerSecond) {
+        public void TestGenerateInterval(
+            [ValueSource(nameof(rates))]
+            double rateInItemsPerSecond
+        ) {
             var pv = new PlayerValuable(ValuableType.Coin) {Rate = rateInItemsPerSecond};
 
             Assert.That(TimeSpan.FromSeconds(1).Divide(pv.GenerateInterval), Is.InRange(Math.Floor(rateInItemsPerSecond), rateInItemsPerSecond * 1.00001));

@@ -2,7 +2,7 @@
 using System.Threading;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime.Testing;
-using Packages.BrandonUtils.Runtime.Time;
+using Packages.BrandonUtils.Runtime.Timing;
 using Runtime.Saving;
 using Runtime.Valuables;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
@@ -63,8 +63,10 @@ namespace Tests.Runtime {
         };
 
         [Test]
-        public void TestInGameTimeSinceLastThrowWithoutSaving([ValueSource(nameof(seconds))]
-                                                              double secondsInGame) {
+        public void TestInGameTimeSinceLastThrowWithoutSaving(
+            [ValueSource(nameof(seconds))]
+            double secondsInGame
+        ) {
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestInGameTimeSinceLastThrowWithoutSaving));
 
             var inGameTime = TimeSpan.FromSeconds(secondsInGame);
