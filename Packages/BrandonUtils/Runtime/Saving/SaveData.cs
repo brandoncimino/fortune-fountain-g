@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime.Logging;
+using Packages.BrandonUtils.Runtime.Timing;
 using UnityEngine;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
@@ -58,7 +59,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public string nickName;
 
         [JsonProperty]
-        public DateTime LastSaveTime { get; set; } = DateTime.Now;
+        public DateTime LastSaveTime { get; set; } = RealTime.Now;
 
         [JsonIgnore]
         public string[] AllSaveFilePaths => GetAllSaveFilePaths(nickName);
@@ -76,10 +77,10 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// The time that this <see cref="SaveData{T}"/> was loaded.
         /// </summary>
         /// <remarks>
-        /// Set to <see cref="DateTime.Now"/> when the data is initialized, <see cref="Load"/>-ed, or <see cref="Reload"/>-ed.
+        /// Set to <see cref="RealTime.Now"/> when the data is initialized, <see cref="Load"/>-ed, or <see cref="Reload"/>-ed.
         /// </remarks>
         [JsonIgnore]
-        public DateTime LastLoadTime { get; set; } = DateTime.Now;
+        public DateTime LastLoadTime { get; set; } = RealTime.Now;
 
         /// <summary>
         ///     Static initializer that makes sure the <see cref="SaveFolderPath" /> exists.
@@ -122,7 +123,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public T Reload() {
             Log($"Reloading save file: {nickName}");
             JsonConvert.PopulateObject(File.ReadAllText(LatestSaveFilePath), this);
-            LastLoadTime = DateTime.Now;
+            LastLoadTime = RealTime.Now;
             OnLoad();
             return (T) this;
         }
@@ -151,14 +152,14 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         /// <summary>
-        ///     Gets the path to a <b>theoretical</b> save file with the given <c>nickName</c> and a <see cref="DateTime" />-stamp of <see cref="DateTime.Now" /> via <see cref="GetSaveFilePath" />.
+        ///     Gets the path to a <b>theoretical</b> save file with the given <c>nickName</c> and a <see cref="DateTime" />-stamp of <see cref="RealTime.Now" /> via <see cref="GetSaveFilePath" />.
         ///     <br />
         ///     This method does <b>not</b> know or care if the save file exists!
         /// </summary>
         /// <param name="nickName"></param>
         /// <returns></returns>
         public static string GetNewSaveFilePath(string nickName) {
-            return GetSaveFilePath(nickName, DateTime.Now);
+            return GetSaveFilePath(nickName, RealTime.Now);
         }
 
         public static bool SaveFileExists(string nickName) {
@@ -204,7 +205,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
                 throw new SaveDataException<T>(saveData, $"The name of the file you tried to save was '{nickName}', which is null, blank, or whitespace, so we can't save it!", argException);
             }
 
-            var saveTime = DateTime.Now;
+            var saveTime = RealTime.Now;
 
             //throw an error if ReSaveDelay hasn't elapsed since the last time the file was saved
             if (useReSaveDelay && saveTime - saveData.LastSaveTime < ReSaveDelay) {

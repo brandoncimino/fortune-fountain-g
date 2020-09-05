@@ -4,6 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using Packages.BrandonUtils.Runtime.Collections;
+using Packages.BrandonUtils.Runtime.Timing;
 using Runtime.Saving;
 using Runtime.Valuables;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
@@ -17,7 +18,7 @@ namespace Tests.Runtime {
             Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(new DateTime()));
 
             fortuneFountainSaveData.Hand.Grab(new Throwable(ValuableType.Coin, 10));
-            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(DateTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(RealTime.Now));
         }
 
         [Test]
@@ -32,6 +33,7 @@ namespace Tests.Runtime {
 
             //Because of the milliseconds of time it takes to do these assertions and stuff, the LastThrowTime isn't going to be exactly DateTime.Now, so we're instead asserting that the time is between the range of initialTime (exclusive) and DateTime.Now (inclusive).
             Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.InRange(initialTime, DateTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(RealTime.Now));
         }
 
         [Test]
@@ -73,9 +75,10 @@ namespace Tests.Runtime {
         [Test]
         public void KarmaInHandIsAccurate() {
             new[] {
-                SimpleSaveData(),
-                UglySaveData()
-            }.ToList().ForEach(save => Assert.That(save.Hand.KarmaInHand, Is.EqualTo(save.Hand.throwables.Sum(it => it.ThrowValue))));
+                    SimpleSaveData(),
+                    UglySaveData()
+                }.ToList()
+                 .ForEach(save => Assert.That(save.Hand.KarmaInHand, Is.EqualTo(save.Hand.throwables.Sum(it => it.ThrowValue))));
         }
 
         [Test]

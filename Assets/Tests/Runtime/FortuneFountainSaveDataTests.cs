@@ -70,7 +70,7 @@ namespace Tests.Runtime {
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestInGameTimeSinceLastThrowWithoutSaving));
 
             var inGameTime = TimeSpan.FromSeconds(secondsInGame);
-            fortuneFountainSaveData.Hand.LastThrowTime = DateTime.Now - inGameTime;
+            fortuneFountainSaveData.Hand.LastThrowTime = RealTime.Now - inGameTime;
             Assert.That(fortuneFountainSaveData.InGameTimeSinceLastThrow, Is.InRange(inGameTime.Multiply(0.999), inGameTime.Multiply(1.001)));
         }
 
@@ -84,7 +84,7 @@ namespace Tests.Runtime {
             var currentSession  = TimeSpan.FromSeconds(secondsInCurrentSession);
             var inGameTime      = previousSession + currentSession;
 
-            fortuneFountainSaveData.Hand.LastThrowTime = DateTime.Now - previousSession;
+            fortuneFountainSaveData.Hand.LastThrowTime = RealTime.Now - previousSession;
             fortuneFountainSaveData.Save(false);
 
             Thread.Sleep(outOfGameTime);
@@ -126,7 +126,8 @@ namespace Tests.Runtime {
         [TestCase(5, 3, 1)]
         public void TestMultipleOutOfGameSessions(params double[] sessions) {
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestMultipleOutOfGameSessions));
-            fortuneFountainSaveData.Hand.LastThrowTime = DateTime.Now; //to "discard" the time spent creating the save file
+            throw new Exception();
+            fortuneFountainSaveData.Hand.LastThrowTime = RealTime.Now; //to "discard" the time spent creating the save file
             fortuneFountainSaveData.Save(false);
 
             var totalSessionTime = TimeSpan.Zero;

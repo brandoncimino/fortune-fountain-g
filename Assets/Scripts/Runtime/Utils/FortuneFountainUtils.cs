@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Packages.BrandonUtils.Runtime.Timing;
 using Runtime.Valuables;
 
 namespace Runtime.Utils {
@@ -22,12 +23,12 @@ namespace Runtime.Utils {
         /// <param name="generateLimitOverride"></param>
         /// <param name="now"></param>
         public static List<int> CheckGenerate(this IEnumerable<PlayerValuable> playerValuables, TimeSpan? generateLimitOverride, DateTime? now = null) {
-            DateTime realNow = now.GetValueOrDefault(DateTime.Now);
+            DateTime realNow = now.GetValueOrDefault(RealTime.Now);
             return playerValuables.Select(it => it.CheckGeneration(realNow, generateLimitOverride)).ToList();
         }
 
         public static List<int> CheckGenerate(this IEnumerable<PlayerValuable> playerValuables, DateTime? now = null) {
-            DateTime realNow = now.GetValueOrDefault(DateTime.Now);
+            DateTime realNow = now.GetValueOrDefault(RealTime.Now);
             return playerValuables.Select(it => it.CheckGeneration(realNow)).ToList();
         }
     }

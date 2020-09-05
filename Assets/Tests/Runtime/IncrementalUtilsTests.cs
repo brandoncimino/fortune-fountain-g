@@ -42,7 +42,7 @@ namespace Tests.Runtime {
                 endTime = DateTime.Today.AddSeconds(deltaTimeInSeconds);
             }
             catch (ArgumentOutOfRangeException e) {
-                throw new IgnoreException($"The given {nameof(deltaTime)} ({deltaTime}), when added to DateTime.Now, would exceed DateTime.MaxValue!", e);
+                throw new IgnoreException($"The given {nameof(deltaTime)} ({deltaTime}), when added to {nameof(RealTime)}.{nameof(RealTime.Now)}, would exceed {nameof(DateTime)}.{nameof(DateTime.MaxValue)}!", e);
             }
 
             LogUtils.Log($"test {nameof(startTime)} = {startTime} ({startTime.Ticks})");

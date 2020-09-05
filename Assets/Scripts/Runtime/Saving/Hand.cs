@@ -4,6 +4,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Packages.BrandonUtils.Runtime.Logging;
+using Packages.BrandonUtils.Runtime.Timing;
 using Runtime.Valuables;
 
 namespace Runtime.Saving {
@@ -32,10 +33,10 @@ namespace Runtime.Saving {
         public static event ThrowHandDelegate ThrowHandEvent;
 
         [JsonProperty]
-        public DateTime LastThrowTime { get; set; } = DateTime.Now;
+        public DateTime LastThrowTime { get; set; } = RealTime.Now;
 
         [JsonProperty]
-        public DateTime LastGrabTime { get; set; } = DateTime.Now;
+        public DateTime LastGrabTime { get; set; } = RealTime.Now;
 
         public Hand() {
             //Subscribe to the ThrowSingleEvent
@@ -49,7 +50,7 @@ namespace Runtime.Saving {
         /// <param name="amount"></param>
         public void Grab(Throwable throwable, int amount = 1) {
             //TODO: Trigger a GRAB event!
-            LastGrabTime = DateTime.Now;
+            LastGrabTime = RealTime.Now;
             for (var i = 0; i < amount; i++) {
                 throwables.Add(throwable);
             }
@@ -67,13 +68,13 @@ namespace Runtime.Saving {
         /// </list>
         /// </remarks>
         public void Throw() {
-            LogUtils.Log($"Setting {nameof(LastThrowTime)} to {DateTime.Now:HH:mm:ss.fff}");
-            LastThrowTime = DateTime.Now;
-            LogUtils.Log($"{nameof(LastThrowTime)} set to {DateTime.Now:HH:mm:ss.fff}");
+            LogUtils.Log($"Setting {nameof(LastThrowTime)} to {RealTime.Now:HH:mm:ss.fff}");
+            LastThrowTime = RealTime.Now;
+            LogUtils.Log($"{nameof(LastThrowTime)} set to {RealTime.Now:HH:mm:ss.fff}");
 
             ThrowHandEvent?.Invoke(this);
 
-            LogUtils.Log($"{nameof(ThrowHandEvent)} invocation finished at {DateTime.Now:HH:mm:ss.fff}");
+            LogUtils.Log($"{nameof(ThrowHandEvent)} invocation finished at {RealTime.Now:HH:mm:ss.fff}");
         }
 
         /// <summary>

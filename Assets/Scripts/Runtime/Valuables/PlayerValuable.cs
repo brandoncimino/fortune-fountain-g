@@ -32,10 +32,10 @@ namespace Runtime.Valuables {
         ///     The <see cref="DateTime" /> that the time the last time-dependent <see cref="Hand.Grab" /> was triggered.
         /// </summary>
         /// <remarks>
-        /// Initialized as <see cref="DateTime.Now"/>.
+        /// Initialized as <see cref="RealTime.Now"/>.
         /// </remarks>
         [JsonProperty]
-        public DateTime LastGenerateCheckTime { get; set; } = DateTime.Now;
+        public DateTime LastGenerateCheckTime { get; set; } = RealTime.Now;
 
         /// <summary>
         /// The backing field for <see cref="UnresolvedGeneratedItems"/>.
@@ -206,10 +206,10 @@ namespace Runtime.Valuables {
             }
 
             if (inGameTime < TimeSpan.Zero) {
-                throw new TimeParadoxException("How have we spent negative time playing?!");
+                throw new TimeParadoxException($"How have we spent negative time playing?! ({inGameTime})");
             }
 
-            if (inGameTime - GameManager.SaveData.InGameTimeSinceLastThrow > TestUtils.ApproximationTimeThreshold) {
+            if (inGameTime > GameManager.SaveData.InGameTimeSinceLastThrow) {
                 throw new TimeParadoxException($"We can't have spent more time generating items than we did actually playing the game!!" + $"\n\t{nameof(inGameTime)} ({ValuableType}) = {inGameTime}" + $"\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {GameManager.SaveData.InGameTimeSinceLastThrow}" + $"\n\tDifference = {inGameTime - GameManager.SaveData.InGameTimeSinceLastThrow}" + $"\n\t{nameof(TestUtils.ApproximationTimeThreshold)} = {TestUtils.ApproximationTimeThreshold}");
             }
 
@@ -227,7 +227,7 @@ namespace Runtime.Valuables {
         public ValuableType PrimaryKey => ValuableType;
 
         private void OnThrow(Hand hand) {
-            this.LastGenerateCheckTime = DateTime.Now;
+            this.LastGenerateCheckTime = RealTime.Now;
         }
     }
 }

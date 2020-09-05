@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime.Logging;
@@ -11,6 +11,8 @@ using Runtime;
 using Runtime.Saving;
 using Runtime.Utils;
 using Runtime.Valuables;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.Runtime {
     public class PlayerValuableTests {
@@ -43,10 +45,11 @@ namespace Tests.Runtime {
             }
         }
 
-        [Test]
-        [TestCase(true)]
-        [TestCase(false)]
-        public void GenerateAllViaCollectionExtension(bool checkThrowables) {
+        [UnityTest]
+        public IEnumerator GenerateAllViaCollectionExtension(
+            [Values(true, false)]
+            bool checkThrowables
+        ) {
             const string nickName = nameof(TestGenerateIsLimitedByRate);
             GameManager.SaveData                 = FortuneFountainSaveData.NewSaveFile(nickName);
             GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
@@ -58,7 +61,7 @@ namespace Tests.Runtime {
             var generateCounters = CreateValuableGenerationCounters();
 
             //Set the LastGenerateTime for each valuable to be their previous interval (that way, they are ready to generate)
-            var setTime = DateTime.Now - GameManager.SaveData.PlayerValuables[0].GenerateInterval;
+            var setTime = RealTime.Now - GameManager.SaveData.PlayerValuables[0].GenerateInterval;
 
             GameManager.SaveData.Hand.LastThrowTime = setTime;
 
@@ -77,7 +80,7 @@ namespace Tests.Runtime {
             }
 
             //sleep so we can expect to generate another item
-            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval);
+            yield return TestUtils.WaitForRealtime(GameManager.SaveData.PlayerValuables[0].GenerateInterval);
 
             //Generate stuff
             GameManager.SaveData.PlayerValuables.CheckGenerate();
@@ -88,7 +91,7 @@ namespace Tests.Runtime {
             }
 
             //sleep so that we can expect to generate _2_ more items
-            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(2));
+            yield return TestUtils.WaitForRealtime(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(2));
 
             //Generate stuff
             GameManager.SaveData.PlayerValuables.CheckGenerate();
@@ -206,7 +209,7 @@ namespace Tests.Runtime {
 
             //Setting up the player data
             GameManager.SaveData.PlayerValuables    = TestData.GetUniformPlayerValuables(itemsPerSecond);
-            GameManager.SaveData.Hand.LastThrowTime = DateTime.Now - TimeSpan.FromSeconds(generateTimeLimitInSeconds + extraGenerationSeconds);
+            GameManager.SaveData.Hand.LastThrowTime = RealTime.Now - TimeSpan.FromSeconds(generateTimeLimitInSeconds + extraGenerationSeconds);
             GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateCheckTime = GameManager.SaveData.Hand.LastThrowTime);
             GameManager.SaveData.Hand.GenerateTimeLimit = TimeSpan.FromSeconds(generateTimeLimitInSeconds);
 
@@ -238,31 +241,36 @@ namespace Tests.Runtime {
             Assert.That(pv.GenerateInterval, Is.EqualTo(TimeSpan.FromTicks((long) (TimeSpan.TicksPerSecond / rateInItemsPerSecond))));
         }
 
-        [Test]
-        [TestCase(4, 2)]
-        public void TestCompleteButUncheckedGenDuringPreviousSession(int uniformValuableGenerationRate, int itemsPerWait) {
+        [UnityTest]
+        public IEnumerator TestCompleteButUncheckedGenDuringPreviousSession(
+            [Values(4)]
+            int uniformValuableGenerationRate,
+            [Values(2)]
+            int itemsPerWait
+        ) {
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestCompleteButUncheckedGenDuringPreviousSession));
 
             //Set the uniform gen rates to a decent number, so that we don't have to wait very long to get meaningful results
             GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables(uniformValuableGenerationRate);
-            var genInterval = GameManager.SaveData.PlayerValuables[0].GenerateInterval;
+            var   genInterval = GameManager.SaveData.PlayerValuables[0].GenerateInterval;
+            float genWait     = (float) genInterval.TotalSeconds;
 
             //Create the generation counters
             var genCounters = CreateValuableGenerationCounters();
 
             //Wait long enough to generate something (but DON'T check for it)
-            Thread.Sleep(genInterval.Multiply(itemsPerWait));
+            yield return new WaitForSecondsRealtime(genWait * itemsPerWait);
 
             //Save the game - still without checking for any generation
             GameManager.SaveData.Save(false);
 
             //Wait long enough that we COULD have generated something if we were playing; then reload
-            Thread.Sleep(genInterval.Multiply(itemsPerWait));
+            yield return new WaitForSecondsRealtime(genWait * itemsPerWait);
 
             GameManager.SaveData.Reload();
 
             //Wait long enough to generate something during THIS session as well
-            Thread.Sleep(genInterval.Multiply(itemsPerWait));
+            yield return new WaitForSecondsRealtime(genWait * itemsPerWait);
 
             //Make sure that we still haven't generated anything, and that that LastGenerationTime values haven't changed
             Assert.That(genCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Amount = 0, Events = 0}));
@@ -275,13 +283,13 @@ namespace Tests.Runtime {
             Assert.That(itemsGenerated, Has.All.EqualTo(2 * itemsPerWait));
         }
 
-        [Test]
-        public void EventSubscribersPersistAfterReloadMultiple() {
+        [UnityTest]
+        public IEnumerator EventSubscribersPersistAfterReloadMultiple() {
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(EventSubscribersPersistAfterReloadMultiple));
             var eventWasTriggered = false;
             PlayerValuable.GeneratePlayerValuableEvent += (valuable, amount) => eventWasTriggered = true;
 
-            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(1));
+            yield return new WaitForSecondsRealtime((float) GameManager.SaveData.PlayerValuables[0].GenerateInterval.TotalSeconds);
 
             GameManager.SaveData.Save(false);
             GameManager.SaveData.Reload();
@@ -292,28 +300,32 @@ namespace Tests.Runtime {
             Assert.True(eventWasTriggered);
         }
 
-        [Test]
-        [TestCase(0.5, 3)]
-        public void TestPartialUncheckedItemsGeneratedDuringLastSession(double previousGenIntervals, double totalItemsToGenerate) {
+        [UnityTest]
+        public IEnumerator TestPartialUncheckedItemsGeneratedDuringLastSession(
+            [Values(0.5)]
+            double previousGenIntervals,
+            [Values(3)]
+            double totalItemsToGenerate
+        ) {
             Assume.That(previousGenIntervals, Is.LessThan(1));
             Assume.That(totalItemsToGenerate, Is.GreaterThan(previousGenIntervals));
 
             GameManager.SaveData                 = FortuneFountainSaveData.NewSaveFile(nameof(TestPartialUncheckedItemsGeneratedDuringLastSession));
             GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
 
-            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(previousGenIntervals));
+            yield return TestUtils.WaitForRealtime(GameManager.SaveData.PlayerValuables[0].GenerateInterval, previousGenIntervals);
 
             GameManager.SaveData.Save(false);
 
             var genCounters = CreateValuableGenerationCounters();
 
-            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(2));
+            yield return TestUtils.WaitForRealtime(GameManager.SaveData.PlayerValuables[0].GenerateInterval, 2);
 
             GameManager.SaveData.Reload();
 
             var sleepIntervals = totalItemsToGenerate - previousGenIntervals + 0.5;
             LogUtils.Log($"{nameof(sleepIntervals)} = {sleepIntervals}");
-            Thread.Sleep(GameManager.SaveData.PlayerValuables[0].GenerateInterval.Multiply(sleepIntervals));
+            yield return TestUtils.WaitForRealtime(GameManager.SaveData.PlayerValuables[0].GenerateInterval, sleepIntervals);
 
             var itemsGenerated = GameManager.SaveData.PlayerValuables.CheckGenerate();
 
@@ -330,7 +342,7 @@ namespace Tests.Runtime {
         [TestCase(Math.PI,  Math.PI)]
         public void TestSimpleGeneration(double rate, double secondsSinceLastGenerateCheckAndThrow) {
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestSimpleGeneration));
-            var startTime = DateTime.Now.AddSeconds(-secondsSinceLastGenerateCheckAndThrow);
+            var startTime = RealTime.Now.AddSeconds(-secondsSinceLastGenerateCheckAndThrow);
             GameManager.SaveData.PlayerValuables    = TestData.GetUniformPlayerValuables(rate);
             GameManager.SaveData.Hand.LastThrowTime = startTime;
             GameManager.SaveData.LastLoadTime       = startTime;

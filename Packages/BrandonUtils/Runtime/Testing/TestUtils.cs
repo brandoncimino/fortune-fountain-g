@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework.Constraints;
+using Packages.BrandonUtils.Runtime.Timing;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -57,6 +58,14 @@ namespace Packages.BrandonUtils.Runtime.Testing {
 
         public static ApproximationConstraint Approximately(this ConstraintExpression constraintExpression, TimeSpan expectedValue) {
             return constraintExpression.Approximately(expectedValue, ApproximationTimeThreshold);
+        }
+
+        public static WaitForSeconds WaitFor(TimeSpan timeSpan, double multiplier = 1) {
+            return new WaitForSeconds((float) timeSpan.Multiply(multiplier).TotalSeconds);
+        }
+
+        public static WaitForSecondsRealtime WaitForRealtime(TimeSpan timeSpan, double multiplier = 1) {
+            return new WaitForSecondsRealtime((float) timeSpan.Multiply(multiplier).TotalSeconds);
         }
     }
 }
