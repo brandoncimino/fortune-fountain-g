@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -66,6 +68,13 @@ namespace Packages.BrandonUtils.Runtime.Logging {
             if (_text.text != newText) {
                 _text.text = newText;
             }
+        }
+
+        public static void Test(Expression<Func<bool>> condition, params object[] stuffToLog) {
+            var result           = condition.Compile().Invoke();
+            var conditionMessage = $"[{(result ? "PASS" : "FAIL")}] {condition}";
+            stuffToLog = stuffToLog.Prepend(conditionMessage).ToArray();
+            Log(result ? Color.green : Color.red, stuffToLog);
         }
     }
 }
