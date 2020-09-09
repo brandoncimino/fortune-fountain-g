@@ -11,6 +11,8 @@ namespace Packages.BrandonUtils.Runtime.Timing {
     public static class RealTime {
         public static readonly Dictionary<RuntimeInitializeLoadType, DateTime> LoadTime = new Dictionary<RuntimeInitializeLoadType, DateTime>();
 
+        public static readonly Dictionary<RuntimeInitializeLoadType, float> LoadDuration = new Dictionary<RuntimeInitializeLoadType, float>();
+
         /// <summary>
         /// The difference between the game starting and the first trigger of <see cref="SetLoadTime_AfterSceneLoad"/>.
         /// </summary>
@@ -32,7 +34,7 @@ namespace Packages.BrandonUtils.Runtime.Timing {
         /// <p/>
         /// This "extra time" added to <see cref="Time.unscaledTime"/> is the time taken for <b>the first level to load</b>, which is stored in <see cref="InitialLoadDuration"/>.
         /// </remarks>
-        public static float UnscaledTimeSinceInitialLoad => UnityEngine.Time.unscaledTime - InitialLoadDuration;
+        public static float UnscaledTimeSinceInitialLoad => UnityEngine.Time.unscaledTime - LoadDuration[RuntimeInitializeLoadType.BeforeSceneLoad];
 
         /// <summary>
         /// The <see cref="DateTime"/> at the <b>start of this frame</b>.
@@ -41,7 +43,7 @@ namespace Packages.BrandonUtils.Runtime.Timing {
         ///    <li>Independent of <see cref="Time.timeScale"/>.</li>
         ///    <li>Will be the same <b>throughout the current frame</b>.</li>
         /// </remarks>
-        public static DateTime Now => LoadTime[RuntimeInitializeLoadType.AfterSceneLoad] + TimeSpan.FromSeconds(UnscaledTimeSinceInitialLoad);
+        public static DateTime Now => LoadTime[RuntimeInitializeLoadType.BeforeSceneLoad] + TimeSpan.FromSeconds(UnscaledTimeSinceInitialLoad);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void SetRealtime_AfterAssembliesLoaded() {
@@ -51,9 +53,6 @@ namespace Packages.BrandonUtils.Runtime.Timing {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void SetLoadTime_AfterSceneLoad() {
             SetLoadTime(RuntimeInitializeLoadType.AfterSceneLoad);
-
-            //Set the InitialLoadDuration
-            InitialLoadDuration = UnityEngine.Time.realtimeSinceStartup;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
@@ -77,7 +76,15 @@ namespace Packages.BrandonUtils.Runtime.Timing {
                 LogUtils.Log($"Set {loadType} time to {LoadTime[loadType]}");
             }
             else {
-                throw new TimeParadoxException($"Attempting to set the time for {loadType} twice!!");
+                throw new TimeParadoxException($"Attempted to set the {nameof(LoadTime)} for {loadType} twice!!");
+            }
+
+            //set the load duration
+            if (!LoadDuration.ContainsKey(loadType)) {
+                LoadDuration.Add(loadType, UnityEngine.Time.realtimeSinceStartup);
+            }
+            else {
+                throw new TimeParadoxException($"Attempted to set the {nameof(LoadDuration)} for {loadType} twice!!");
             }
         }
 

@@ -10,10 +10,13 @@ using UnityEngine.TestTools;
 namespace Packages.BrandonUtils.Tests {
     public class RealTimeTests {
         private static float[] RealTimes = {
-            0,
+            0.00000001f,
             1,
             2,
             0.5f,
+            Mathf.PI,
+            Mathf.Epsilon,
+            Mathf.Deg2Rad
         };
 
         [Test]
@@ -21,6 +24,8 @@ namespace Packages.BrandonUtils.Tests {
             [ValueSource(nameof(RealTimes))]
             double secondsToSleep
         ) {
+            Assume.That(secondsToSleep, Is.GreaterThan(0), $"We must {nameof(Thread.Sleep)} for a positive duration in order to get accurate results!");
+
             var startNow = RealTime.Now;
 
             Thread.Sleep(TimeSpan.FromSeconds(secondsToSleep));
@@ -52,7 +57,7 @@ namespace Packages.BrandonUtils.Tests {
 
         [UnityTest]
         public IEnumerator RealTimeNowIsAccurate(
-            [Values(0, 1, 2, Mathf.PI)]
+            [ValueSource(nameof(RealTimes))] [Values(0)]
             float secondsToWait
         ) {
             yield return new WaitForSecondsRealtime(secondsToWait);
