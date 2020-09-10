@@ -65,10 +65,10 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public string[] AllSaveFilePaths => GetAllSaveFilePaths(nickName);
 
         [JsonIgnore]
-        public string LatestSaveFilePath => GetAllSaveFilePaths(nickName).Last();
+        public string LatestSaveFilePath => GetLatestSaveFilePath(nickName);
 
         [JsonIgnore]
-        public string OldestSaveFilePath => GetAllSaveFilePaths(nickName).First();
+        public string OldestSaveFilePath => GetOldestSaveFilePath(nickName);
 
         [JsonIgnore]
         public bool Exists => SaveFileExists(nickName);
@@ -95,41 +95,84 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         protected SaveData() { }
 
         public static T Load(string nickName) {
-            Log("Loading save file: " + nickName);
-            var attemptCount = 0;
-            while (!SaveFileExists(nickName)) {
-                if (attemptCount >= LoadRetryLimit) {
-                    throw new SaveDataException<T>($"Unable to load any save files for {nickName} after {attemptCount} attempts - even a blank new one!");
-                }
-
-                attemptCount++;
-
-                Log(Color.yellow, $"[Attempt {attemptCount}] No save files for {nickName} exist! Attempting to create a new one...");
-                NewSaveFile(nickName);
+            Log($"Loading save file: {nickName}");
+            if (!SaveFileExists(nickName)) {
+                throw new SaveDataException<T>($"Attempt to load {typeof(T)} failed: No save files with the nickname {nickName} exist!");
             }
-
 
             var latestSaveFilePath = GetAllSaveFilePaths(nickName).Last();
             Log($"Found latest save file for {nickName} at path: {latestSaveFilePath}");
-            var deserializedSaveFile = LoadByPath(latestSaveFilePath);
-            deserializedSaveFile.OnLoad();
+
+            var deserializedSaveFile = DeserializeByPath(latestSaveFilePath);
+            deserializedSaveFile.OnLoadPrivate();
+            return deserializedSaveFile;
+        }
+
+        public static T LoadByPath(string path) {
+            Log($"Loading save file at path: {path}");
+            var deserializedSaveFile = DeserializeByPath(path);
+            deserializedSaveFile.OnLoadPrivate();
             return deserializedSaveFile;
         }
 
         /// <summary>
         /// Loads the most recent version of the save file.
         /// </summary>
+        /// <remarks>
+        /// This utilizes <see cref="JsonConvert.PopulateObject(string,object)"/> rather than <see cref="JsonConvert.DeserializeObject(string)"/>.
+        /// <p/>
+        /// <see cref="JsonConvert.DeserializeObject(string)"/> has wrappers that throw <see cref="SaveDataException{T}"/>s - <see cref="DeserializeByPath"/>, etc. - so I considered creating analogous methods for <see cref="JsonConvert.PopulateObject(string,object)"/>, e.g. "PopulateByPath".
+        /// <p/>
+        /// However, the intricacies of <see cref="JsonConvert.PopulateObject(string,object)"/> - for example, why is it able to populate the <c>target</c> object without using a <see langword="ref"/> parameter - didn't seem practical to tease out.
+        /// </remarks>
         /// <returns></returns>
         public T Reload() {
             Log($"Reloading save file: {nickName}");
-            JsonConvert.PopulateObject(File.ReadAllText(LatestSaveFilePath), this);
-            LastLoadTime = RealTime.Now;
-            OnLoad();
+            JsonConvert.PopulateObject(GetSaveFileContent(LatestSaveFilePath), this);
+            OnLoadPrivate();
             return (T) this;
         }
 
-        private static T LoadByPath(string saveFilePath) {
-            return JsonConvert.DeserializeObject<T>(File.ReadAllText(saveFilePath));
+        private static T DeserializeByContent(string saveFileContent) {
+            try {
+                return JsonConvert.DeserializeObject<T>(saveFileContent);
+            }
+            catch (JsonException e) {
+                throw new SaveDataException<T>(
+                    $"Unable to {nameof(DeserializeByContent)} the provided {nameof(saveFileContent)}!\n\tContent:{saveFileContent}\n",
+                    e
+                );
+            }
+        }
+
+        private static string GetSaveFileContent(string saveFilePath) {
+            try {
+                return File.ReadAllText(saveFilePath);
+            }
+            catch (FileNotFoundException e) {
+                throw new SaveDataException<T>($"No save file exists at the path {saveFilePath}");
+            }
+        }
+
+        private static T DeserializeByPath(string saveFilePath) {
+            try {
+                return DeserializeByContent(GetSaveFileContent(saveFilePath));
+            }
+            catch (FileNotFoundException e) {
+                throw new SaveDataException<T>($"No save file exists to {nameof(DeserializeByPath)} at path {saveFilePath}", e);
+            }
+        }
+
+        /// <summary>
+        /// Non-overrideable method called whenever a <see cref="Load"/> (or related method, like <see cref="Reload"/>) is called.
+        /// </summary>
+        /// <remarks>
+        /// This contains logic that <b>must never be overriden</b> - preventing errors in case an inheritor forgets to call <c>base.OnLoad()</c> in their overload of <see cref="OnLoad"/>.
+        /// </remarks>
+        /// <seealso cref="OnLoad"/>
+        private void OnLoadPrivate() {
+            LastLoadTime = RealTime.Now;
+            OnLoad();
         }
 
         /// <summary>
@@ -147,6 +190,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// <param name="nickName"></param>
         /// <param name="dateTime"></param>
         /// <returns></returns>
+        [UsedImplicitly]
         public static string GetSaveFilePath(string nickName, DateTime dateTime) {
             return Path.ChangeExtension(Path.Combine(SaveFolderPath, GetSaveFileNameWithDate(nickName, dateTime)), SaveFileExtension);
         }
@@ -158,10 +202,12 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// </summary>
         /// <param name="nickName"></param>
         /// <returns></returns>
+        [UsedImplicitly]
         public static string GetNewSaveFilePath(string nickName) {
             return GetSaveFilePath(nickName, RealTime.Now);
         }
 
+        [UsedImplicitly]
         public static bool SaveFileExists(string nickName) {
             return GetAllSaveFilePaths(nickName).Any(File.Exists);
         }
@@ -259,14 +305,33 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         /// <summary>
-        ///     Returns the <b><see cref="string" /> paths</b> to all of the save files for the given <c>nickName</c>.
+        ///     Returns the <b><see cref="string" /> paths</b> to all of the save files for the given <paramref name="nickName"/> that <b>currently exist</b>.
         /// </summary>
         /// <param name="nickName"></param>
         /// <returns></returns>
-        public static string[] GetAllSaveFilePaths(string nickName = "") {
+        public static string[] GetAllSaveFilePaths(string nickName) {
+            //This used to use "" as a default value for nickName, and I don't know why...
             var saveFiles = Directory.GetFiles(SaveFolderPath, $"{nickName}*{SaveFileExtension}");
             SortSaveFilePaths(saveFiles);
             return saveFiles;
+        }
+
+        public static string GetLatestSaveFilePath(string nickName) {
+            var allPaths = GetAllSaveFilePaths(nickName);
+            if (allPaths.Length == 0) {
+                throw new SaveDataException<T>($"Unable to retrieve the latest save file path because no files exist with the {nameof(SaveData<T>.nickName)} {nickName}!");
+            }
+
+            return allPaths.Last();
+        }
+
+        public static string GetOldestSaveFilePath(string nickName) {
+            var allPaths = GetAllSaveFilePaths(nickName);
+            if (allPaths.Length == 0) {
+                throw new SaveDataException<T>($"Unable to retrieve the oldest save file path because no files exist with the {nameof(SaveData<T>.nickName)} {nickName}!");
+            }
+
+            return allPaths.First();
         }
 
         /// <summary>

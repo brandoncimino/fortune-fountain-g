@@ -89,7 +89,7 @@ namespace Packages.BrandonUtils.Tests {
         }
 
         static List<string> MakeDummyFiles() {
-            Log($"About to create dummy save files, which are EMPTY (in retrospect, I probably should've named them \"empty save files\" instead...)");
+            Log($"About to create {nameof(DummySaveFiles)}, which are EMPTY (in retrospect, I probably should've named them \"empty save files\" instead...)");
             NukeSaveFolder();
             var allSaves = new List<string>();
             foreach (var saveDate in DummySaveDates) {
@@ -279,6 +279,45 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(saveData.LastSaveTime, Is.InRange(beforeReSave, afterReSave));
             Assert.That(saveData.LastSaveTime, Is.Not.EqualTo(oldSaveTime));
             Assert.That(saveData.LastLoadTime, Is.EqualTo(oldLoadTime));
+        }
+
+        [Test]
+        public void LoadingMissingNickNameThrowsSaveDataException() {
+            const string nickName = nameof(LoadingMissingNickNameThrowsSaveDataException);
+            Assume.That(SaveDataTestImpl.GetAllSaveFilePaths(nickName), Is.Empty, $"Save files with the nickname {nickName} were found - please delete them, then run this test again.");
+
+            Assert.Throws<SaveDataException<SaveDataTestImpl>>(() => SaveDataTestImpl.Load(nickName));
+        }
+
+        [Test]
+        public void ReloadingMissingSavePathThrowsSaveDataException() {
+            const string nickName = nameof(ReloadingMissingSavePathThrowsSaveDataException);
+            var          saveData = new SaveDataTestImpl {nickName = nickName};
+            Assume.That(
+                saveData.Exists,
+                Is.False,
+                $"{nameof(saveData)} (with the {nameof(saveData.nickName)} {saveData.nickName}) .{nameof(saveData.Exists)} should be FALSE!"
+            );
+
+            Assume.That(
+                SaveDataTestImpl.GetAllSaveFilePaths(nickName),
+                Is.Empty,
+                $"Save files with the nickname {nickName} were found - please delete them, then run this test again."
+            );
+
+            Assume.That(saveData.AllSaveFilePaths, Is.Empty);
+
+            Assert.Throws<SaveDataException<SaveDataTestImpl>>(() => saveData.Reload());
+        }
+
+        [Test]
+        public void LoadingInvalidJsonContentByPathThrowsSaveDataException() {
+            Assert.Throws<SaveDataException<SaveDataTestImpl>>(() => SaveDataTestImpl.LoadByPath(DummySaveFiles[0]));
+        }
+
+        [Test]
+        public void LoadingInvalidContentByNicknameThrowsSaveDataException() {
+            Assert.Throws<SaveDataException<SaveDataTestImpl>>(() => SaveDataTestImpl.Load(DummyNickName));
         }
     }
 }
