@@ -102,5 +102,18 @@ namespace Packages.BrandonUtils.Runtime.Collections {
         public static void ForEach<T, T2>(this IDictionary<T, T2> dictionary, Action<T2> action) {
             dictionary.Values.ToList().ForEach(action);
         }
+
+        /// <summary>
+        /// Calls <see cref="string.Join(string,System.Collections.Generic.IEnumerable{string})"/> against <paramref name="enumerable"/>.
+        /// </summary>
+        /// <remarks>Corresponds roughly to Java's <a href="https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collectors.html#joining--">.joining()</a> collector.
+        /// </remarks>
+        /// <param name="enumerable"></param>
+        /// <param name="separator"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static string JoinString<T>(this IEnumerable<T> enumerable, string separator = "") {
+            return string.Join(separator, enumerable);
+        }
     }
 }
