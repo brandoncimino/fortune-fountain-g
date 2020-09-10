@@ -17,25 +17,32 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             this.saveData = saveData;
         }
 
-        public SaveDataException(SaveData<T> saveData, Exception innerException) : base(GetMessage(saveData),
-                                                                                        innerException) {
+        public SaveDataException(SaveData<T> saveData, Exception innerException) : base(
+            GetMessage(saveData),
+            innerException
+        ) {
             this.saveData = saveData;
         }
 
         public SaveDataException(Exception innerException) : base(GetMessage(), innerException) { }
 
-        public SaveDataException(string message, Exception innerException) : base(GetMessage(message: message),
-                                                                                  innerException) { }
+        public SaveDataException(string message, Exception innerException) : base(
+            GetMessage(message: message),
+            innerException
+        ) { }
 
         public SaveDataException(string message) : base(GetMessage(message: message)) { }
 
         public SaveDataException(SaveData<T> saveData, string message, Exception innerException) : base(
-            GetMessage(saveData, message), innerException) {
+            GetMessage(saveData, message), innerException
+        ) {
             this.saveData = saveData;
         }
 
-        private static string GetMessage(SaveData<T> saveData = null,
-                                         string message = "Something went wrong with save data management!") {
+        private static string GetMessage(
+            SaveData<T> saveData = null,
+            string message = "Something went wrong with save data management!"
+        ) {
             if (saveData != null) {
                 message += $"\nnickName: {saveData.nickName}\nData:\n{saveData}";
             }
