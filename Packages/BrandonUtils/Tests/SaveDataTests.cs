@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using NUnit.Framework;
 using Packages.BrandonUtils.Runtime.Saving;
 using Packages.BrandonUtils.Runtime.Testing;
@@ -132,17 +131,31 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(GetExistingSaveFiles().Count, Is.EqualTo(trimTo), "The incorrect number of files remained after trimming!");
         }
 
-        [Test]
-        public void TestBackupSaveSlots() {
+        [UnityTest]
+        public IEnumerator TestBackupSaveSlots() {
             const string nickName = nameof(TestBackupSaveSlots);
             DeleteSaveFiles(nickName);
-            var newSave = SaveDataTestImpl.NewSaveFile(nameof(TestBackupSaveSlots));
+
+            var newSave = new SaveDataTestImpl {nickName = nickName};
+
+            Assume.That(newSave.AllSaveFilePaths, Is.Empty);
 
             for (int numberOfSaveFiles = 1; numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2; numberOfSaveFiles++) {
-                Thread.Sleep(SaveDataTestImpl.ReSaveDelay);
-                newSave.Save();
+                yield return null;
+                newSave.Save(false);
+
                 Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
-                Assert.AreEqual(Math.Min(numberOfSaveFiles + 1, SaveDataTestImpl.BackupSaveSlots), SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName).Length, $"Didn't find the correct number of saves!\n\t{string.Join("\n\t", SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName))}");
+
+                Assert.That(newSave.AllSaveFilePaths.Length, Is.LessThanOrEqualTo(SaveDataTestImpl.BackupSaveSlots), $"There should never be more than {SaveDataTestImpl.BackupSaveSlots} save files!");
+
+                Assert.That(
+                    newSave.AllSaveFilePaths.Length,
+                    Is.EqualTo(
+                        Math.Min(numberOfSaveFiles, SaveDataTestImpl.BackupSaveSlots)
+                    ),
+                    $"Didn't find the correct number of saves!" +
+                    $"\n\t{string.Join("\n\t", SaveDataTestImpl.GetAllSaveFilePaths(newSave.nickName))}"
+                );
             }
         }
 

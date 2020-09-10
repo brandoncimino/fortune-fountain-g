@@ -251,19 +251,39 @@ namespace Packages.BrandonUtils.Runtime.Saving {
                 throw new SaveDataException<T>(saveData, $"The name of the file you tried to save was '{nickName}', which is null, blank, or whitespace, so we can't save it!", argException);
             }
 
+            var previousFileCount = saveData.AllSaveFilePaths.Length;
+
             var saveTime = RealTime.Now;
 
             //throw an error if ReSaveDelay hasn't elapsed since the last time the file was saved
             if (useReSaveDelay && saveTime - saveData.LastSaveTime < ReSaveDelay) {
-                throw new ReSaveDelayException<T>(saveData, $"The save file {nickName} was saved too recently!" + $"\n\t{nameof(saveData.LastSaveTime)}: {saveData.LastSaveTime}" + $"\n\tNew saveTime: {saveTime}" + $"\n\t{nameof(ReSaveDelay)}: {ReSaveDelay}" + $"\n\tDelta: {saveTime - saveData.LastSaveTime}");
+                throw new ReSaveDelayException<T>(
+                    saveData,
+                    $"The save file {nickName} was saved too recently!" +
+                    $"\n\t{nameof(saveData.LastSaveTime)}: {saveData.LastSaveTime}" +
+                    $"\n\tNew {nameof(saveTime)}: {saveTime}" +
+                    $"\n\t{nameof(ReSaveDelay)}: {ReSaveDelay}" +
+                    $"\n\tDelta: {saveTime - saveData.LastSaveTime}"
+                );
             }
 
             saveData.nickName     = nickName;
             saveData.LastSaveTime = saveTime;
 
             var newFilePath = GetNewSaveFilePath(nickName);
+
+            //Make sure that the file we're trying to create doesn't already exist
+            if (File.Exists(newFilePath)) {
+                throw new SaveDataException<T>(saveData, $"Couldn't save {nickName} because there was already a save file at the path {newFilePath}");
+            }
+
+            //Write to the new save file
             File.WriteAllText(newFilePath, saveData.ToJson());
             FileAssert.Exists(newFilePath);
+
+            if (GetAllSaveFilePaths(nickName).Length <= previousFileCount) {
+                throw new SaveDataException<T>(saveData, $"When saving {nickName}, we failed to create a new file!");
+            }
 
             Log($"Finished saving {nickName}! Trimming previous saves down to {BackupSaveSlots}...");
             TrimSaves(nickName);
