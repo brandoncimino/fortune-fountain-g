@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using NUnit.Framework;
 using Packages.BrandonUtils.Runtime.Saving;
 using Packages.BrandonUtils.Runtime.Testing;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Packages.BrandonUtils.Tests {
@@ -233,11 +235,13 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(saveData.Word, Is.EqualTo(secondEdit));
         }
 
-        [Test]
-        public void SaveTimeUnaffectedByLoading() {
+        [UnityTest]
+        public IEnumerator SaveTimeUnaffectedByLoading() {
             DateTime beforeNewSave = DateTime.Now;
-            var      saveData      = SaveDataTestImpl.NewSaveFile(nameof(SaveTimeUnaffectedByLoading));
-            DateTime afterNewSave  = DateTime.Now;
+            yield return null;
+
+            var      saveData     = SaveDataTestImpl.NewSaveFile(nameof(SaveTimeUnaffectedByLoading));
+            DateTime afterNewSave = DateTime.Now;
 
             Assert.That(saveData.LastSaveTime, Is.InRange(beforeNewSave, afterNewSave));
             Assert.That(saveData.LastLoadTime, Is.InRange(beforeNewSave, afterNewSave));
@@ -245,9 +249,11 @@ namespace Packages.BrandonUtils.Tests {
             var oldSaveTime = saveData.LastSaveTime;
             var oldLoadTime = saveData.LastLoadTime;
 
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            yield return new WaitForSecondsRealtime(1);
 
             DateTime beforeReload = DateTime.Now;
+            yield return null;
+
             saveData.Reload();
             DateTime afterReload = DateTime.Now;
 
@@ -258,11 +264,13 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(saveData.LastLoadTime, Is.InRange(beforeReload, afterReload));
         }
 
-        [Test]
-        public void LoadTimeUnaffectedBySaving() {
+        [UnityTest]
+        public IEnumerator LoadTimeUnaffectedBySaving() {
             var beforeNewSave = DateTime.Now;
-            var saveData      = SaveDataTestImpl.NewSaveFile(nameof(LoadTimeUnaffectedBySaving));
-            var afterNewSave  = DateTime.Now;
+            yield return null;
+
+            var saveData     = SaveDataTestImpl.NewSaveFile(nameof(LoadTimeUnaffectedBySaving));
+            var afterNewSave = DateTime.Now;
 
             Assert.That(saveData.LastSaveTime, Is.InRange(beforeNewSave, afterNewSave));
             Assert.That(saveData.LastLoadTime, Is.InRange(beforeNewSave, afterNewSave));
@@ -270,9 +278,11 @@ namespace Packages.BrandonUtils.Tests {
             var oldSaveTime = saveData.LastSaveTime;
             var oldLoadTime = saveData.LastLoadTime;
 
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            yield return new WaitForSecondsRealtime(1);
 
             var beforeReSave = DateTime.Now;
+            yield return null;
+
             saveData.Save(false);
             var afterReSave = DateTime.Now;
 
