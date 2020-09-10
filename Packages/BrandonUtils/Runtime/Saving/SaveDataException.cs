@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Exceptions;
 
 namespace Packages.BrandonUtils.Runtime.Saving {
@@ -43,11 +45,17 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             SaveData<T> saveData = null,
             string message = "Something went wrong with save data management!"
         ) {
+            var lines = new List<string> {
+                $"Type: {typeof(T).Name} ({typeof(T)})",
+                message
+            };
+
             if (saveData != null) {
-                message += $"\nnickName: {saveData.nickName}\nData:\n{saveData}";
+                lines.Add($"{nameof(saveData.nickName)}: {saveData.nickName}");
+                lines.Add($"{typeof(T)}:\n{saveData}");
             }
 
-            return message;
+            return lines.JoinString("\n");
         }
     }
 }
