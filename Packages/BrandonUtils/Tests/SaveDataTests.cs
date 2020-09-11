@@ -141,7 +141,7 @@ namespace Packages.BrandonUtils.Tests {
             Assume.That(newSave.AllSaveFilePaths, Is.Empty);
 
             for (int numberOfSaveFiles = 1; numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2; numberOfSaveFiles++) {
-                yield return null;
+                yield return new WaitForSecondsRealtime(0.0001f);
                 newSave.Save(false);
 
                 Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
