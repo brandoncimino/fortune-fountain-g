@@ -22,7 +22,10 @@ namespace Packages.BrandonUtils.Runtime.Saving {
     /// <seealso cref="SaveDataTestImpl" />
     public abstract class SaveData<T> where T : SaveData<T>, new() {
         [JsonIgnore]
-        public const string SaveFolderName = "SaveData";
+        public static readonly string SaveFolderName = nameof(SaveData<T>);
+
+        [JsonIgnore]
+        public static readonly string SaveTypeName = typeof(T).Name;
 
         [JsonIgnore]
         public const string AutoSaveName = "AutoSave";
@@ -51,15 +54,24 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// </summary>
         public static readonly string TimeStampPattern = @"\d{" + TimeStampLength + "}";
 
-        public static readonly string   SaveFilePattern = $@"(?<nickName>.*)_(?<date>{TimeStampPattern})";
-        public static readonly string   SaveFolderPath  = Path.Combine(Application.persistentDataPath, SaveFolderName);
-        public static readonly TimeSpan ReSaveDelay     = TimeSpan.FromSeconds(1);
+        public static readonly string SaveFilePattern = $@"(?<nickName>.*)_(?<date>{TimeStampPattern})";
+
+        public static readonly string SaveFolderPath = Path.Combine(
+            Application.persistentDataPath,
+            SaveFolderName,
+            SaveTypeName
+        );
+
+        public static readonly TimeSpan ReSaveDelay = TimeSpan.FromSeconds(1);
 
         [JsonProperty]
         public string nickName;
 
         [JsonProperty]
         public DateTime LastSaveTime { get; set; } = RealTime.Now;
+
+        [JsonProperty]
+        public DateTime LastSaveTime_Exact { get; set; } = DateTime.Now;
 
         [JsonIgnore]
         public string[] AllSaveFilePaths => GetAllSaveFilePaths(nickName);
@@ -133,6 +145,25 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             return (T) this;
         }
 
+        /// <summary>
+        /// Attempts to <see cref="Load"/> the <see cref="SaveData{T}"/> with the <see cref="nickName"/> <paramref name="nickName"/>, storing it in <paramref name="saveData"/>.
+        ///
+        /// Returns <c>true</c> or <c>false</c> based on whether or not the <see cref="Load"/> succeeded.
+        /// </summary>
+        /// <param name="nickName">The <see cref="nickName"/> of the <see cref="SaveData{T}"/> you would like to <see cref="Load"/>.</param>
+        /// <param name="saveData">Holds the <see cref="SaveData{T}"/>, if the <see cref="Load"/> was a success; otherwise, <c>null</c>.</param>
+        /// <returns></returns>
+        public static bool TryLoad(string nickName, out T saveData) {
+            try {
+                saveData = Load(nickName);
+                return true;
+            }
+            catch (SaveDataException<T>) {
+                saveData = null;
+                return false;
+            }
+        }
+
         private static T DeserializeByContent(string saveFileContent) {
             try {
                 return JsonConvert.DeserializeObject<T>(saveFileContent);
@@ -195,18 +226,6 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             return Path.ChangeExtension(Path.Combine(SaveFolderPath, GetSaveFileNameWithDate(nickName, dateTime)), SaveFileExtension);
         }
 
-        /// <summary>
-        ///     Gets the path to a <b>theoretical</b> save file with the given <c>nickName</c> and a <see cref="DateTime" />-stamp of <see cref="RealTime.Now" /> via <see cref="GetSaveFilePath" />.
-        ///     <br />
-        ///     This method does <b>not</b> know or care if the save file exists!
-        /// </summary>
-        /// <param name="nickName"></param>
-        /// <returns></returns>
-        [UsedImplicitly]
-        public static string GetNewSaveFilePath(string nickName) {
-            return GetSaveFilePath(nickName, RealTime.Now);
-        }
-
         [UsedImplicitly]
         public static bool SaveFileExists(string nickName) {
             return GetAllSaveFilePaths(nickName).Any(File.Exists);
@@ -218,9 +237,21 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// <param name="nickname"></param>
         /// <returns>the newly created <see cref="SaveData{T}" /></returns>
         public static T NewSaveFile(string nickname) {
-            Log($"Creating a new save file: {nickname} ({GetNewSaveFilePath(nickname)}), of type {typeof(T)}");
+            Log(
+                $"Creating a new save file:",
+                $"{nameof(nickName)}: {nickname}",
+                $"type: {typeof(T).Name}",
+                $"folder: {SaveFolderPath}"
+            );
+
             //create the save folder if it doesn't already exist
-            Directory.CreateDirectory(Path.GetDirectoryName(GetNewSaveFilePath(nickname)) ?? throw new SaveDataException<T>($"The path {GetNewSaveFilePath(nickname)} didn't have a valid directory name!", new DirectoryNotFoundException()));
+            Directory.CreateDirectory(
+                SaveFolderPath ??
+                throw new SaveDataException<T>(
+                    $"The path {SaveFolderPath} didn't have a valid directory name!",
+                    new DirectoryNotFoundException()
+                )
+            );
 
             //create a new, blank save data, and save it as the new file
             return Save(new T(), nickname, false);
@@ -251,26 +282,26 @@ namespace Packages.BrandonUtils.Runtime.Saving {
                 throw new SaveDataException<T>(saveData, $"The name of the file you tried to save was '{nickName}', which is null, blank, or whitespace, so we can't save it!", argException);
             }
 
-            var previousFileCount = saveData.AllSaveFilePaths.Length;
-
-            var saveTime = RealTime.Now;
+            var saveTime = DateTime.Now;
 
             //throw an error if ReSaveDelay hasn't elapsed since the last time the file was saved
-            if (useReSaveDelay && saveTime - saveData.LastSaveTime < ReSaveDelay) {
+            if (useReSaveDelay && saveTime - saveData.LastSaveTime_Exact < ReSaveDelay) {
                 throw new ReSaveDelayException<T>(
                     saveData,
                     $"The save file {nickName} was saved too recently!" +
-                    $"\n\t{nameof(saveData.LastSaveTime)}: {saveData.LastSaveTime}" +
+                    $"\n\t{nameof(saveData.LastSaveTime_Exact)}: {saveData.LastSaveTime_Exact}" +
                     $"\n\tNew {nameof(saveTime)}: {saveTime}" +
                     $"\n\t{nameof(ReSaveDelay)}: {ReSaveDelay}" +
-                    $"\n\tDelta: {saveTime - saveData.LastSaveTime}"
+                    $"\n\tDelta: {saveTime - saveData.LastSaveTime_Exact}"
                 );
             }
 
-            saveData.nickName     = nickName;
-            saveData.LastSaveTime = saveTime;
+            saveData.nickName           = nickName;
+            saveData.LastSaveTime_Exact = saveTime;
+            saveData.LastSaveTime       = RealTime.Now;
 
-            var newFilePath = GetNewSaveFilePath(nickName);
+            var previousFileCount = saveData.AllSaveFilePaths.Length;
+            var newFilePath       = GetSaveFilePath(nickName, saveTime);
 
             //Make sure that the file we're trying to create doesn't already exist
             if (File.Exists(newFilePath)) {
@@ -281,8 +312,13 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             File.WriteAllText(newFilePath, saveData.ToJson());
             FileAssert.Exists(newFilePath);
 
-            if (GetAllSaveFilePaths(nickName).Length <= previousFileCount) {
-                throw new SaveDataException<T>(saveData, $"When saving {nickName}, we failed to create a new file!");
+            if (saveData.AllSaveFilePaths.Length <= previousFileCount) {
+                throw new SaveDataException<T>(
+                    saveData,
+                    $"When saving {nickName}, we failed to create a new file!" +
+                    $"\n\t{nameof(previousFileCount)} = {previousFileCount}" +
+                    $"\n\tcurrentFileCount = {saveData.AllSaveFilePaths.Length}"
+                );
             }
 
             Log($"Finished saving {nickName}! Trimming previous saves down to {BackupSaveSlots}...");
@@ -363,7 +399,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         }
 
         public static string GetSaveFileNameWithDate(string nickName, DateTime saveDate) {
-            return nickName + "_" + GetTimeStamp(saveDate);
+            return $"{nickName}_{GetTimeStamp(saveDate)}";
         }
 
         /// <summary>
@@ -385,7 +421,10 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             var dateString = Regex.Match(saveFileName, SaveFilePattern).Groups["date"].Value;
 
             try {
+                var ticks = long.Parse(dateString);
+                LogUtils.Log($"ticks parsed from {dateString} to {ticks}");
                 var saveDate = new DateTime(long.Parse(dateString));
+                LogUtils.Log($"date parsed from {ticks} to {saveDate} ({saveDate.Ticks})");
                 return saveDate;
             }
             catch (Exception e) {
@@ -393,14 +432,14 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             }
         }
 
-        public static bool Delete(string nickName) {
-            if (File.Exists(GetNewSaveFilePath(nickName))) {
-                Log(Color.yellow, "About to delete the save file: " + nickName + "!!");
-                File.Delete(GetNewSaveFilePath(nickName));
+        public static bool Delete(string saveFilePath) {
+            if (File.Exists(saveFilePath)) {
+                Log(Color.yellow, $"About to delete the save file: {saveFilePath}");
+                File.Delete(saveFilePath);
                 return true;
             }
 
-            Log("Can't delete the save file " + nickName + " because it doesn't exist!");
+            Log($"Can't delete the save file because it doesn't exist! {saveFilePath}");
             return false;
         }
 

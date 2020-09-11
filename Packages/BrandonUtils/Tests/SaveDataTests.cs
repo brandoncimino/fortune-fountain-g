@@ -13,10 +13,10 @@ using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Packages.BrandonUtils.Tests {
     public class SaveDataTests {
-        const  string       DummyNickName = "DummySaveFile";
-        static List<string> DummySaveFiles;
+        private const  string       DummyNickName = "DummySaveFile";
+        private static List<string> DummySaveFiles;
 
-        static readonly Dictionary<string, DateTime> DummySaveDates = new Dictionary<string, DateTime>() {
+        private static readonly Dictionary<string, DateTime> DummySaveDates = new Dictionary<string, DateTime>() {
             [DummyNickName + "_000000000000000000"] = new DateTime(1,    1,  1,  0,  0,  0,  0),
             [DummyNickName + "_000000036610010000"] = new DateTime(1,    1,  1,  1,  1,  1,  1),
             [DummyNickName + "_628771195208760000"] = new DateTime(1993, 7,  1,  10, 32, 0,  876),
@@ -131,8 +131,8 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(GetExistingSaveFiles().Count, Is.EqualTo(trimTo), "The incorrect number of files remained after trimming!");
         }
 
-        [UnityTest]
-        public IEnumerator TestBackupSaveSlots() {
+        [Test]
+        public void TestBackupSaveSlots() {
             const string nickName = nameof(TestBackupSaveSlots);
             DeleteSaveFiles(nickName);
 
@@ -141,7 +141,6 @@ namespace Packages.BrandonUtils.Tests {
             Assume.That(newSave.AllSaveFilePaths, Is.Empty);
 
             for (int numberOfSaveFiles = 1; numberOfSaveFiles < SaveDataTestImpl.BackupSaveSlots * 2; numberOfSaveFiles++) {
-                yield return new WaitForSecondsRealtime(0.0001f);
                 newSave.Save(false);
 
                 Log($"Created new save file:[{numberOfSaveFiles}] {newSave}");
@@ -167,8 +166,8 @@ namespace Packages.BrandonUtils.Tests {
             Assert.That(saveString, Is.EqualTo(saveJson));
         }
 
-        [Test]
-        public void TestLoadMostRecentSaveFile() {
+        [UnityTest]
+        public IEnumerator TestLoadMostRecentSaveFile() {
             //save a few files
             int    saveCount = 3;
             string nickName  = nameof(TestLoadMostRecentSaveFile);
@@ -184,12 +183,19 @@ namespace Packages.BrandonUtils.Tests {
                 saveData.Word = $"SAVE_{i}";
 
                 //re-save the save data
+                yield return new WaitForSecondsRealtime(0.1f);
                 saveData.Save(false);
 
                 Log($"Saved {nickName} #{i}:\n{saveData}");
 
                 //Assert that the timestamp in the filename matches the lastSaveTime
-                Assert.That(saveData.LastSaveTime, Is.EqualTo(SaveDataTestImpl.GetSaveDate(saveData.LatestSaveFilePath)));
+                Assert.That(
+                    saveData.LastSaveTime_Exact.Ticks,
+                    Is.EqualTo(
+                        SaveDataTestImpl.GetSaveDate(saveData.LatestSaveFilePath).Ticks
+                    ),
+                    $"Incorrect timestamp pulled from path {saveData.LatestSaveFilePath}"
+                );
 
                 //load the save data and check the unique value
                 Assert.That(SaveDataTestImpl.Load(nickName).Word, Is.EqualTo(saveData.Word));

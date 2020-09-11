@@ -56,14 +56,18 @@ namespace Runtime {
         /// <summary>
         ///     "Starts" the game, doing things such as loading the appropriate save file.
         /// </summary>
-        public void LoadFortuneFountain() {
+        private void LoadFortuneFountain() {
             SaveFileName = GetAppropriateSaveFileName();
 
             if (Application.isEditor && ClearDevSaveFileOnPlay) {
                 ClearDevSaveFile();
             }
 
-            SaveData = FortuneFountainSaveData.Load(SaveFileName);
+            //attempt to load the save data; if we can't, create a new one
+            if (!FortuneFountainSaveData.TryLoad(SaveFileName, out SaveData)) {
+                LogUtils.Log($"No save file exists with the {nameof(FortuneFountainSaveData.nickName)} {SaveFileName}, so we're creating a new one...");
+                SaveData = FortuneFountainSaveData.NewSaveFile(SaveFileName);
+            }
 
             LogUtils.Log(SaveData);
         }
