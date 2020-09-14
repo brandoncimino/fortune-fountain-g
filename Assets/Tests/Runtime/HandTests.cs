@@ -1,24 +1,36 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
+
 using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using Runtime.Saving;
 using Runtime.Valuables;
+
+using UnityEngine;
+using UnityEngine.TestTools;
+
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Tests.Runtime {
     public class HandTests {
-        [Test]
-        public void LastGrabTime() {
+        [UnityTest]
+        public IEnumerator LastGrabTime() {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
 
-            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(new DateTime()));
+            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(RealTime.Now));
+            var previousGrabTime = fortuneFountainSaveData.Hand.LastGrabTime;
+
+            yield return new WaitForSecondsRealtime(0.001f);
 
             fortuneFountainSaveData.Hand.Grab(new Throwable(ValuableType.Coin, 10));
             Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(RealTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.Not.EqualTo(previousGrabTime));
         }
 
         [Test]
