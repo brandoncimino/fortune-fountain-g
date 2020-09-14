@@ -33,19 +33,20 @@ namespace Tests.Runtime {
             Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.Not.EqualTo(previousGrabTime));
         }
 
-        [Test]
-        public void LastThrowTime() {
+        [UnityTest]
+        public IEnumerator LastThrowTime() {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
 
-            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(new DateTime()));
+            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(RealTime.Now));
 
             var initialTime = fortuneFountainSaveData.Hand.LastThrowTime;
 
+            yield return new WaitForSecondsRealtime(0.001f);
+
             fortuneFountainSaveData.Hand.Throw();
 
-            //Because of the milliseconds of time it takes to do these assertions and stuff, the LastThrowTime isn't going to be exactly DateTime.Now, so we're instead asserting that the time is between the range of initialTime (exclusive) and DateTime.Now (inclusive).
-            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.InRange(initialTime, DateTime.Now));
             Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(RealTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.Not.EqualTo(initialTime));
         }
 
         [Test]
