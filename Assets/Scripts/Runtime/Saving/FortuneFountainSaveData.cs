@@ -1,9 +1,13 @@
 ﻿using System;
+
 using Newtonsoft.Json;
+
 using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Saving;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using Runtime.Valuables;
+
 using UnityEngine;
 
 namespace Runtime.Saving {
@@ -23,8 +27,6 @@ namespace Runtime.Saving {
         public KeyedList<ValuableType, PlayerValuable> PlayerValuables = new KeyedList<ValuableType, PlayerValuable>();
 
         /// The total time spent "out-of-game" since the last <see cref="Saving.Hand.Throw"/>.
-        /// <br/>
-        /// Equivalent to the <see cref="TimeUtils.Sum"/> of <see cref="OutOfGamePeriodsSinceLastThrow"/>.
         [JsonProperty]
         public TimeSpan OutOfGameTimeSinceLastThrow { get; private set; }
 
