@@ -2,15 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+
 using Newtonsoft.Json;
+
 using NUnit.Framework;
+
 using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Testing;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using Runtime;
 using Runtime.Saving;
 using Runtime.Utils;
 using Runtime.Valuables;
+
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -199,6 +204,9 @@ namespace Tests.Runtime {
             Assume.That(generateTimeLimitInSeconds, Is.GreaterThan(0),          $"{nameof(generateTimeLimitInSeconds)} must be greater than 0!");
             Assume.That(itemsPerSecond,             Is.GreaterThan(0),          $"{nameof(itemsPerSecond)} must be greater than 0!");
             Assume.That(extraGenerationSeconds,     Is.GreaterThanOrEqualTo(0), $"{nameof(extraGenerationSeconds)} must be positive!");
+
+            //this test is very quick and runs a LOT of times, so we should disable logging to prevent it from being crazy slow
+            LogUtils.locations = LogUtils.Locations.None;
 
             const string nickName = nameof(GenerateEventsLimitedByMaxGenerateTime);
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nickName);
