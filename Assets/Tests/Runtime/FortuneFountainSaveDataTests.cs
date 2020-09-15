@@ -1,11 +1,19 @@
 ﻿using System;
+using System.Collections;
 using System.Threading;
+
 using NUnit.Framework;
+
 using Packages.BrandonUtils.Runtime.Testing;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using Runtime.Saving;
 using Runtime.Valuables;
+
+using UnityEngine.TestTools;
+
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
+
 using Random = UnityEngine.Random;
 
 namespace Tests.Runtime {
@@ -96,30 +104,40 @@ namespace Tests.Runtime {
             Assert.That(fortuneFountainSaveData.InGameTimeSinceLastThrow, Is.InRange(inGameTime.Multiply(0.999), inGameTime.Multiply(1.001)));
         }
 
-        [Test]
-        [TestCase(0.1)]
-        [TestCase(1)]
-        [TestCase(0.5)]
-        [TestCase(0)]
-        [TestCase(Math.PI)]
-        [TestCase(Math.E)]
-        [TestCase(0.99)]
-        [TestCase(0.212387687)]
-        [TestCase(1.1)]
-        [TestCase(1.01)]
-        public void TestOutOfGameTime(double secondsOutOfGame) {
+        private static readonly double[] RealSeconds = {
+            0.1,
+            1,
+            0.5,
+            0.1003,
+            Math.PI,
+            Math.E,
+            0.99,
+            0.212387687,
+            1.1,
+            1.01
+        };
+
+        [UnityTest]
+        public IEnumerator TestOutOfGameTime(
+            [ValueSource(nameof(RealSeconds))]
+            double secondsOutOfGame
+        ) {
+            const double estimatedSaveExecutionDuration = 0.1;
+            Assume.That(secondsOutOfGame, Is.GreaterThanOrEqualTo(estimatedSaveExecutionDuration), $"it takes ~{estimatedSaveExecutionDuration} seconds to save & reload, meaning that out of game time will essentially never be less than {estimatedSaveExecutionDuration} - as a result, we want to ignore any tests checking for intervals smaller than {estimatedSaveExecutionDuration}");
+
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestOutOfGameTime));
-            fortuneFountainSaveData.Save(false); //For some reason, the first test fails if we don't save again here - something with NUnit causing slowdown for the first test, maybe?
+
+            //Go to the next frame and then save (to make sure we "discard" the time spent creating the save file)
+            yield return null;
+            fortuneFountainSaveData.Save(false);
 
             var outOfGameTime = TimeSpan.FromSeconds(secondsOutOfGame);
 
-            Thread.Sleep(outOfGameTime);
+            yield return TestUtils.WaitFor(outOfGameTime);
 
             fortuneFountainSaveData.Reload();
 
-            var tolerance = TimeSpan.FromSeconds(0.1);
-
-            Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, Is.InRange(outOfGameTime - tolerance, outOfGameTime + tolerance));
+            Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, new ApproximationConstraint(outOfGameTime, TestUtils.ApproximationTimeThreshold));
         }
 
         [Test]
