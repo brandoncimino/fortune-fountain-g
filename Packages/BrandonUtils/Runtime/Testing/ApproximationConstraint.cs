@@ -1,4 +1,5 @@
 ﻿using System;
+
 using NUnit.Framework.Constraints;
 
 namespace Packages.BrandonUtils.Runtime.Testing {
@@ -10,7 +11,7 @@ namespace Packages.BrandonUtils.Runtime.Testing {
         private const    string NUnitDateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
 
         public override string Description =>
-            $"{FormatObject(ExpectedValue)} (approximately)" +
+            $"~ {FormatObject(ExpectedValue)}" +
             $"\n\t{nameof(Threshold)} = {FormatObject(Threshold)}" +
             $"\n\t{nameof(MinValue)}  = {FormatObject(MinValue)}" +
             $"\n\t{nameof(MaxValue)}  = {FormatObject(MaxValue)}";
