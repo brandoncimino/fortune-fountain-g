@@ -70,7 +70,7 @@ namespace Tests.Runtime {
         /// </summary>
         [Test]
         public void PostThrowSingleKarma() {
-            FortuneFountainSaveData fortuneFountainSaveData = UglySaveData();
+            FortuneFountainSaveData fortuneFountainSaveData = UglySaveData(nameof(PostThrowSingleKarma));
 
             double expectedKarmaTotal = 0;
 
@@ -89,7 +89,7 @@ namespace Tests.Runtime {
         public void KarmaInHandIsAccurate() {
             new[] {
                     SimpleSaveData(),
-                    UglySaveData()
+                    UglySaveData(nameof(KarmaInHandIsAccurate))
                 }.ToList()
                  .ForEach(save => Assert.That(save.Hand.KarmaInHand, Is.EqualTo(save.Hand.throwables.Sum(it => it.ThrowValue))));
         }
@@ -117,19 +117,23 @@ namespace Tests.Runtime {
 
         [Test]
         public void PostThrowHandKarma() {
-            FortuneFountainSaveData fortuneFountainSaveData = UglySaveData();
+            FortuneFountainSaveData fortuneFountainSaveData = UglySaveData(nameof(PostThrowHandKarma));
 
-            Assume.That(fortuneFountainSaveData.Karma, Is.EqualTo(0));
+            Assume.That(fortuneFountainSaveData.Karma,           Is.EqualTo(0));
+            Assume.That(fortuneFountainSaveData.Hand.throwables, Is.Not.Empty);
 
             var expectedPostThrowKarma = fortuneFountainSaveData.Hand.KarmaInHand;
 
-            Log($"Before throwing, there is {fortuneFountainSaveData.Karma} karma");
+            Log(
+                $"Before throwing, there is {fortuneFountainSaveData.Karma} karma",
+                $"In my hand, there is {fortuneFountainSaveData.Hand.KarmaInHand} karma"
+            );
 
             fortuneFountainSaveData.Hand.Throw();
 
             Assert.That(fortuneFountainSaveData.Karma, Is.EqualTo(expectedPostThrowKarma));
 
-            Log(fortuneFountainSaveData.Hand.throwables.Count);
+            Assert.That(fortuneFountainSaveData.Hand.throwables, Is.Empty);
         }
 
         private static FortuneFountainSaveData SimpleSaveData() {
@@ -148,7 +152,7 @@ namespace Tests.Runtime {
             return fortuneFountainSaveData;
         }
 
-        private static FortuneFountainSaveData UglySaveData() {
+        private static FortuneFountainSaveData UglySaveData(string nickName) {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData {
                 Hand = {
                     throwables = new List<Throwable>() {
@@ -165,7 +169,8 @@ namespace Tests.Runtime {
                         new Throwable(ValuableType.Fiduciary,   Math.E),
                         new Throwable(ValuableType.Fiduciary,   -238475.52349578),
                     }
-                }
+                },
+                nickName = nickName
             };
 
             Assume.That(fortuneFountainSaveData.Hand.throwables, Is.Not.Empty);
