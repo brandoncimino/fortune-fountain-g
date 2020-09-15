@@ -2,12 +2,18 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+
 using JetBrains.Annotations;
+
 using Newtonsoft.Json;
+
 using NUnit.Framework;
+
 using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using UnityEngine;
+
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Packages.BrandonUtils.Runtime.Saving {
@@ -421,10 +427,8 @@ namespace Packages.BrandonUtils.Runtime.Saving {
             var dateString = Regex.Match(saveFileName, SaveFilePattern).Groups["date"].Value;
 
             try {
-                var ticks = long.Parse(dateString);
-                LogUtils.Log($"ticks parsed from {dateString} to {ticks}");
+                var ticks    = long.Parse(dateString);
                 var saveDate = new DateTime(long.Parse(dateString));
-                LogUtils.Log($"date parsed from {ticks} to {saveDate} ({saveDate.Ticks})");
                 return saveDate;
             }
             catch (Exception e) {
