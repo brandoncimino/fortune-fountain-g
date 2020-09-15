@@ -4,12 +4,14 @@ using System.Threading;
 
 using NUnit.Framework;
 
+using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Testing;
 using Packages.BrandonUtils.Runtime.Timing;
 
 using Runtime.Saving;
 using Runtime.Valuables;
 
+using UnityEngine;
 using UnityEngine.TestTools;
 
 using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
@@ -18,6 +20,8 @@ using Random = UnityEngine.Random;
 
 namespace Tests.Runtime {
     public class FortuneFountainSaveDataTests {
+        public const double EstimatedLoadDuration_InSeconds = 0.01;
+
         [Test]
         public void TestSerializeEmptyHand() {
             const string            nickName                = nameof(TestSerializeEmptyHand);
@@ -118,14 +122,13 @@ namespace Tests.Runtime {
         };
 
         [UnityTest]
-        public IEnumerator TestOutOfGameTime(
+        public IEnumerator OutOfGameTime_UpdatesOnReload(
             [ValueSource(nameof(RealSeconds))]
             double secondsOutOfGame
         ) {
-            const double estimatedSaveExecutionDuration = 0.1;
-            Assume.That(secondsOutOfGame, Is.GreaterThanOrEqualTo(estimatedSaveExecutionDuration), $"it takes ~{estimatedSaveExecutionDuration} seconds to save & reload, meaning that out of game time will essentially never be less than {estimatedSaveExecutionDuration} - as a result, we want to ignore any tests checking for intervals smaller than {estimatedSaveExecutionDuration}");
+            Assume.That(secondsOutOfGame, Is.GreaterThanOrEqualTo((double) EstimatedLoadDuration_InSeconds), $"it takes ~{EstimatedLoadDuration_InSeconds} seconds to save & reload, meaning that out of game time will essentially never be less than {EstimatedLoadDuration_InSeconds} - as a result, we want to ignore any tests checking for intervals smaller than {EstimatedLoadDuration_InSeconds}");
 
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestOutOfGameTime));
+            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnReload));
 
             //Go to the next frame and then save (to make sure we "discard" the time spent creating the save file)
             yield return null;
@@ -134,10 +137,53 @@ namespace Tests.Runtime {
             var outOfGameTime = TimeSpan.FromSeconds(secondsOutOfGame);
 
             yield return TestUtils.WaitFor(outOfGameTime);
-
             fortuneFountainSaveData.Reload();
 
             Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, new ApproximationConstraint(outOfGameTime, TestUtils.ApproximationTimeThreshold));
+        }
+
+        [UnityTest]
+        public IEnumerator OutOfGameTime_UpdatesOnLoad(
+            [ValueSource(nameof(RealSeconds))]
+            double secondsOutOfGame
+        ) {
+            //Disable logging, to squeeze that extra performance from loading
+            LogUtils.locations = Locations.None;
+
+            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnLoad));
+
+            yield return null;
+            fortuneFountainSaveData.Save(false);
+
+            var outOfGameSpan = TimeSpan.FromSeconds(secondsOutOfGame);
+
+            yield return TestUtils.WaitForRealtime(outOfGameSpan);
+            var loadedSaveData = FortuneFountainSaveData.Load(fortuneFountainSaveData.nickName);
+
+            Assert.That(loadedSaveData.OutOfGameTimeSinceLastThrow, new ApproximationConstraint(outOfGameSpan, TestUtils.ApproximationTimeThreshold + TimeSpan.FromSeconds(EstimatedLoadDuration_InSeconds)));
+        }
+
+        [UnityTest]
+        public IEnumerator OutOfGameTime_DoesNotUpdateOnSave(
+            [ValueSource(nameof(RealSeconds))]
+            double secondsOutOfGame
+        ) {
+            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_DoesNotUpdateOnSave));
+
+            var outOfGameSpan = TimeSpan.FromSeconds(secondsOutOfGame);
+
+            //Set the OutOfGameTimeSinceLastThrow (using reflection since the setter is private)
+            fortuneFountainSaveData.GetType().GetProperty(nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow))?.SetValue(fortuneFountainSaveData, outOfGameSpan);
+
+            Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, Is.EqualTo(outOfGameSpan));
+
+            const int repetitions = 5;
+            for (int rep = 0; rep < repetitions; rep++) {
+                yield return new WaitForSecondsRealtime(0.01f);
+                fortuneFountainSaveData.Save(false);
+
+                Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, Is.EqualTo(outOfGameSpan), $"[{nameof(rep)}: {rep}] The {nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow)} should not have changed when we {nameof(FortuneFountainSaveData.Save)}-ed!");
+            }
         }
 
         [Test]
