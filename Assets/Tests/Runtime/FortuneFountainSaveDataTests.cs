@@ -118,7 +118,9 @@ namespace Tests.Runtime {
             0.99,
             0.212387687,
             1.1,
-            1.01
+            1.01,
+            0,
+            0.000001
         };
 
         [UnityTest]
@@ -126,20 +128,26 @@ namespace Tests.Runtime {
             [ValueSource(nameof(RealSeconds))]
             double secondsOutOfGame
         ) {
-            Assume.That(secondsOutOfGame, Is.GreaterThanOrEqualTo((double) EstimatedLoadDuration_InSeconds), $"it takes ~{EstimatedLoadDuration_InSeconds} seconds to save & reload, meaning that out of game time will essentially never be less than {EstimatedLoadDuration_InSeconds} - as a result, we want to ignore any tests checking for intervals smaller than {EstimatedLoadDuration_InSeconds}");
-
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnReload));
 
             //Go to the next frame and then save (to make sure we "discard" the time spent creating the save file)
             yield return null;
             fortuneFountainSaveData.Save(false);
 
+            //record the time we saved at
+            var saveTime = RealTime.Now;
+
             var outOfGameTime = TimeSpan.FromSeconds(secondsOutOfGame);
 
             yield return TestUtils.WaitFor(outOfGameTime);
             fortuneFountainSaveData.Reload();
 
-            Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, new ApproximationConstraint(outOfGameTime, TestUtils.ApproximationTimeThreshold));
+            //record the time we loaded at
+            var loadTime = RealTime.Now;
+
+            //make sure that the OOG-time is the difference between loading and saving
+            //NOTE: This value will always be slightly larger than secondsOutOfGame due to the time actually spend saving & loading, etc.
+            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(loadTime - saveTime));
         }
 
         [UnityTest]
@@ -147,20 +155,21 @@ namespace Tests.Runtime {
             [ValueSource(nameof(RealSeconds))]
             double secondsOutOfGame
         ) {
-            //Disable logging, to squeeze that extra performance from loading
-            LogUtils.locations = Locations.None;
-
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnLoad));
 
             yield return null;
             fortuneFountainSaveData.Save(false);
+
+            var saveTime = RealTime.Now;
 
             var outOfGameSpan = TimeSpan.FromSeconds(secondsOutOfGame);
 
             yield return TestUtils.WaitForRealtime(outOfGameSpan);
             var loadedSaveData = FortuneFountainSaveData.Load(fortuneFountainSaveData.nickName);
 
-            Assert.That(loadedSaveData.OutOfGameTimeSinceLastThrow, new ApproximationConstraint(outOfGameSpan, TestUtils.ApproximationTimeThreshold + TimeSpan.FromSeconds(EstimatedLoadDuration_InSeconds)));
+            var loadTime = RealTime.Now;
+
+            Assert.That(loadedSaveData, Has.Property(nameof(loadedSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(loadTime - saveTime));
         }
 
         [UnityTest]
@@ -186,32 +195,44 @@ namespace Tests.Runtime {
             }
         }
 
-        [Test]
-        [TestCase(5, 3, 1)]
-        public void TestMultipleOutOfGameSessions(params double[] sessions) {
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestMultipleOutOfGameSessions));
-            throw new Exception();
-            fortuneFountainSaveData.Hand.LastThrowTime = RealTime.Now; //to "discard" the time spent creating the save file
+        [UnityTest]
+        public IEnumerator OutOfGameTime_MultipleSessionsWithoutThrowing() {
+            const float sessionSeconds   = 2f;
+            const int   numberOfSessions = 2;
+            var         sessionSpan      = TimeSpan.FromSeconds(sessionSeconds);
+            LogUtils.locations = Locations.None;
+
+            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_MultipleSessionsWithoutThrowing));
+
+            yield return null;
             fortuneFountainSaveData.Save(false);
+            var realTimeNowAtSave = RealTime.Now;
 
-            var totalSessionTime = TimeSpan.Zero;
+            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(TimeSpan.Zero), $"We haven't waited yet, so there shouldn't be any {nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow)}!");
 
-            for (var index = 0; index < sessions.Length; index++) {
-                var sessionSeconds = sessions[index];
-                var sessionSpan    = TimeSpan.FromSeconds(sessionSeconds);
-                totalSessionTime += sessionSpan;
+            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.LastSaveTime)).EqualTo(realTimeNowAtSave));
 
-                Thread.Sleep(sessionSpan);
+            var expectedOutOfGameTime = TimeSpan.Zero;
+
+            for (int session = 0; session < numberOfSessions; session++) {
+                yield return TestUtils.WaitForRealtime(sessionSpan);
                 fortuneFountainSaveData.Reload();
+                var realTimeNowAtReload = RealTime.Now;
 
-                Thread.Sleep(TimeSpan.FromSeconds(sessionSeconds));
+                Assert.That(realTimeNowAtReload, Is.Not.EqualTo(realTimeNowAtSave));
+
+                var frameTimeDuration = realTimeNowAtReload - realTimeNowAtSave;
+
+                expectedOutOfGameTime += frameTimeDuration;
+
+                Assert.That(
+                    fortuneFountainSaveData,
+                    Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(expectedOutOfGameTime)
+                );
+
+                yield return TestUtils.WaitForRealtime(sessionSpan);
                 fortuneFountainSaveData.Save(false);
-
-                //threshold increases each time due to the overall slowness of saving/loading repeatedly
-                var threshold = TimeSpan.FromSeconds(0.1 * (index + 1) * 2);
-
-                Assert.That(fortuneFountainSaveData, Has.Property(nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)).Approximately(totalSessionTime, threshold));
-                Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).Approximately(totalSessionTime, threshold));
+                realTimeNowAtSave = RealTime.Now;
             }
         }
     }
