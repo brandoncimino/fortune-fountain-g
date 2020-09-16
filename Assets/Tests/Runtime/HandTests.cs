@@ -6,6 +6,7 @@ using System.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 
+using Packages.BrandonUtils.Runtime;
 using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Timing;
 
@@ -214,8 +215,18 @@ namespace Tests.Runtime {
         }
 
         [Test]
-        public void ThrowResetsUtilizedTime() {
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(ThrowResetsUtilizedTime));
+        public void ThrowResetsOutOfGameTime() {
+            FortuneFountainSaveData fortuneFountainSaveData = UglySaveData(nameof(ThrowResetsOutOfGameTime));
+
+            var outOfGameSpan = TimeSpan.FromDays(500);
+
+            ReflectionUtils.SetVariable(fortuneFountainSaveData, nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow), outOfGameSpan);
+
+            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(outOfGameSpan));
+
+            fortuneFountainSaveData.Hand.Throw();
+
+            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(TimeSpan.Zero));
         }
     }
 }
