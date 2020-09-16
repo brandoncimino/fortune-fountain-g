@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Newtonsoft.Json;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace Packages.BrandonUtils.Runtime.Timing {
@@ -246,6 +248,78 @@ namespace Packages.BrandonUtils.Runtime.Timing {
                 default:
                     return null;
             }
+        }
+
+        /// <summary>
+        /// Wraps a <see cref="List{T}"/> of <see cref="TimeSpan.Ticks"/> (as <see cref="Times"/>) and provides some convenient Linq methods and a flexible <see cref="CompareTo"/>.
+        /// </summary>
+        [JsonObject(MemberSerialization.OptIn)]
+        public class ExecutionTime : IComparable<ExecutionTime> {
+            public readonly List<long> Times = new List<long>();
+
+            public long MinTicks => Times.Min();
+
+            [JsonProperty]
+            public TimeSpan Min => TimeSpan.FromTicks(MinTicks);
+
+            public long MaxTicks => Times.Max();
+
+            [JsonProperty]
+            public TimeSpan Max => TimeSpan.FromTicks(MaxTicks);
+
+            public double AverageTicks => Times.Average();
+
+            [JsonProperty]
+            public TimeSpan Average => TimeSpan.FromTicks((long) AverageTicks);
+
+            public long TotalTicks => Times.Sum();
+
+            [JsonProperty]
+            public TimeSpan Total => TimeSpan.FromTicks(TotalTicks);
+
+            /// <summary>
+            /// Compares <b><i>this</i></b> to <paramref name="other"/> using <see cref="CompareTo"/> calls against multiple properties:
+            /// <li><see cref="Min"/></li>
+            /// <li><see cref="Max"/></li>
+            /// <li><see cref="Average"/></li>
+            /// Returns -1 or 1 if <b>any</b> properties return that value and <b>none</b> return the other;
+            /// otherwise, returns 0.
+            /// </summary>
+            /// <param name="other"></param>
+            /// <returns></returns>
+            public int CompareTo(ExecutionTime other) {
+                var minCompare = Min.CompareTo(other.Min);
+                var maxCompare = Max.CompareTo(other.Max);
+                var avgCompare = Average.CompareTo(other.Average);
+
+                var compares = new int[] {minCompare, maxCompare, avgCompare};
+                if (compares.Any(it => it > 0) && compares.All(it => it >= 0)) {
+                    return 1;
+                }
+                else if (compares.Any(it => it < 0) && compares.All(it => it <= 0)) {
+                    return -1;
+                }
+                else {
+                    return 0;
+                }
+            }
+
+            public override string ToString() {
+                return JsonConvert.SerializeObject(this, Formatting.Indented);
+            }
+        }
+
+        public static ExecutionTime AverageExecutionTime(Action action, int iterations = 100) {
+            var lapTimes = new ExecutionTime();
+
+            for (int i = 0; i < iterations; i++) {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                action();
+                stopwatch.Stop();
+                lapTimes.Times.Add(stopwatch.ElapsedTicks);
+            }
+
+            return lapTimes;
         }
     }
 }
