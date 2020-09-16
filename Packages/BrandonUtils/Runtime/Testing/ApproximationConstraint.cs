@@ -6,8 +6,8 @@ namespace Packages.BrandonUtils.Runtime.Testing {
     public class ApproximationConstraint : RangeConstraint {
         private readonly object ExpectedValue;
         private readonly object Threshold;
-        private          object MinValue => GetMinValue(ExpectedValue, Threshold);
-        private          object MaxValue => GetMaxValue(ExpectedValue, Threshold);
+        private readonly object MinValue;
+        private readonly object MaxValue;
         private const    string NUnitDateTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
 
         public override string Description =>
@@ -16,17 +16,23 @@ namespace Packages.BrandonUtils.Runtime.Testing {
             $"\n\t{nameof(MinValue)}  = {FormatObject(MinValue)}" +
             $"\n\t{nameof(MaxValue)}  = {FormatObject(MaxValue)}";
 
-        public ApproximationConstraint(object expectedValue, object threshold) : base((IComparable) GetMinValue(expectedValue, threshold), (IComparable) GetMaxValue(expectedValue, threshold)) {
+        public ApproximationConstraint(
+            object expectedValue,
+            object threshold
+        ) : base(
+            (IComparable) CoercionUtils.CoerciveSubtraction(
+                expectedValue,
+                threshold
+            ),
+            (IComparable) CoercionUtils.CoerciveAddition(
+                expectedValue,
+                threshold
+            )
+        ) {
             ExpectedValue = expectedValue;
             Threshold     = threshold;
-        }
-
-        private static T GetMinValue<T>(T expectedValue, T threshold) {
-            return (dynamic) expectedValue - (dynamic) threshold;
-        }
-
-        private static T GetMaxValue<T>(T expectedValue, T threshold) {
-            return (dynamic) expectedValue + (dynamic) threshold;
+            MinValue      = CoercionUtils.CoerciveSubtraction(ExpectedValue, Threshold);
+            MaxValue      = CoercionUtils.CoerciveAddition(ExpectedValue, Threshold);
         }
 
         /// <summary>

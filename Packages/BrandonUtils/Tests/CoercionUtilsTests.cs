@@ -136,12 +136,16 @@ namespace Packages.BrandonUtils.Tests {
 
         [Test]
         public void CoerciveAddition_IsFasterThanDynamic() {
+            // ReSharper disable ConvertToConstant.Local
             var a = 5;
             var b = 6;
+            // ReSharper restore ConvertToConstant.Local
 
-            var d_duration = TimeUtils.AverageExecutionTime(() => DynamicAddition(a, b));
+            const int iterations = 1000;
 
-            var c_duration = TimeUtils.AverageExecutionTime(() => CoerciveAddition(a, b));
+            var d_duration = TimeUtils.AverageExecutionTime(() => DynamicAddition(a, b), iterations);
+
+            var c_duration = TimeUtils.AverageExecutionTime(() => CoerciveAddition(a, b), iterations);
 
             Assert.That(c_duration,     Is.LessThan(d_duration));
             Assert.That(c_duration.Max, Is.LessThanOrEqualTo(TimeSpan.FromMilliseconds(5)));

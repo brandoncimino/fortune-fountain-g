@@ -309,7 +309,7 @@ namespace Packages.BrandonUtils.Runtime.Timing {
             }
         }
 
-        public static ExecutionTime AverageExecutionTime(Action action, int iterations = 100) {
+        public static ExecutionTime AverageExecutionTime(Action action, int iterations = 1) {
             var lapTimes = new ExecutionTime();
 
             for (int i = 0; i < iterations; i++) {
