@@ -221,5 +221,31 @@ namespace Packages.BrandonUtils.Runtime.Timing {
         public static TimeSpan Sum(this IEnumerable<TimeSpan> timeSpans) {
             return new TimeSpan(timeSpans.Sum(it => it.Ticks));
         }
+
+        /// <summary>
+        /// Attempts to convert <paramref name="value"/> to a <see cref="TimeSpan"/>, either by:
+        /// <li>Directly casting <paramref name="value"/>, i.e. <c>(TimeSpan)value</c></li>
+        /// <li>Casting <paramref name="value"/> to a number type (int, long, etc.; casting that to a <c>long</c> if necessary) and passing it to <see cref="TimeSpan.FromTicks"/></li>
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static TimeSpan? TimeSpanFromObject(object value) {
+            switch (value) {
+                case TimeSpan timeSpan:
+                    return timeSpan;
+                case int i:
+                    return TimeSpan.FromTicks(i);
+                case long l:
+                    return TimeSpan.FromTicks(l);
+                case float f:
+                    return TimeSpan.FromTicks((long) f);
+                case double d:
+                    return TimeSpan.FromTicks((long) d);
+                case decimal d:
+                    return TimeSpan.FromTicks((long) d);
+                default:
+                    return null;
+            }
+        }
     }
 }
