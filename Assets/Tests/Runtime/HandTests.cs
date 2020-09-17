@@ -24,13 +24,13 @@ namespace Tests.Runtime {
         public IEnumerator LastGrabTime() {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
 
-            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(RealTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(FrameTime.Now));
             var previousGrabTime = fortuneFountainSaveData.Hand.LastGrabTime;
 
             yield return new WaitForSecondsRealtime(0.001f);
 
             fortuneFountainSaveData.Hand.Grab(new Throwable(ValuableType.Coin, 10));
-            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(RealTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(FrameTime.Now));
             Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.Not.EqualTo(previousGrabTime));
         }
 
@@ -38,7 +38,7 @@ namespace Tests.Runtime {
         public IEnumerator LastThrowTime() {
             FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
 
-            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(RealTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(FrameTime.Now));
 
             var initialTime = fortuneFountainSaveData.Hand.LastThrowTime;
 
@@ -46,7 +46,7 @@ namespace Tests.Runtime {
 
             fortuneFountainSaveData.Hand.Throw();
 
-            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(RealTime.Now));
+            Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(FrameTime.Now));
             Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.Not.EqualTo(initialTime));
         }
 

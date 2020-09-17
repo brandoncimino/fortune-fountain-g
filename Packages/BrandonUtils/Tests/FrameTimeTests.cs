@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Threading;
+
 using NUnit.Framework;
+
 using Packages.BrandonUtils.Runtime.Testing;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Packages.BrandonUtils.Tests {
-    public class RealTimeTests {
+    public class FrameTimeTests {
         private static float[] RealTimes = {
             0.00000001f,
             1,
@@ -20,26 +23,26 @@ namespace Packages.BrandonUtils.Tests {
         };
 
         [Test]
-        public void RealTimeNowDoesntChangeWithinFrame(
+        public void FrameTimeNowDoesntChangeWithinFrame(
             [ValueSource(nameof(RealTimes))]
             double secondsToSleep
         ) {
             Assume.That(secondsToSleep, Is.GreaterThan(0), $"We must {nameof(Thread.Sleep)} for a positive duration in order to get accurate results!");
 
-            var startNow = RealTime.Now;
+            var startNow = FrameTime.Now;
 
             Thread.Sleep(TimeSpan.FromSeconds(secondsToSleep));
 
-            Assert.That(RealTime.Now, Is.EqualTo(startNow));
-            Assert.That(RealTime.Now, Is.Not.Approximately(DateTime.Now));
+            Assert.That(FrameTime.Now, Is.EqualTo(startNow));
+            Assert.That(FrameTime.Now, Is.Not.Approximately(DateTime.Now));
         }
 
         [UnityTest]
-        public IEnumerator RealTimeNowChangesEveryFrame(
+        public IEnumerator FrameTimeNowChangesEveryFrame(
             [Values(5)]
             int framesToCheck
         ) {
-            var oldRealTimeNow = RealTime.Now;
+            var oldRealTimeNow = FrameTime.Now;
             var oldDateTimeNow = DateTime.Now;
 
             for (int i = 0; i < framesToCheck; i++) {
@@ -47,21 +50,21 @@ namespace Packages.BrandonUtils.Tests {
                 yield return null;
 
                 //Make sure that time has actually passed...
-                Assert.That(DateTime.Now, Is.Not.EqualTo(oldDateTimeNow));
-                Assert.That(RealTime.Now, Is.Not.EqualTo(oldRealTimeNow));
+                Assert.That(DateTime.Now,  Is.Not.EqualTo(oldDateTimeNow));
+                Assert.That(FrameTime.Now, Is.Not.EqualTo(oldRealTimeNow));
 
-                oldRealTimeNow = RealTime.Now;
+                oldRealTimeNow = FrameTime.Now;
                 oldDateTimeNow = DateTime.Now;
             }
         }
 
         [UnityTest]
-        public IEnumerator RealTimeNowIsAccurate(
+        public IEnumerator FrameTimeNowIsAccurate(
             [ValueSource(nameof(RealTimes))] [Values(0)]
             float secondsToWait
         ) {
             yield return new WaitForSecondsRealtime(secondsToWait);
-            Assert.That(RealTime.Now, new ApproximationConstraint(DateTime.Now, TestUtils.ApproximationTimeThreshold));
+            Assert.That(FrameTime.Now, new ApproximationConstraint(DateTime.Now, TestUtils.ApproximationTimeThreshold));
         }
     }
 }

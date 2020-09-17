@@ -51,10 +51,10 @@ namespace Runtime.Valuables {
         ///     The <see cref="DateTime" /> that the time the last time-dependent <see cref="Hand.Grab" /> was triggered.
         /// </summary>
         /// <remarks>
-        /// Initialized as <see cref="RealTime.Now"/>.
+        /// Initialized as <see cref="FrameTime.Now"/>.
         /// </remarks>
         [JsonProperty]
-        public DateTime LastGenerateCheckTime { get; set; } = RealTime.Now;
+        public DateTime LastGenerateCheckTime { get; set; } = FrameTime.Now;
 
         /// <summary>
         /// The backing field for <see cref="UnresolvedGeneratedItems"/>.
@@ -123,7 +123,7 @@ namespace Runtime.Valuables {
         /// <p>This is <b>required</b> for the instance version of <see cref="CheckGeneration(System.DateTime,System.Nullable{System.TimeSpan})"/>, because it should <b>always</b> be set by the collection version of <see cref="FortuneFountainUtils.CheckGenerate(System.Collections.Generic.IEnumerable{Runtime.Valuables.PlayerValuable},System.Nullable{System.TimeSpan},System.Nullable{System.DateTime})"/>.</p></param>
         ///
         /// <param name="generateLimit">The maximum amount of time that items can be generated. Defaults to <see cref="Hand.GenerateTimeLimit"/> if omitted; ignored if <c>null</c>.
-        /// TODO: Due to the implementation of <see cref="RealTime.Now"/>, the <paramref name="now"/> parameter can be omitted.
+        /// TODO: Due to the implementation of <see cref="FrameTime.Now"/>, the <paramref name="now"/> parameter can be omitted.
         /// </param>
         internal int CheckGeneration(DateTime now, TimeSpan? generateLimit) {
             var unlimitedDuration = InGameTimeSinceLastGenerationCheck(now);
@@ -257,7 +257,7 @@ namespace Runtime.Valuables {
         public ValuableType PrimaryKey => ValuableType;
 
         private void OnThrow(Hand hand) {
-            this.LastGenerateCheckTime = RealTime.Now;
+            this.LastGenerateCheckTime = FrameTime.Now;
         }
     }
 }

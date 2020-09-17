@@ -1,7 +1,10 @@
 ﻿using System;
+
 using NUnit.Framework;
+
 using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using Runtime.Utils;
 
 namespace Tests.Runtime {
@@ -42,7 +45,7 @@ namespace Tests.Runtime {
                 endTime = DateTime.Today.AddSeconds(deltaTimeInSeconds);
             }
             catch (ArgumentOutOfRangeException e) {
-                throw new IgnoreException($"The given {nameof(deltaTime)} ({deltaTime}), when added to {nameof(RealTime)}.{nameof(RealTime.Now)}, would exceed {nameof(DateTime)}.{nameof(DateTime.MaxValue)}!", e);
+                throw new IgnoreException($"The given {nameof(deltaTime)} ({deltaTime}), when added to {nameof(FrameTime)}.{nameof(FrameTime.Now)}, would exceed {nameof(DateTime)}.{nameof(DateTime.MaxValue)}!", e);
             }
 
             LogUtils.Log($"test {nameof(startTime)} = {startTime} ({startTime.Ticks})");

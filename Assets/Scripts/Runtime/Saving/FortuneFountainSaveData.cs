@@ -31,7 +31,7 @@ namespace Runtime.Saving {
         public TimeSpan OutOfGameTimeSinceLastThrow { get; private set; }
 
         [JsonIgnore]
-        public TimeSpan InGameTimeSinceLastThrow => RealTime.Now - Hand.LastThrowTime - OutOfGameTimeSinceLastThrow;
+        public TimeSpan InGameTimeSinceLastThrow => FrameTime.Now - Hand.LastThrowTime - OutOfGameTimeSinceLastThrow;
 
         public FortuneFountainSaveData() {
             Hand = new Hand();

@@ -82,7 +82,7 @@ namespace Tests.Runtime {
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestInGameTimeSinceLastThrowWithoutSaving));
 
             var inGameTime = TimeSpan.FromSeconds(secondsInGame);
-            fortuneFountainSaveData.Hand.LastThrowTime = RealTime.Now - inGameTime;
+            fortuneFountainSaveData.Hand.LastThrowTime = FrameTime.Now - inGameTime;
             Assert.That(fortuneFountainSaveData.InGameTimeSinceLastThrow, Is.InRange(inGameTime.Multiply(0.999), inGameTime.Multiply(1.001)));
         }
 
@@ -96,7 +96,7 @@ namespace Tests.Runtime {
             var currentSession  = TimeSpan.FromSeconds(secondsInCurrentSession);
             var inGameTime      = previousSession + currentSession;
 
-            fortuneFountainSaveData.Hand.LastThrowTime = RealTime.Now - previousSession;
+            fortuneFountainSaveData.Hand.LastThrowTime = FrameTime.Now - previousSession;
             fortuneFountainSaveData.Save(false);
 
             Thread.Sleep(outOfGameTime);
@@ -135,7 +135,7 @@ namespace Tests.Runtime {
             fortuneFountainSaveData.Save(false);
 
             //record the time we saved at
-            var saveTime = RealTime.Now;
+            var saveTime = FrameTime.Now;
 
             var outOfGameTime = TimeSpan.FromSeconds(secondsOutOfGame);
 
@@ -143,7 +143,7 @@ namespace Tests.Runtime {
             fortuneFountainSaveData.Reload();
 
             //record the time we loaded at
-            var loadTime = RealTime.Now;
+            var loadTime = FrameTime.Now;
 
             //make sure that the OOG-time is the difference between loading and saving
             //NOTE: This value will always be slightly larger than secondsOutOfGame due to the time actually spend saving & loading, etc.
@@ -160,14 +160,14 @@ namespace Tests.Runtime {
             yield return null;
             fortuneFountainSaveData.Save(false);
 
-            var saveTime = RealTime.Now;
+            var saveTime = FrameTime.Now;
 
             var outOfGameSpan = TimeSpan.FromSeconds(secondsOutOfGame);
 
             yield return TestUtils.WaitForRealtime(outOfGameSpan);
             var loadedSaveData = FortuneFountainSaveData.Load(fortuneFountainSaveData.nickName);
 
-            var loadTime = RealTime.Now;
+            var loadTime = FrameTime.Now;
 
             Assert.That(loadedSaveData, Has.Property(nameof(loadedSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(loadTime - saveTime));
         }
@@ -206,7 +206,7 @@ namespace Tests.Runtime {
 
             yield return null;
             fortuneFountainSaveData.Save(false);
-            var realTimeNowAtSave = RealTime.Now;
+            var realTimeNowAtSave = FrameTime.Now;
 
             Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(TimeSpan.Zero), $"We haven't waited yet, so there shouldn't be any {nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow)}!");
 
@@ -217,7 +217,7 @@ namespace Tests.Runtime {
             for (int session = 0; session < numberOfSessions; session++) {
                 yield return TestUtils.WaitForRealtime(sessionSpan);
                 fortuneFountainSaveData.Reload();
-                var realTimeNowAtReload = RealTime.Now;
+                var realTimeNowAtReload = FrameTime.Now;
 
                 Assert.That(realTimeNowAtReload, Is.Not.EqualTo(realTimeNowAtSave));
 
@@ -232,7 +232,7 @@ namespace Tests.Runtime {
 
                 yield return TestUtils.WaitForRealtime(sessionSpan);
                 fortuneFountainSaveData.Save(false);
-                realTimeNowAtSave = RealTime.Now;
+                realTimeNowAtSave = FrameTime.Now;
             }
         }
     }

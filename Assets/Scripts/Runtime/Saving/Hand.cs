@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using JetBrains.Annotations;
+
 using Newtonsoft.Json;
+
 using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using Runtime.Valuables;
 
 namespace Runtime.Saving {
@@ -33,10 +37,10 @@ namespace Runtime.Saving {
         public static event ThrowHandDelegate ThrowHandEvent;
 
         [JsonProperty]
-        public DateTime LastThrowTime { get; set; } = RealTime.Now;
+        public DateTime LastThrowTime { get; set; } = FrameTime.Now;
 
         [JsonProperty]
-        public DateTime LastGrabTime { get; set; } = RealTime.Now;
+        public DateTime LastGrabTime { get; set; } = FrameTime.Now;
 
         public Hand() {
             //Subscribe to the ThrowSingleEvent
@@ -50,7 +54,7 @@ namespace Runtime.Saving {
         /// <param name="amount"></param>
         public void Grab(Throwable throwable, int amount = 1) {
             //TODO: Trigger a GRAB event!
-            LastGrabTime = RealTime.Now;
+            LastGrabTime = FrameTime.Now;
             for (var i = 0; i < amount; i++) {
                 throwables.Add(throwable);
             }
@@ -68,13 +72,13 @@ namespace Runtime.Saving {
         /// </list>
         /// </remarks>
         public void Throw() {
-            LogUtils.Log($"Setting {nameof(LastThrowTime)} to {RealTime.Now:HH:mm:ss.fff}");
-            LastThrowTime = RealTime.Now;
-            LogUtils.Log($"{nameof(LastThrowTime)} set to {RealTime.Now:HH:mm:ss.fff}");
+            LogUtils.Log($"Setting {nameof(LastThrowTime)} to {FrameTime.Now:HH:mm:ss.fff}");
+            LastThrowTime = FrameTime.Now;
+            LogUtils.Log($"{nameof(LastThrowTime)} set to {FrameTime.Now:HH:mm:ss.fff}");
 
             ThrowHandEvent?.Invoke(this);
 
-            LogUtils.Log($"{nameof(ThrowHandEvent)} invocation finished at {RealTime.Now:HH:mm:ss.fff}");
+            LogUtils.Log($"{nameof(ThrowHandEvent)} invocation finished at {FrameTime.Now:HH:mm:ss.fff}");
         }
 
         /// <summary>

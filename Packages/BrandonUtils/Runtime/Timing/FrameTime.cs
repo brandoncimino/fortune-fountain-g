@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Packages.BrandonUtils.Runtime.Exceptions;
 using Packages.BrandonUtils.Runtime.Logging;
+
 using UnityEngine;
 
 namespace Packages.BrandonUtils.Runtime.Timing {
     /// <summary>
     /// Utilities that interact with Unity's <see cref="Time"/> system.
     /// </summary>
-    public static class RealTime {
+    public static class FrameTime {
         public static readonly Dictionary<RuntimeInitializeLoadType, DateTime> LoadTime = new Dictionary<RuntimeInitializeLoadType, DateTime>();
 
         public static readonly Dictionary<RuntimeInitializeLoadType, float> LoadDuration = new Dictionary<RuntimeInitializeLoadType, float>();

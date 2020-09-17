@@ -74,7 +74,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         public string nickName;
 
         [JsonProperty]
-        public DateTime LastSaveTime { get; set; } = RealTime.Now;
+        public DateTime LastSaveTime { get; set; } = FrameTime.Now;
 
         [JsonProperty]
         public DateTime LastSaveTime_Exact { get; set; } = DateTime.Now;
@@ -95,10 +95,10 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// The time that this <see cref="SaveData{T}"/> was loaded.
         /// </summary>
         /// <remarks>
-        /// Set to <see cref="RealTime.Now"/> when the data is initialized, <see cref="Load"/>-ed, or <see cref="Reload"/>-ed.
+        /// Set to <see cref="FrameTime.Now"/> when the data is initialized, <see cref="Load"/>-ed, or <see cref="Reload"/>-ed.
         /// </remarks>
         [JsonIgnore]
-        public DateTime LastLoadTime { get; set; } = RealTime.Now;
+        public DateTime LastLoadTime { get; set; } = FrameTime.Now;
 
         /// <summary>
         ///     Static initializer that makes sure the <see cref="SaveFolderPath" /> exists.
@@ -208,7 +208,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
         /// </remarks>
         /// <seealso cref="OnLoad"/>
         private void OnLoadPrivate() {
-            LastLoadTime = RealTime.Now;
+            LastLoadTime = FrameTime.Now;
             OnLoad();
         }
 
@@ -304,7 +304,7 @@ namespace Packages.BrandonUtils.Runtime.Saving {
 
             saveData.nickName           = nickName;
             saveData.LastSaveTime_Exact = saveTime;
-            saveData.LastSaveTime       = RealTime.Now;
+            saveData.LastSaveTime       = FrameTime.Now;
 
             var previousFileCount = saveData.AllSaveFilePaths.Length;
             var newFilePath       = GetSaveFilePath(nickName, saveTime);
