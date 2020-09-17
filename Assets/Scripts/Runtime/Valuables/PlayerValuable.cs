@@ -162,7 +162,7 @@ namespace Runtime.Valuables {
         private TimeSpan LimitGenerationDuration(TimeSpan unlimitedDuration, TimeSpan generateLimit) {
             var personalGenerateLimitRemaining = generateLimit - GenerateTimeUtilized;
             var handGenerateLimitRemaining     = generateLimit - GameManager.SaveData.InGameTimeSinceLastThrow;
-            return unlimitedDuration.Min(personalGenerateLimitRemaining, handGenerateLimitRemaining);
+            return TimeSpan.Zero.Max(unlimitedDuration.Min(personalGenerateLimitRemaining, handGenerateLimitRemaining));
         }
 
         /// <summary>
