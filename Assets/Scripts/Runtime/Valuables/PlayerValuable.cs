@@ -258,6 +258,7 @@ namespace Runtime.Valuables {
 
         private void OnThrow(Hand hand) {
             this.LastGenerateCheckTime = FrameTime.Now;
+            this.GenerateTimeUtilized  = TimeSpan.Zero;
         }
     }
 }

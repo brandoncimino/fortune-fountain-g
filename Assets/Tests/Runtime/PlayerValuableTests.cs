@@ -362,5 +362,20 @@ namespace Tests.Runtime {
             Assert.That(generatedItems, Has.All.EqualTo(generatedItems[0]), "All of the items should have generated the same amount!");
             Assert.That(generatedItems, Is.All.Approximately(expectedItemsGenerated));
         }
+
+        [Test]
+        public void ThrowResetsGenerateTimeUtilized() {
+            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(ThrowResetsGenerateTimeUtilized));
+            fortuneFountainSaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
+
+            var utilizedTime = TimeSpan.FromSeconds(1);
+            fortuneFountainSaveData.PlayerValuables.ForEach(it => it.GenerateTimeUtilized = utilizedTime);
+
+            Assert.That(fortuneFountainSaveData.PlayerValuables, Has.All.Property(nameof(PlayerValuable.GenerateTimeUtilized)).EqualTo(utilizedTime));
+
+            fortuneFountainSaveData.Hand.Throw();
+
+            Assert.That(fortuneFountainSaveData.PlayerValuables, Has.All.Property(nameof(PlayerValuable.GenerateTimeUtilized)).EqualTo(TimeSpan.Zero));
+        }
     }
 }
