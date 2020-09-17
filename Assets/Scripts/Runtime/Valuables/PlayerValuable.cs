@@ -1,14 +1,33 @@
 ﻿using System;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+
 using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Exceptions;
 using Packages.BrandonUtils.Runtime.Testing;
 using Packages.BrandonUtils.Runtime.Timing;
+
 using Runtime.Saving;
 using Runtime.Utils;
 
 namespace Runtime.Valuables {
+    /// <summary>
+    /// Holds information about <see cref="ValuableType"/>s that <b>constantly change</b> and are <b>specific to the current player</b>, such as:
+    /// <li>What is my <see cref="Rate"/>?</li>
+    /// <li>What is my <see cref="KarmaValue"/>?</li>
+    /// <li>Can I be generated? (<see cref="CheckGeneration(System.DateTime)"/>)</li>
+    /// <li>When was I last generated? (<see cref="LastGenerateCheckTime"/>)</li>
+    /// </summary>
+    /// <remarks>
+    /// The largest role of <see cref="PlayerValuable"/>s is to generate items.
+    /// This is composed of several steps:
+    /// <li>Find out how long it's been since we last checked for generation (<see cref="InGameTimeSinceLastGenerationCheck"/>)</li>
+    /// <li>Limit <see cref="InGameTimeSinceLastGenerationCheck"/>, both based on how much this <see cref="PlayerValuable"/> has been generated (<see cref="GenerateTimeUtilized"/>) and the main <see cref="Hand"/> itself (<see cref="FortuneFountainSaveData.InGameTimeSinceLastThrow"/>)</li>
+    /// <li>Calculate the amount of items generated in that time</li>
+    /// <li>Add that amount to <see cref="UnresolvedGeneratedItems"/></li>
+    /// <li>Call <see cref="ResolveGeneration"/>, <see cref="Grab"/>-bing any completed items and leaving <see cref="UnresolvedGeneratedItems"/> as the remainder</li>
+    /// </remarks>
     public class PlayerValuable : IPrimaryKeyed<ValuableType> {
         public delegate void GeneratePlayerValuableDelegate(PlayerValuable playerValuable, int count);
 
@@ -44,7 +63,6 @@ namespace Runtime.Valuables {
         /// I named this prefixed with an underscore because it's one of the _only_ times I'm using a traditional "backing" field, which is in order to do parameter validation against setting <see cref="UnresolvedGeneratedItems"/>.
         /// </remarks>
         [JsonIgnore]
-        // ReSharper disable once InconsistentNaming
         private double _unresolvedGeneratedItems;
 
         [JsonProperty]
@@ -99,20 +117,19 @@ namespace Runtime.Valuables {
         /// <summary>
         ///     Checks how much <b>in-game</b> time has passed since we last called <see cref="CheckGeneration"/>, finds out how many items we could have generated during that time (including fractional items), and adds that amount to <see cref="UnresolvedGeneratedItems"/>.
         /// </summary>
+        ///
         /// <param name="now">The time to consider "now" to be - i.e. a controllable replacement for <see cref="DateTime.Now"/> that can be the same across multiple <see cref="CheckGeneration(System.DateTime,System.Nullable{System.TimeSpan})"/> calculations.
+        ///
         /// <p>This is <b>required</b> for the instance version of <see cref="CheckGeneration(System.DateTime,System.Nullable{System.TimeSpan})"/>, because it should <b>always</b> be set by the collection version of <see cref="FortuneFountainUtils.CheckGenerate(System.Collections.Generic.IEnumerable{Runtime.Valuables.PlayerValuable},System.Nullable{System.TimeSpan},System.Nullable{System.DateTime})"/>.</p></param>
-        /// <param name="generateLimit">The maximum amount of time that items can be generated. Defaults to <see cref="Hand.GenerateTimeLimit"/> if omitted; ignored if <c>null</c>.</param>
+        ///
+        /// <param name="generateLimit">The maximum amount of time that items can be generated. Defaults to <see cref="Hand.GenerateTimeLimit"/> if omitted; ignored if <c>null</c>.
+        /// TODO: Due to the implementation of <see cref="RealTime.Now"/>, the <paramref name="now"/> parameter can be omitted.
+        /// </param>
         internal int CheckGeneration(DateTime now, TimeSpan? generateLimit) {
             var unlimitedDuration = InGameTimeSinceLastGenerationCheck(now);
             LastGenerateCheckTime = now;
 
-            var limitedDuration = unlimitedDuration;
-            if (generateLimit != null) {
-                //How much of the generate limit we can still utilize (which is based on the overall hand, not this valuable, since this valuable may have been enabled after the most recent throw)
-                var generateLimitRemaining = generateLimit.GetValueOrDefault() - GenerateTimeUtilized;
-
-                limitedDuration = unlimitedDuration.Min(generateLimitRemaining);
-            }
+            var limitedDuration = LimitGenerationDuration(unlimitedDuration, generateLimit.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit));
 
             //Add the limitedDuration to the GenerateTimeUtilized
             GenerateTimeUtilized += limitedDuration;
@@ -142,6 +159,12 @@ namespace Runtime.Valuables {
             return CheckGeneration(now, GameManager.SaveData.Hand.GenerateTimeLimit);
         }
 
+        private TimeSpan LimitGenerationDuration(TimeSpan unlimitedDuration, TimeSpan generateLimit) {
+            var personalGenerateLimitRemaining = generateLimit - GenerateTimeUtilized;
+            var handGenerateLimitRemaining     = generateLimit - GameManager.SaveData.InGameTimeSinceLastThrow;
+            return unlimitedDuration.Min(personalGenerateLimitRemaining, handGenerateLimitRemaining);
+        }
+
         /// <summary>
         /// <see cref="Grab"/>s the integer component of <see cref="UnresolvedGeneratedItems"/>, setting <see cref="UnresolvedGeneratedItems"/> to the remainder.
         /// </summary>
@@ -159,7 +182,7 @@ namespace Runtime.Valuables {
             }
 
             var integerAmountGenerated = (int) Math.Floor(UnresolvedGeneratedItems);
-            var remainderGenerated     = UnresolvedGeneratedItems % 1;
+            var unresolvedRemainder    = UnresolvedGeneratedItems - integerAmountGenerated;
 
             //Grab the completed items
             this.Grab(integerAmountGenerated);
@@ -168,7 +191,7 @@ namespace Runtime.Valuables {
             GeneratePlayerValuableEvent?.Invoke(this, integerAmountGenerated);
 
             //Update UnresolvedGeneratedItems to only contain the remainder that we didn't grab
-            UnresolvedGeneratedItems = remainderGenerated;
+            UnresolvedGeneratedItems = unresolvedRemainder;
 
             //Post-condition - ensure that we did actually resolve everything
             //TODO: Is there a "correct" way to check post-conditions? Contract.Ensures is apparently dead: https://github.com/dotnet/docs/issues/6361
@@ -186,34 +209,41 @@ namespace Runtime.Valuables {
         /// <returns></returns>
         private TimeSpan InGameTimeSinceLastGenerationCheck(DateTime now) {
             //Check to see if we've completed a generation since loading the game. If not, then we have to do extra calculations using the time from the previous session.
-            var partialGenerationDuringPreviousSession = GameManager.SaveData.LastLoadTime > LastGenerateCheckTime;
 
-            //Will hold the maximum amount of time that we _could_ have generated for.
-            TimeSpan inGameTime;
+            var isFirstGenerationCheckOfSession = GameManager.SaveData.LastLoadTime > LastGenerateCheckTime;
 
-            if (partialGenerationDuringPreviousSession) {
+            //Will hold the final value we're calculating.
+            TimeSpan elapsedGenerationTime_total;
+
+            if (isFirstGenerationCheckOfSession) {
                 //Calculate the time we spent generating during the previous session (which will always have ENDED with a SAVE)
-                var previousSessionDuration = GameManager.SaveData.LastSaveTime - LastGenerateCheckTime;
+                var elapsedGenerationTime_previousSession = GameManager.SaveData.LastSaveTime - LastGenerateCheckTime;
 
                 //Calculate the time spent generating during the current session (which will always have STARTED with a LOAD, and ENDED with NOW)
-                var currentSessionDuration = now - GameManager.SaveData.LastLoadTime;
+                var elapsedGenerationTime_currentSession = now - GameManager.SaveData.LastLoadTime;
 
-                inGameTime = previousSessionDuration + currentSessionDuration;
+                elapsedGenerationTime_total = elapsedGenerationTime_previousSession + elapsedGenerationTime_currentSession;
             }
             else {
                 //If our generation is taking place entirely during the session, then we can ignore SAVE and LOAD times.
-                inGameTime = now - LastGenerateCheckTime;
+                elapsedGenerationTime_total = now - LastGenerateCheckTime;
             }
 
-            if (inGameTime < TimeSpan.Zero) {
-                throw new TimeParadoxException($"How have we spent negative time playing?! ({inGameTime})");
+            if (elapsedGenerationTime_total < TimeSpan.Zero) {
+                throw new TimeParadoxException($"How have we spent negative time playing?! ({elapsedGenerationTime_total})");
             }
 
-            if (inGameTime > GameManager.SaveData.InGameTimeSinceLastThrow) {
-                throw new TimeParadoxException($"We can't have spent more time generating items than we did actually playing the game!!" + $"\n\t{nameof(inGameTime)} ({ValuableType}) = {inGameTime}" + $"\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {GameManager.SaveData.InGameTimeSinceLastThrow}" + $"\n\tDifference = {inGameTime - GameManager.SaveData.InGameTimeSinceLastThrow}" + $"\n\t{nameof(TestUtils.ApproximationTimeThreshold)} = {TestUtils.ApproximationTimeThreshold}");
+            if (elapsedGenerationTime_total > GameManager.SaveData.InGameTimeSinceLastThrow) {
+                throw new TimeParadoxException(
+                    $"We can't have spent more time generating items than we did actually playing the game!!" +
+                    $"\n\t{nameof(elapsedGenerationTime_total)} ({ValuableType}) = {elapsedGenerationTime_total}" +
+                    $"\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {GameManager.SaveData.InGameTimeSinceLastThrow}" +
+                    $"\n\tDifference = {elapsedGenerationTime_total - GameManager.SaveData.InGameTimeSinceLastThrow}" +
+                    $"\n\t{nameof(TestUtils.ApproximationTimeThreshold)} = {TestUtils.ApproximationTimeThreshold}"
+                );
             }
 
-            return inGameTime;
+            return elapsedGenerationTime_total;
         }
 
         public void Grab(int amount = 1) {
