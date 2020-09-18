@@ -102,7 +102,8 @@ namespace Tests.Runtime {
                     throwables = {
                         new Throwable(ValuableType.Coin, 1)
                     }
-                }
+                },
+                nickName = nameof(ThrowOneTwice)
             };
 
             int throwCount = 0;
