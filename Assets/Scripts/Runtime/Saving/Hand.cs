@@ -6,7 +6,6 @@ using JetBrains.Annotations;
 
 using Newtonsoft.Json;
 
-using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Timing;
 
 using Runtime.Valuables;
@@ -83,11 +82,7 @@ namespace Runtime.Saving {
         /// </remarks>
         public void Throw() {
             LastThrowTime = FrameTime.Now;
-            LogUtils.Log($"{nameof(LastThrowTime)} set to {FrameTime.Now:HH:mm:ss.fff}");
-
             ThrowHandEvent?.Invoke(this);
-
-            LogUtils.Log($"{nameof(ThrowHandEvent)} invocation finished at {FrameTime.Now:HH:mm:ss.fff}");
         }
 
         /// <summary>
