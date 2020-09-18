@@ -1,14 +1,18 @@
 ﻿using System;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 using Runtime.Saving;
-using UnityEngine;
 
 namespace Runtime.Valuables {
     [Serializable]
     public class Throwable {
-        [SerializeField]
+        [JsonProperty]
+        [JsonConverter(typeof(StringEnumConverter))]
         public ValuableType ValuableType;
 
-        [SerializeField]
+        [JsonProperty]
         public double ThrowValue;
 
         /// <summary>
@@ -33,6 +37,7 @@ namespace Runtime.Valuables {
         /// <li>We may run into limitations with this boolean flag</li>
         /// <li>One alternative is to have <see cref="Throwable"/> implement <see cref="IDisposable"/>, and dispose of the <see cref="Throwable"/> when we call <see cref="Throwable.Throw"/></li>
         /// </remarks>
+        [JsonIgnore]
         private bool _alreadyThrown;
 
         public Throwable(ValuableType valuableType, double throwValue) {
@@ -49,17 +54,17 @@ namespace Runtime.Valuables {
 
         public void Throw() {
             if (_alreadyThrown) {
-                // LogUtils.Log($"{this} has already been thrown, so it won't be thrown again!");
-                return;
+                throw new FortuneFountainException($"The {nameof(Throwable)} {this} has already been thrown, so it can't be thrown again!");
             }
 
+            _alreadyThrown = true;
             // LogUtils.Log($"{this} is being thrown at {DateTime.Now:HH:mm:ss.fff}");
             ThrowSingleEvent?.Invoke(this);
-            _alreadyThrown = true;
         }
 
         public override string ToString() {
-            return $"{{{ValuableType}, {ThrowValue}}}";
+            // return $"{{{ValuableType}, {ThrowValue}}}";
+            return JsonConvert.SerializeObject(this);
         }
     }
 }
