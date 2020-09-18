@@ -42,6 +42,16 @@ namespace Runtime.Saving {
         [JsonProperty]
         public DateTime LastGrabTime { get; set; } = FrameTime.Now;
 
+        [JsonIgnore]
+        public Dictionary<ValuableType, int> ValuableTypeCounts =>
+            throwables.GroupBy(
+                          throwable => throwable.ValuableType
+                      )
+                      .ToDictionary(
+                          group => group.Key,
+                          group => group.Count()
+                      );
+
         public Hand() {
             //Subscribe to the ThrowSingleEvent
             Throwable.ThrowSingleEvent += HandleThrowSingleEvent;
@@ -72,7 +82,6 @@ namespace Runtime.Saving {
         /// </list>
         /// </remarks>
         public void Throw() {
-            LogUtils.Log($"Setting {nameof(LastThrowTime)} to {FrameTime.Now:HH:mm:ss.fff}");
             LastThrowTime = FrameTime.Now;
             LogUtils.Log($"{nameof(LastThrowTime)} set to {FrameTime.Now:HH:mm:ss.fff}");
 
