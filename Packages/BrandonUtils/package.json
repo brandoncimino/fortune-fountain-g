@@ -1,9 +1,0 @@
-{
-  "name": "com.fowlfever.brandonutils",
-  "version": "0.2.1",
-  "displayName": "Brandon Utils",
-  "description": "Stuff Brandon wants in every Unity project.",
-  "dependencies": {
-    "com.unity.nuget.newtonsoft-json" : "2.0.0"
-  }
-}

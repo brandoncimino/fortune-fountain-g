@@ -1,12 +1,13 @@
 {
   "dependencies": {
     "com.fowlfever.brandonutils": {
-      "version": "file:BrandonUtils",
+      "version": "https://github.com/brandoncimino/brandon-utils.git?path=/Packages/BrandonUtils",
       "depth": 0,
-      "source": "embedded",
+      "source": "git",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0"
-      }
+      },
+      "hash": "739e7b9307e5ebd11546e75e271c1d960b1bb0f8"
     },
     "com.unity.collab-proxy": {
       "version": "1.3.9",
