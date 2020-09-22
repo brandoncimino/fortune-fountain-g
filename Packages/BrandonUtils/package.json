@@ -3,16 +3,7 @@
   "version": "0.2.1",
   "displayName": "Brandon Utils",
   "description": "Stuff Brandon wants in every Unity project.",
-  "scopedRegistries": [
-    {
-      "name": "Packages from jillejr",
-      "url": "https://npm.cloudsmith.io/jillejr/newtonsoft-json-for-unity/",
-      "scopes": [
-        "jillejr"
-      ]
-    }
-  ],
   "dependencies": {
-    "jillejr.newtonsoft.json-for-unity": "12.0.301"
+    "com.unity.nuget.newtonsoft-json" : "2.0.0"
   }
 }
