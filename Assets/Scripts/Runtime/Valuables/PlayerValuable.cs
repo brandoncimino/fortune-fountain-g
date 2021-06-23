@@ -5,6 +5,7 @@ using Newtonsoft.Json.Converters;
 
 using Packages.BrandonUtils.Runtime.Collections;
 using Packages.BrandonUtils.Runtime.Exceptions;
+using Packages.BrandonUtils.Runtime.Logging;
 using Packages.BrandonUtils.Runtime.Testing;
 using Packages.BrandonUtils.Runtime.Timing;
 
@@ -129,7 +130,25 @@ namespace Runtime.Valuables {
             var unlimitedDuration = InGameTimeSinceLastGenerationCheck(now);
             LastGenerateCheckTime = now;
 
-            var limitedDuration = LimitGenerationDuration(unlimitedDuration, generateLimit.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit));
+            var superLimitedDuration = LimitGenerationDuration(unlimitedDuration, generateLimit.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit));
+            var limitedDuration      = unlimitedDuration;
+            if (generateLimit != null) {
+                //How much of the generate limit we can still utilize (which is based on the overall hand, not this valuable, since this valuable may have been enabled after the most recent throw)
+                var generateLimitRemaining = generateLimit.GetValueOrDefault() - GenerateTimeUtilized;
+                LogUtils.Log(
+                    $"gen limit = {generateLimit}",
+                    $"actual = {generateLimit.GetValueOrDefault()}",
+                    $"genutil = {GenerateTimeUtilized}",
+                    $"remain = {generateLimitRemaining}"
+                );
+
+                limitedDuration = unlimitedDuration.Min(generateLimitRemaining);
+            }
+
+            LogUtils.Log(
+                $"limitedDuration = {limitedDuration}",
+                $"GenerateTimeUtilize = {GenerateTimeUtilized}"
+            );
 
             //Add the limitedDuration to the GenerateTimeUtilized
             GenerateTimeUtilized += limitedDuration;

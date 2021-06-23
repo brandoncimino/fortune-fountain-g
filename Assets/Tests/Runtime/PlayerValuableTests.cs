@@ -357,7 +357,7 @@ namespace Tests.Runtime {
             GameManager.SaveData.LastSaveTime       = startTime;
             GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateCheckTime = startTime);
 
-            var generatedItems         = GameManager.SaveData.PlayerValuables.CheckGenerate(null, null);
+            var generatedItems         = GameManager.SaveData.PlayerValuables.CheckGenerate(TimeSpan.MaxValue);
             var expectedItemsGenerated = Math.Floor(secondsSinceLastGenerateCheckAndThrow * rate);
             Assert.That(generatedItems, Has.All.EqualTo(generatedItems[0]), "All of the items should have generated the same amount!");
             Assert.That(generatedItems, Is.All.Approximately(expectedItemsGenerated));
