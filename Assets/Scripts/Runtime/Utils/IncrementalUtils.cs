@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using Packages.BrandonUtils.Runtime.Timing;
+
+using BrandonUtils.Standalone;
 
 namespace Runtime.Utils {
     /// <summary>

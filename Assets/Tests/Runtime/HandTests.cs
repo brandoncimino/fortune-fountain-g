@@ -3,20 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using BrandonUtils.Logging;
+using BrandonUtils.Standalone;
+using BrandonUtils.Standalone.Collections;
+using BrandonUtils.Timing;
+
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
-
-using Packages.BrandonUtils.Runtime;
-using Packages.BrandonUtils.Runtime.Collections;
-using Packages.BrandonUtils.Runtime.Timing;
 
 using Runtime.Saving;
 using Runtime.Valuables;
 
 using UnityEngine;
 using UnityEngine.TestTools;
-
-using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
 
 namespace Tests.Runtime {
     public class HandTests {
@@ -126,7 +125,7 @@ namespace Tests.Runtime {
 
             var expectedPostThrowKarma = fortuneFountainSaveData.Hand.KarmaInHand;
 
-            Log(
+            LogUtils.Log(
                 $"Before throwing, there is {fortuneFountainSaveData.Karma} karma",
                 $"In my hand, there is {fortuneFountainSaveData.Hand.KarmaInHand} karma"
             );
@@ -221,7 +220,7 @@ namespace Tests.Runtime {
 
             var outOfGameSpan = TimeSpan.FromDays(500);
 
-            ReflectionUtils.SetVariable(fortuneFountainSaveData, nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow), outOfGameSpan);
+            ReflectionUtils.SetVariableValue(fortuneFountainSaveData, nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow), outOfGameSpan);
 
             Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(outOfGameSpan));
 

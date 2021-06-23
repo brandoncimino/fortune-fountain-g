@@ -2,11 +2,11 @@
 using System.Collections;
 using System.Threading;
 
-using NUnit.Framework;
+using BrandonUtils.Standalone;
+using BrandonUtils.Testing;
+using BrandonUtils.Timing;
 
-using Packages.BrandonUtils.Runtime.Logging;
-using Packages.BrandonUtils.Runtime.Testing;
-using Packages.BrandonUtils.Runtime.Timing;
+using NUnit.Framework;
 
 using Runtime.Saving;
 using Runtime.Valuables;
@@ -14,7 +14,7 @@ using Runtime.Valuables;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-using static Packages.BrandonUtils.Runtime.Logging.LogUtils;
+using static BrandonUtils.Logging.LogUtils;
 
 using Random = UnityEngine.Random;
 
@@ -200,7 +200,7 @@ namespace Tests.Runtime {
             const float sessionSeconds   = 2f;
             const int   numberOfSessions = 2;
             var         sessionSpan      = TimeSpan.FromSeconds(sessionSeconds);
-            LogUtils.locations = Locations.None;
+            locations = Locations.None;
 
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_MultipleSessionsWithoutThrowing));
 

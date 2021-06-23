@@ -1,13 +1,13 @@
 ﻿using System;
 
+using BrandonUtils.Logging;
+using BrandonUtils.Standalone;
+using BrandonUtils.Standalone.Collections;
+using BrandonUtils.Standalone.Exceptions;
+using BrandonUtils.Timing;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-
-using Packages.BrandonUtils.Runtime.Collections;
-using Packages.BrandonUtils.Runtime.Exceptions;
-using Packages.BrandonUtils.Runtime.Logging;
-using Packages.BrandonUtils.Runtime.Testing;
-using Packages.BrandonUtils.Runtime.Timing;
 
 using Runtime.Saving;
 using Runtime.Utils;
@@ -257,8 +257,7 @@ namespace Runtime.Valuables {
                     $"We can't have spent more time generating items than we did actually playing the game!!" +
                     $"\n\t{nameof(elapsedGenerationTime_total)} ({ValuableType}) = {elapsedGenerationTime_total}" +
                     $"\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {GameManager.SaveData.InGameTimeSinceLastThrow}" +
-                    $"\n\tDifference = {elapsedGenerationTime_total - GameManager.SaveData.InGameTimeSinceLastThrow}" +
-                    $"\n\t{nameof(TestUtils.ApproximationTimeThreshold)} = {TestUtils.ApproximationTimeThreshold}"
+                    $"\n\tDifference = {elapsedGenerationTime_total - GameManager.SaveData.InGameTimeSinceLastThrow}"
                 );
             }
 

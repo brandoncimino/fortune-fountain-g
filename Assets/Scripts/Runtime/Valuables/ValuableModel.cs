@@ -1,6 +1,8 @@
 ﻿using System;
+
+using BrandonUtils.Standalone.Strings;
+
 using JetBrains.Annotations;
-using Packages.BrandonUtils.Runtime;
 
 namespace Runtime.Valuables {
     /// <summary>
@@ -48,7 +50,13 @@ namespace Runtime.Valuables {
         /// <param name="displayName"><see cref="DisplayName"/>. Defaults to <paramref name="type"/>.</param>
         /// <exception cref="ArgumentException">if <paramref name="magnitudes"/> is empty.</exception>
         /// <exception cref="ArgumentNullException">if <paramref name="magnitudes"/> or any of its items are null.</exception>
-        public ValuableModel(ValuableType type, long immutableValue, [NotNull] [ItemNotNull] Noun[] magnitudes, Noun displayName = null) {
+        public ValuableModel(
+            ValuableType type,
+            long immutableValue,
+            [NotNull] [ItemNotNull]
+            Noun[] magnitudes,
+            Noun displayName = null
+        ) {
             if (magnitudes.Length == 0) {
                 throw new ArgumentException("Value cannot be an empty collection.", nameof(magnitudes));
             }

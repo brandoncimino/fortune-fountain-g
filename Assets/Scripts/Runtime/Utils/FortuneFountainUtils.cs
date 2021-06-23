@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Packages.BrandonUtils.Runtime.Timing;
+using BrandonUtils.Timing;
 
 using Runtime.Valuables;
 

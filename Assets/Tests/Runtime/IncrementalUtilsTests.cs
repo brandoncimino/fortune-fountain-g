@@ -1,9 +1,10 @@
 ﻿using System;
 
-using NUnit.Framework;
+using BrandonUtils.Logging;
+using BrandonUtils.Standalone;
+using BrandonUtils.Timing;
 
-using Packages.BrandonUtils.Runtime.Logging;
-using Packages.BrandonUtils.Runtime.Timing;
+using NUnit.Framework;
 
 using Runtime.Utils;
 

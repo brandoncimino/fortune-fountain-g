@@ -3,13 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
+using BrandonUtils.Logging;
+using BrandonUtils.Standalone;
+using BrandonUtils.Testing;
+using BrandonUtils.Timing;
+
 using Newtonsoft.Json;
 
 using NUnit.Framework;
-
-using Packages.BrandonUtils.Runtime.Logging;
-using Packages.BrandonUtils.Runtime.Testing;
-using Packages.BrandonUtils.Runtime.Timing;
 
 using Runtime;
 using Runtime.Saving;
@@ -175,24 +176,23 @@ namespace Tests.Runtime {
         };
 
         [Test, Combinatorial]
-        [TestCase(5,     1,    20)]
-        [TestCase(2,     2,    5)]
-        [TestCase(3878,  23,   88)]
-        [TestCase(10,    3,    0)]
-        [TestCase(500,   5,    500)]
-        [TestCase(100,   100,  100)]
-        [TestCase(1000,  1000, 1000)]
-        [TestCase(10000, 1000, 10000)]
-        [TestCase(1,     23,   50)]
-        [TestCase(500,   23,   78)]
-        [TestCase(500,   23,   1)]
-        [TestCase(500,   22,   1)]
-        [TestCase(500,   21,   1)]
-        [TestCase(500,   20,   1)]
-        [TestCase(500,   19,   1)]
-        [TestCase(50,    19,   1)]
-        [TestCase(5,     19,   1)]
-        [TestCase(5,     1,    2)]
+        [TestCase(5,    1,    20)]
+        [TestCase(2,    2,    5)]
+        [TestCase(3878, 23,   88)]
+        [TestCase(10,   3,    0)]
+        [TestCase(500,  5,    500)]
+        [TestCase(100,  100,  100)]
+        [TestCase(1000, 1000, 1000)]
+        [TestCase(1,    23,   50)]
+        [TestCase(500,  23,   78)]
+        [TestCase(500,  23,   1)]
+        [TestCase(500,  22,   1)]
+        [TestCase(500,  21,   1)]
+        [TestCase(500,  20,   1)]
+        [TestCase(500,  19,   1)]
+        [TestCase(50,   19,   1)]
+        [TestCase(5,    19,   1)]
+        [TestCase(5,    1,    2)]
         public void GenerateEventsLimitedByMaxGenerateTime(
             [ValueSource(nameof(seconds))]
             double generateTimeLimitInSeconds,
@@ -346,7 +346,7 @@ namespace Tests.Runtime {
         [TestCase(10,       5.6)]
         [TestCase(0.1,      598.234)]
         [TestCase(11293.34, 0.2)]
-        [TestCase(99999,    82)]
+        [TestCase(88999,    82)]
         [TestCase(Math.PI,  Math.PI)]
         public void TestSimpleGeneration(double rate, double secondsSinceLastGenerateCheckAndThrow) {
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestSimpleGeneration));

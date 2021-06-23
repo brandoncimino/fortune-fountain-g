@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Runtime.Serialization;
-using JetBrains.Annotations;
-using Packages.BrandonUtils.Runtime.Exceptions;
+
+using BrandonUtils.Standalone.Exceptions;
 
 namespace Runtime {
     /// <summary>
@@ -9,7 +8,8 @@ namespace Runtime {
     /// </summary>
     public class FortuneFountainException : BrandonException {
         public FortuneFountainException() { }
-        protected FortuneFountainException([NotNull] SerializationInfo info, StreamingContext context) : base(info, context) { }
+
+        //protected FortuneFountainException([NotNull] SerializationInfo info, StreamingContext context) : base(info, context) { }
         public FortuneFountainException(string message) : base(message) { }
         public FortuneFountainException(string message, Exception innerException) : base(message, innerException) { }
     }

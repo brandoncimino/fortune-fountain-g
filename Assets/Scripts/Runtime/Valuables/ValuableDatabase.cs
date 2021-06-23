@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using Packages.BrandonUtils.Runtime;
+
+using BrandonUtils.Standalone.Strings;
+
 using static Runtime.Valuables.ValuableType;
 
 namespace Runtime.Valuables {

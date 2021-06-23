@@ -1,8 +1,14 @@
 {
   "name": "com.fowlfever.fortunefountaing.editor.tests",
+  "rootNamespace": "",
   "references": [
     "GUID:0acc523941302664db1f4e527237feb3",
-    "GUID:27619889b8ba8c24980f49ee34dbb44a"
+    "GUID:27619889b8ba8c24980f49ee34dbb44a",
+    "GUID:85dab32679ada7b4e936135d374fb966",
+    "GUID:e2ec7f5c6db56fe41b07b13f1531f007",
+    "GUID:1169f6a8ec7e0e04696415220c6aafd5",
+    "GUID:3a527f3d42f1f5a40912424e6a3ee5fa",
+    "GUID:da77a6022a1c1a348868021bde7f2439"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

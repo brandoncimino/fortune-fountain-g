@@ -1,7 +1,9 @@
-﻿using Packages.BrandonUtils.Editor;
-using Packages.BrandonUtils.Runtime.Logging;
+﻿using BrandonUtils.Logging;
+using BrandonUtils.Standalone.Attributes;
+
 using Runtime.Saving;
 using Runtime.Utils;
+
 using UnityEngine;
 
 namespace Runtime {
