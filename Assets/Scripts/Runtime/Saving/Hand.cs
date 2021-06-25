@@ -14,13 +14,12 @@ namespace Runtime.Saving {
     public class Hand {
         [JsonProperty]
         [NotNull]
-        public List<Throwable> throwables = new List<Throwable>();
+        public List<Throwable> Throwables = new List<Throwable>();
 
-        public IEnumerable<IGrouping<ValuableType, Throwable>> GroupedThrowables => throwables.GroupBy(throwable => throwable.ValuableType);
+        public IEnumerable<IGrouping<ValuableType, Throwable>> GroupedThrowables => Throwables.GroupBy(throwable => throwable.ValuableType);
 
         //Generation-related stuff
         /// The default, immutable value for <see cref="GenerateTimeLimit"/>
-        // ReSharper disable once InconsistentNaming
         [JsonIgnore]
         private static readonly TimeSpan ImmutableGenerateTimeLimit = TimeSpan.FromSeconds(5);
 
@@ -29,11 +28,9 @@ namespace Runtime.Saving {
         public TimeSpan GenerateTimeLimit = ImmutableGenerateTimeLimit;
 
         [JsonProperty]
-        public double KarmaInHand => throwables.Sum(it => it.ThrowValue);
+        public double KarmaInHand => Throwables.Sum(it => it.ThrowValue);
 
-        public delegate void ThrowHandDelegate(Hand hand);
-
-        public static event ThrowHandDelegate ThrowHandEvent;
+        public static event Action<Hand> ThrowHandEvent;
 
         [JsonProperty]
         public DateTime LastThrowTime { get; set; } = FrameTime.Now;
@@ -43,7 +40,7 @@ namespace Runtime.Saving {
 
         [JsonIgnore]
         public Dictionary<ValuableType, int> ValuableTypeCounts =>
-            throwables.GroupBy(
+            Throwables.GroupBy(
                           throwable => throwable.ValuableType
                       )
                       .ToDictionary(
@@ -57,7 +54,7 @@ namespace Runtime.Saving {
         }
 
         /// <summary>
-        /// Adds <paramref name="throwable"/> to <see cref="throwables"/>.
+        /// Adds <paramref name="throwable"/> to <see cref="Throwables"/>.
         /// </summary>
         /// <param name="throwable"></param>
         /// <param name="amount"></param>
@@ -65,19 +62,19 @@ namespace Runtime.Saving {
             //TODO: Trigger a GRAB event!
             LastGrabTime = FrameTime.Now;
             for (var i = 0; i < amount; i++) {
-                throwables.Add(throwable);
+                Throwables.Add(throwable);
             }
         }
 
         /// <summary>
-        /// Triggers the <see cref="ThrowHandEvent"/>. which should in turn cause all <see cref="throwables"/> to trigger <see cref="Throwable.ThrowSingleEvent"/>s, removing all entries from <see cref="throwables"/>, adding their <see cref="Throwable.ThrowValue"/> via <see cref="FortuneFountainSaveData.AddKarma"/>
+        /// Triggers the <see cref="ThrowHandEvent"/>. which should in turn cause all <see cref="Throwables"/> to trigger <see cref="Throwable.ThrowSingleEvent"/>s, removing all entries from <see cref="Throwables"/>, adding their <see cref="Throwable.ThrowValue"/> via <see cref="FortuneFountainSaveData.AddKarma"/>
         /// </summary>
         /// <remarks>
         /// Intended design as of 6/25/2020:
         /// <list type="number">
         /// <item>Trigger the .</item>
-        /// <item>Cause all <see cref="throwables"/> to trigger <see cref="Throwable.ThrowSingleEvent"/>s.</item>
-        /// <item>Consume each <see cref="Throwable.ThrowSingleEvent"/>, removing each <see cref="Throwable"/> from <see cref="throwables"/>.</item>
+        /// <item>Cause all <see cref="Throwables"/> to trigger <see cref="Throwable.ThrowSingleEvent"/>s.</item>
+        /// <item>Consume each <see cref="Throwable.ThrowSingleEvent"/>, removing each <see cref="Throwable"/> from <see cref="Throwables"/>.</item>
         /// </list>
         /// </remarks>
         public void Throw() {
@@ -94,11 +91,11 @@ namespace Runtime.Saving {
         }
 
         /// <summary>
-        /// Removes <paramref name="throwable"/> from <see cref="throwables"/>.
+        /// Removes <paramref name="throwable"/> from <see cref="Throwables"/>.
         /// </summary>
         /// <param name="throwable"></param>
         private void RemoveFromHand(Throwable throwable) {
-            throwables.Remove(throwable);
+            Throwables.Remove(throwable);
         }
     }
 }

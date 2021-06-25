@@ -17,7 +17,7 @@ namespace Runtime.Object_References {
         }
 
         private void UpdateDebugHandText() {
-            var lines = GameManager.SaveData.Hand.throwables.GroupBy(it => it.ValuableType).Select(FormatPlayerValuableGroup);
+            var lines = GameManager.SaveData.Hand.Throwables.GroupBy(it => it.ValuableType).Select(FormatPlayerValuableGroup);
             DebugHandText.text = string.Join("\n", lines);
         }
 

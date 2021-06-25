@@ -74,7 +74,7 @@ namespace Tests.Runtime {
             GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateCheckTime = setTime);
 
             if (checkThrowables) {
-                Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.EqualTo(0));
+                Assert.That(GameManager.SaveData.Hand.Throwables.Count, Is.EqualTo(0));
             }
 
             //Generate stuff
@@ -82,7 +82,7 @@ namespace Tests.Runtime {
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 1, Amount = 1}));
 
             if (checkThrowables) {
-                Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.EqualTo(generateCounters.Sum(it => it.Value.Amount)));
+                Assert.That(GameManager.SaveData.Hand.Throwables.Count, Is.EqualTo(generateCounters.Sum(it => it.Value.Amount)));
             }
 
             //sleep so we can expect to generate another item
@@ -93,7 +93,7 @@ namespace Tests.Runtime {
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 2, Amount = 2}));
 
             if (checkThrowables) {
-                Assert.That(GameManager.SaveData.Hand.throwables.Count, Is.EqualTo(generateCounters.Sum(it => it.Value.Amount)));
+                Assert.That(GameManager.SaveData.Hand.Throwables.Count, Is.EqualTo(generateCounters.Sum(it => it.Value.Amount)));
             }
 
             //sleep so that we can expect to generate _2_ more items
@@ -104,7 +104,7 @@ namespace Tests.Runtime {
             Assert.That(generateCounters, Has.All.Values().EqualTo(new ValuableGenerationCounter() {Events = 3, Amount = 4}));
 
             if (checkThrowables) {
-                Assert.That(GameManager.SaveData.Hand.throwables, Has.Property(nameof(Hand.throwables.Count)).EqualTo(generateCounters.Sum(it => it.Value.Amount)));
+                Assert.That(GameManager.SaveData.Hand.Throwables, Has.Property(nameof(Hand.Throwables.Count)).EqualTo(generateCounters.Sum(it => it.Value.Amount)));
             }
         }
 

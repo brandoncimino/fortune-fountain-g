@@ -50,10 +50,10 @@ namespace Tests.Runtime {
                 FortuneFountainSaveData loadedSaveData = FortuneFountainSaveData.Load(nickName);
 
                 try {
-                    Assert.That(loadedSaveData.ToJson(),                        Contains.Substring($"\"{nameof(Hand.throwables)}\":"));
-                    Assert.That(loadedSaveData.Hand.throwables.Count,           Is.EqualTo(i + 1));
-                    Assert.That(loadedSaveData.Hand.throwables[i].ValuableType, Is.EqualTo(valuableType));
-                    Assert.That(loadedSaveData.Hand.throwables[i].ThrowValue,   Is.EqualTo(karmaValue));
+                    Assert.That(loadedSaveData.ToJson(),                        Contains.Substring($"\"{nameof(Hand.Throwables)}\":"));
+                    Assert.That(loadedSaveData.Hand.Throwables.Count,           Is.EqualTo(i + 1));
+                    Assert.That(loadedSaveData.Hand.Throwables[i].ValuableType, Is.EqualTo(valuableType));
+                    Assert.That(loadedSaveData.Hand.Throwables[i].ThrowValue,   Is.EqualTo(karmaValue));
                 }
                 catch (AssertionException e) {
                     Log($"Failed an exception for the save data:\n{loadedSaveData}");
