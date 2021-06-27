@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using BrandonUtils.Standalone;
 using BrandonUtils.Timing;
 
 using JetBrains.Annotations;
@@ -16,8 +17,6 @@ namespace Runtime.Saving {
         [NotNull]
         public List<Throwable> Throwables = new List<Throwable>();
 
-        public IEnumerable<IGrouping<ValuableType, Throwable>> GroupedThrowables => Throwables.GroupBy(throwable => throwable.ValuableType);
-
         //Generation-related stuff
         /// The default, immutable value for <see cref="GenerateTimeLimit"/>
         [JsonIgnore]
@@ -30,7 +29,15 @@ namespace Runtime.Saving {
         [JsonProperty]
         public double KarmaInHand => Throwables.Sum(it => it.ThrowValue);
 
-        public static event Action<Hand> ThrowHandEvent;
+        [NotNull] public event Action<Hand> ThrowHandEvent = hand => { };
+
+        [NotNull]
+        [JsonIgnore]
+        public readonly FortuneFountainSaveData SaveData;
+
+        public Hand([NotNull] FortuneFountainSaveData saveData) {
+            SaveData = saveData;
+        }
 
         [JsonProperty]
         public DateTime LastThrowTime { get; set; } = FrameTime.Now;
@@ -47,11 +54,6 @@ namespace Runtime.Saving {
                           group => group.Key,
                           group => group.Count()
                       );
-
-        public Hand() {
-            //Subscribe to the ThrowSingleEvent
-            Throwable.ThrowSingleEvent += HandleThrowSingleEvent;
-        }
 
         /// <summary>
         /// Adds <paramref name="throwable"/> to <see cref="Throwables"/>.
@@ -76,26 +78,21 @@ namespace Runtime.Saving {
         /// <item>Cause all <see cref="Throwables"/> to trigger <see cref="Throwable.ThrowSingleEvent"/>s.</item>
         /// <item>Consume each <see cref="Throwable.ThrowSingleEvent"/>, removing each <see cref="Throwable"/> from <see cref="Throwables"/>.</item>
         /// </list>
+        /// Intended design as of 6/24/2021:
+        /// <b>HOLY SHIT THAT'S SPOOKY</b>
         /// </remarks>
         public void Throw() {
             LastThrowTime = FrameTime.Now;
             ThrowHandEvent?.Invoke(this);
+            ThrowAll();
         }
 
         /// <summary>
-        /// Handles the <see cref="Throwable.ThrowSingleEvent"/>.
+        /// Calls each of the <see cref="Throwables"/>' <see cref="Throwable.Throw"/> method, then clears the <see cref="Throwables"/> list of everything that is <see cref="Throwable.AlreadyThrown"/>
         /// </summary>
-        /// <param name="throwable"></param>
-        private void HandleThrowSingleEvent(Throwable throwable) {
-            RemoveFromHand(throwable);
-        }
-
-        /// <summary>
-        /// Removes <paramref name="throwable"/> from <see cref="Throwables"/>.
-        /// </summary>
-        /// <param name="throwable"></param>
-        private void RemoveFromHand(Throwable throwable) {
-            Throwables.Remove(throwable);
+        private void ThrowAll() {
+            Throwables.Where(it => !it.AlreadyThrown).ForEach(it => it.Throw(this));
+            Throwables.RemoveAll(it => it.AlreadyThrown);
         }
     }
 }

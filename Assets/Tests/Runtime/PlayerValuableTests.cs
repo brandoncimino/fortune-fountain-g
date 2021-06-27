@@ -58,7 +58,7 @@ namespace Tests.Runtime {
         ) {
             const string nickName = nameof(TestGenerateIsLimitedByRate);
             GameManager.SaveData                 = FortuneFountainSaveData.NewSaveFile(nickName);
-            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
+            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables(GameManager.SaveData);
 
             Assume.That(GameManager.SaveData.PlayerValuables.Count, Is.GreaterThan(1),                   "We need to test more than 1 valuable type!");
             Assume.That(GameManager.SaveData.PlayerValuables,       Has.All.Property("Rate").EqualTo(1), "All valuables should have a generation rate of 1!");
@@ -216,7 +216,7 @@ namespace Tests.Runtime {
             Assume.That(expectedItemsGenerated, Is.GreaterThanOrEqualTo(1), $"{nameof(expectedItemsGenerated)} must be at least 1!");
 
             //Setting up the player data
-            GameManager.SaveData.PlayerValuables    = TestData.GetUniformPlayerValuables(itemsPerSecond);
+            GameManager.SaveData.PlayerValuables    = TestData.GetUniformPlayerValuables(GameManager.SaveData, itemsPerSecond);
             GameManager.SaveData.Hand.LastThrowTime = FrameTime.Now - TimeSpan.FromSeconds(generateTimeLimitInSeconds + extraGenerationSeconds);
             GameManager.SaveData.PlayerValuables.ForEach(it => it.LastGenerateCheckTime = GameManager.SaveData.Hand.LastThrowTime);
             GameManager.SaveData.Hand.GenerateTimeLimit = TimeSpan.FromSeconds(generateTimeLimitInSeconds);
@@ -242,7 +242,8 @@ namespace Tests.Runtime {
             [ValueSource(nameof(rates))]
             double rateInItemsPerSecond
         ) {
-            var pv = new PlayerValuable(ValuableType.Coin) {Rate = rateInItemsPerSecond};
+            var saveData = new FortuneFountainSaveData(nameof(TestGenerateInterval));
+            var pv       = new PlayerValuable(saveData, ValuableType.Coin) {Rate = rateInItemsPerSecond};
 
             Assert.That(TimeSpan.FromSeconds(1).Divide(pv.GenerateInterval), Is.InRange(Math.Floor(rateInItemsPerSecond), rateInItemsPerSecond * 1.00001));
 
@@ -259,7 +260,7 @@ namespace Tests.Runtime {
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestCompleteButUncheckedGenDuringPreviousSession));
 
             //Set the uniform gen rates to a decent number, so that we don't have to wait very long to get meaningful results
-            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables(uniformValuableGenerationRate);
+            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables(GameManager.SaveData, uniformValuableGenerationRate);
             var   genInterval = GameManager.SaveData.PlayerValuables[0].GenerateInterval;
             float genWait     = (float) genInterval.TotalSeconds;
 
@@ -319,7 +320,7 @@ namespace Tests.Runtime {
             Assume.That(totalItemsToGenerate, Is.GreaterThan(previousGenIntervals));
 
             GameManager.SaveData                 = FortuneFountainSaveData.NewSaveFile(nameof(TestPartialUncheckedItemsGeneratedDuringLastSession));
-            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
+            GameManager.SaveData.PlayerValuables = TestData.GetUniformPlayerValuables(GameManager.SaveData);
 
             yield return TestUtils.WaitForRealtime(GameManager.SaveData.PlayerValuables[0].GenerateInterval, previousGenIntervals);
 
@@ -351,7 +352,7 @@ namespace Tests.Runtime {
         public void TestSimpleGeneration(double rate, double secondsSinceLastGenerateCheckAndThrow) {
             GameManager.SaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestSimpleGeneration));
             var startTime = FrameTime.Now.AddSeconds(-secondsSinceLastGenerateCheckAndThrow);
-            GameManager.SaveData.PlayerValuables    = TestData.GetUniformPlayerValuables(rate);
+            GameManager.SaveData.PlayerValuables    = TestData.GetUniformPlayerValuables(GameManager.SaveData, rate);
             GameManager.SaveData.Hand.LastThrowTime = startTime;
             GameManager.SaveData.LastLoadTime       = startTime;
             GameManager.SaveData.LastSaveTime       = startTime;
@@ -366,7 +367,7 @@ namespace Tests.Runtime {
         [Test]
         public void ThrowResetsGenerateTimeUtilized() {
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(ThrowResetsGenerateTimeUtilized));
-            fortuneFountainSaveData.PlayerValuables = TestData.GetUniformPlayerValuables();
+            fortuneFountainSaveData.PlayerValuables = TestData.GetUniformPlayerValuables(fortuneFountainSaveData);
 
             var utilizedTime = TimeSpan.FromSeconds(1);
             fortuneFountainSaveData.PlayerValuables.ForEach(it => it.GenerateTimeUtilized = utilizedTime);

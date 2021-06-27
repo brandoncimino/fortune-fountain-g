@@ -4,6 +4,8 @@ using BrandonUtils.Saving;
 using BrandonUtils.Standalone.Collections;
 using BrandonUtils.Timing;
 
+using JetBrains.Annotations;
+
 using Newtonsoft.Json;
 
 using Runtime.Valuables;
@@ -17,6 +19,7 @@ namespace Runtime.Saving {
         /// <br/>
         /// Must <b>not</b> be <c>readonly</c> for the <see cref="SerializeField"/> attribute to work properly.
         [JsonProperty]
+        [NotNull]
         public Hand Hand;
 
         [JsonProperty]
@@ -33,31 +36,13 @@ namespace Runtime.Saving {
         [JsonIgnore]
         public TimeSpan InGameTimeSinceLastThrow => FrameTime.Now - Hand.LastThrowTime - OutOfGameTimeSinceLastThrow;
 
-        public FortuneFountainSaveData() {
-            Hand = new Hand();
 
-            //enabling the first PlayerValuable
-            PlayerValuables.Add(new PlayerValuable(0));
-
-            //subscribing to events
-            Throwable.ThrowSingleEvent += HandleThrowSingleEvent;
-            Hand.ThrowHandEvent        += HandleThrowHandEvent;
+        public FortuneFountainSaveData([NotNull] string nickname) : base(nickname) {
+            Hand = new Hand(this);
         }
 
         public void AddKarma(double amount) {
             Karma += amount;
-        }
-
-        /// <summary>
-        /// Handles the <see cref="Throwable.ThrowSingleEvent"/>, primarily by calling <see cref="AddKarma"/>.
-        /// </summary>
-        /// <param name="throwable"></param>
-        private void HandleThrowSingleEvent(Throwable throwable) {
-            AddKarma(throwable.ThrowValue);
-        }
-
-        private void HandleThrowHandEvent(Hand hand) {
-            OutOfGameTimeSinceLastThrow = TimeSpan.Zero;
         }
 
         /// <summary>
@@ -67,7 +52,19 @@ namespace Runtime.Saving {
         /// </summary>
         protected override void OnLoad() {
             base.OnLoad();
-            OutOfGameTimeSinceLastThrow += LastLoadTime - LastSaveTime;
+            OutOfGameTimeSinceLastThrow += GetOutOfGameTime();
+        }
+
+        private TimeSpan GetOutOfGameTime() {
+            return LastLoadTime - LastSaveTime;
+        }
+
+        protected void ResetOutOfGameTimeSinceLastThrow() {
+            OutOfGameTimeSinceLastThrow = TimeSpan.Zero;
+        }
+
+        public void ThrowSingle(Throwable throwable) {
+            AddKarma(throwable.ThrowValue);
         }
     }
 }

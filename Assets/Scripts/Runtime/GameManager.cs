@@ -1,6 +1,8 @@
 ﻿using BrandonUtils.Logging;
 using BrandonUtils.Standalone.Attributes;
 
+using JetBrains.Annotations;
+
 using Runtime.Saving;
 using Runtime.Utils;
 
@@ -19,6 +21,8 @@ namespace Runtime {
         ///     Ideally, this would be marked as <c>readonly</c>, but <see cref="SystemInfo.deviceName" /> cannot be used inside of a static initializer and must instead be used inside of <see cref="Awake" /> or <see cref="Start" />.
         ///     <br />
         ///     Update 8/11/2020 - Actually, that's probably ok; if someone changes devices, then this will probably need to be updated after they start the game since it will have to contact something like Google Play to get the appropriate information
+        ///     <br />
+        ///     Update 6/24/2021 - Maybe I could use a <see cref="System.Lazy{T}"/> for this? Of course, a read-only property would also work...
         /// </remarks>
         private static string SaveFileName;
 
@@ -32,6 +36,7 @@ namespace Runtime {
         /// <remarks>
         ///     This would ideally be <c>readonly</c>, but is limited by <see cref="SaveFileName" />.
         /// </remarks>
+        [CanBeNull]
         public static FortuneFountainSaveData SaveData;
 
         [Header("Development Options")]
@@ -67,7 +72,7 @@ namespace Runtime {
 
             //attempt to load the save data; if we can't, create a new one
             if (!FortuneFountainSaveData.TryLoad(SaveFileName, out SaveData)) {
-                LogUtils.Log($"No save file exists with the {nameof(FortuneFountainSaveData.nickName)} {SaveFileName}, so we're creating a new one...");
+                LogUtils.Log($"No save file exists with the {nameof(FortuneFountainSaveData.Nickname)} {SaveFileName}, so we're creating a new one...");
                 SaveData = FortuneFountainSaveData.NewSaveFile(SaveFileName);
             }
 

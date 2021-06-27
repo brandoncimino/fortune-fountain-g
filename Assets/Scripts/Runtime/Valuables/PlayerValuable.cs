@@ -6,6 +6,8 @@ using BrandonUtils.Standalone.Collections;
 using BrandonUtils.Standalone.Exceptions;
 using BrandonUtils.Timing;
 
+using JetBrains.Annotations;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -108,11 +110,20 @@ namespace Runtime.Valuables {
         [JsonIgnore]
         private Throwable Throwable => new Throwable(ValuableType, KarmaValue);
 
-        public PlayerValuable(ValuableType valuableType) {
+        [JsonIgnore]
+        [NotNull]
+        private readonly FortuneFountainSaveData SaveData;
+
+        public PlayerValuable([NotNull] FortuneFountainSaveData saveData, ValuableType valuableType) {
             ValuableType = valuableType;
 
             //subscribing to the Throw event
-            Hand.ThrowHandEvent += OnThrow;
+            SaveData = saveData;
+            if (SaveData.Hand == null) {
+                throw new NullReferenceException("SaveData.Hand was null!");
+            }
+
+            SaveData.Hand.ThrowHandEvent += OnThrow;
         }
 
         /// <summary>
@@ -130,7 +141,7 @@ namespace Runtime.Valuables {
             var unlimitedDuration = InGameTimeSinceLastGenerationCheck(now);
             LastGenerateCheckTime = now;
 
-            var superLimitedDuration = LimitGenerationDuration(unlimitedDuration, generateLimit.GetValueOrDefault(GameManager.SaveData.Hand.GenerateTimeLimit));
+            var superLimitedDuration = LimitGenerationDuration(unlimitedDuration, generateLimit.GetValueOrDefault(SaveData.Hand.GenerateTimeLimit));
             var limitedDuration      = unlimitedDuration;
             if (generateLimit != null) {
                 //How much of the generate limit we can still utilize (which is based on the overall hand, not this valuable, since this valuable may have been enabled after the most recent throw)
@@ -175,12 +186,12 @@ namespace Runtime.Valuables {
         /// <inheritdoc cref="CheckGeneration(System.Nullable{System.TimeSpan})"/>
         /// <returns></returns>
         internal int CheckGeneration(DateTime now) {
-            return CheckGeneration(now, GameManager.SaveData.Hand.GenerateTimeLimit);
+            return CheckGeneration(now, SaveData.Hand.GenerateTimeLimit);
         }
 
         private TimeSpan LimitGenerationDuration(TimeSpan unlimitedDuration, TimeSpan generateLimit) {
             var personalGenerateLimitRemaining = generateLimit - GenerateTimeUtilized;
-            var handGenerateLimitRemaining     = generateLimit - GameManager.SaveData.InGameTimeSinceLastThrow;
+            var handGenerateLimitRemaining     = generateLimit - SaveData.InGameTimeSinceLastThrow;
             return TimeSpan.Zero.Max(unlimitedDuration.Min(personalGenerateLimitRemaining, handGenerateLimitRemaining));
         }
 
@@ -229,17 +240,17 @@ namespace Runtime.Valuables {
         private TimeSpan InGameTimeSinceLastGenerationCheck(DateTime now) {
             //Check to see if we've completed a generation since loading the game. If not, then we have to do extra calculations using the time from the previous session.
 
-            var isFirstGenerationCheckOfSession = GameManager.SaveData.LastLoadTime > LastGenerateCheckTime;
+            var isFirstGenerationCheckOfSession = SaveData.LastLoadTime > LastGenerateCheckTime;
 
             //Will hold the final value we're calculating.
             TimeSpan elapsedGenerationTime_total;
 
             if (isFirstGenerationCheckOfSession) {
                 //Calculate the time we spent generating during the previous session (which will always have ENDED with a SAVE)
-                var elapsedGenerationTime_previousSession = GameManager.SaveData.LastSaveTime - LastGenerateCheckTime;
+                var elapsedGenerationTime_previousSession = SaveData.LastSaveTime - LastGenerateCheckTime;
 
                 //Calculate the time spent generating during the current session (which will always have STARTED with a LOAD, and ENDED with NOW)
-                var elapsedGenerationTime_currentSession = now - GameManager.SaveData.LastLoadTime;
+                var elapsedGenerationTime_currentSession = now - SaveData.LastLoadTime;
 
                 elapsedGenerationTime_total = elapsedGenerationTime_previousSession + elapsedGenerationTime_currentSession;
             }
@@ -252,12 +263,12 @@ namespace Runtime.Valuables {
                 throw new TimeParadoxException($"How have we spent negative time playing?! ({elapsedGenerationTime_total})");
             }
 
-            if (elapsedGenerationTime_total > GameManager.SaveData.InGameTimeSinceLastThrow) {
+            if (elapsedGenerationTime_total > SaveData.InGameTimeSinceLastThrow) {
                 throw new TimeParadoxException(
                     $"We can't have spent more time generating items than we did actually playing the game!!" +
                     $"\n\t{nameof(elapsedGenerationTime_total)} ({ValuableType}) = {elapsedGenerationTime_total}" +
-                    $"\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {GameManager.SaveData.InGameTimeSinceLastThrow}" +
-                    $"\n\tDifference = {elapsedGenerationTime_total - GameManager.SaveData.InGameTimeSinceLastThrow}"
+                    $"\n\t{nameof(FortuneFountainSaveData.InGameTimeSinceLastThrow)} = {SaveData.InGameTimeSinceLastThrow}" +
+                    $"\n\tDifference = {elapsedGenerationTime_total - SaveData.InGameTimeSinceLastThrow}"
                 );
             }
 
@@ -265,7 +276,7 @@ namespace Runtime.Valuables {
         }
 
         public void Grab(int amount = 1) {
-            GameManager.SaveData.Hand.Grab(Throwable, amount);
+            SaveData.Hand.Grab(Throwable, amount);
         }
 
         public override string ToString() {

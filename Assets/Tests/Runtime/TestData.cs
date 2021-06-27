@@ -15,13 +15,14 @@ namespace Tests.Runtime {
         /// <li>Contains every <see cref="ValuableType"/></li>
         /// <li>Has each <see cref="PlayerValuable.Rate"/> set to <paramref name="rate"/> (defaulting to 1)</li>
         /// </summary>
+        /// <param name="saveData"></param>
         /// <param name="rate">The <see cref="PlayerValuable.Rate"/> that each <see cref="PlayerValuable"/> will have (defaults to 1)</param>
         /// <returns></returns>
-        public static KeyedList<ValuableType, PlayerValuable> GetUniformPlayerValuables(double rate = 1) {
+        public static KeyedList<ValuableType, PlayerValuable> GetUniformPlayerValuables(FortuneFountainSaveData saveData, double rate = 1) {
             var keyedList = new KeyedList<ValuableType, PlayerValuable>();
 
             foreach (var valuableType in ValuableDatabase.ValuableTypes) {
-                keyedList.Add(new PlayerValuable(valuableType));
+                keyedList.Add(new PlayerValuable(saveData, valuableType));
                 keyedList[valuableType].Rate = rate;
             }
 

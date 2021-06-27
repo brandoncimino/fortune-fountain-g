@@ -18,6 +18,8 @@ using static BrandonUtils.Logging.LogUtils;
 
 using Random = UnityEngine.Random;
 
+// ReSharper disable AccessToStaticMemberViaDerivedType
+
 namespace Tests.Runtime {
     public class FortuneFountainSaveDataTests {
         public const double EstimatedLoadDuration_InSeconds = 0.01;
@@ -63,7 +65,7 @@ namespace Tests.Runtime {
             }
         }
 
-        private static double[] seconds = {
+        private static double[] Seconds = {
             1,
             2,
             3,
@@ -76,7 +78,7 @@ namespace Tests.Runtime {
 
         [Test]
         public void TestInGameTimeSinceLastThrowWithoutSaving(
-            [ValueSource(nameof(seconds))]
+            [ValueSource(nameof(Seconds))]
             double secondsInGame
         ) {
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestInGameTimeSinceLastThrowWithoutSaving));
@@ -165,7 +167,7 @@ namespace Tests.Runtime {
             var outOfGameSpan = TimeSpan.FromSeconds(secondsOutOfGame);
 
             yield return TestUtils.WaitForRealtime(outOfGameSpan);
-            var loadedSaveData = FortuneFountainSaveData.Load(fortuneFountainSaveData.nickName);
+            var loadedSaveData = FortuneFountainSaveData.Load(fortuneFountainSaveData.Nickname);
 
             var loadTime = FrameTime.Now;
 

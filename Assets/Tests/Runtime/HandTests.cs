@@ -21,7 +21,7 @@ namespace Tests.Runtime {
     public class HandTests {
         [UnityTest]
         public IEnumerator LastGrabTime() {
-            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
+            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData(nameof(LastGrabTime));
 
             Assert.That(fortuneFountainSaveData.Hand.LastGrabTime, Is.EqualTo(FrameTime.Now));
             var previousGrabTime = fortuneFountainSaveData.Hand.LastGrabTime;
@@ -35,7 +35,7 @@ namespace Tests.Runtime {
 
         [UnityTest]
         public IEnumerator LastThrowTime() {
-            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
+            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData(nameof(LastThrowTime));
 
             Assert.That(fortuneFountainSaveData.Hand.LastThrowTime, Is.EqualTo(FrameTime.Now));
 
@@ -51,7 +51,7 @@ namespace Tests.Runtime {
 
         [Test]
         public void GrabValuable() {
-            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData();
+            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData(nameof(GrabValuable));
 
             foreach (var valuableType in ValuableDatabase.ValuableTypes) {
                 //assert that it doesn't contain the item before we grab it
@@ -79,7 +79,7 @@ namespace Tests.Runtime {
             foreach (var throwable in throwablesCopy) {
                 expectedKarmaTotal += throwable.ThrowValue;
 
-                throwable.Throw();
+                throwable.Throw(fortuneFountainSaveData.Hand);
 
                 Assert.That(fortuneFountainSaveData.Karma, Is.EqualTo(expectedKarmaTotal));
             }
@@ -96,24 +96,20 @@ namespace Tests.Runtime {
 
         [Test]
         public void ThrowOneTwice() {
-            var save1 = new FortuneFountainSaveData() {
+            var save1 = new FortuneFountainSaveData(nameof(ThrowOneTwice)) {
                 Hand = {
                     Throwables = {
                         new Throwable(ValuableType.Coin, 1)
                     }
-                },
-                nickName = nameof(ThrowOneTwice)
+                }
             };
 
-            int throwCount = 0;
-            Throwable.ThrowSingleEvent += throwable => throwCount++;
-
             save1.Hand.Throw();
-            Assert.That(throwCount,            Is.EqualTo(1));
+            Assert.That(save1.Karma,           Is.EqualTo(1));
             Assert.That(save1.Hand.Throwables, Is.Empty);
 
             save1.Hand.Throw();
-            Assert.That(throwCount, Is.EqualTo(1));
+            Assert.That(save1.Karma, Is.EqualTo(1));
         }
 
         [Test]
@@ -138,15 +134,14 @@ namespace Tests.Runtime {
         }
 
         private static FortuneFountainSaveData SimpleSaveData(string nickName) {
-            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData {
+            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData(nickName) {
                 Hand = {
                     Throwables = new List<Throwable>() {
                         new Throwable(ValuableType.Coin, 10d),
                         new Throwable(ValuableType.Coin, 20d),
                         new Throwable(ValuableType.Coin, 30d)
                     }
-                },
-                nickName = nickName
+                }
             };
 
             Assume.That(fortuneFountainSaveData.Hand.Throwables, Is.Not.Empty);
@@ -155,7 +150,7 @@ namespace Tests.Runtime {
         }
 
         private static FortuneFountainSaveData UglySaveData(string nickName) {
-            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData {
+            FortuneFountainSaveData fortuneFountainSaveData = new FortuneFountainSaveData(nickName) {
                 Hand = {
                     Throwables = new List<Throwable>() {
                         new Throwable(ValuableType.Coin,        10),
@@ -171,27 +166,12 @@ namespace Tests.Runtime {
                         new Throwable(ValuableType.Fiduciary,   Math.E),
                         new Throwable(ValuableType.Fiduciary,   -238475.52349578),
                     }
-                },
-                nickName = nickName
+                }
             };
 
             Assume.That(fortuneFountainSaveData.Hand.Throwables, Is.Not.Empty);
 
             return fortuneFountainSaveData;
-        }
-
-        [Test]
-        public void ThrowHandCausesThrowSingle() {
-            var fortuneFountainSaveData = SimpleSaveData(nameof(ThrowHandCausesThrowSingle));
-
-            int expectedThrowEvents = fortuneFountainSaveData.Hand.Throwables.Count;
-            int actualThrowEvents   = 0;
-
-            //register an anonymous method to the ThrowSingleEvent that will count the number of events
-            Throwable.ThrowSingleEvent += throwable => actualThrowEvents++;
-            fortuneFountainSaveData.Hand.Throw();
-
-            Assert.That(actualThrowEvents, Is.EqualTo(expectedThrowEvents));
         }
 
         [Test]
@@ -209,7 +189,7 @@ namespace Tests.Runtime {
 
             var toBeThrown = fortuneFountainSaveData.Hand.Throwables[0];
 
-            toBeThrown.Throw();
+            toBeThrown.Throw(fortuneFountainSaveData);
 
             CollectionAssert.DoesNotContain(fortuneFountainSaveData.Hand.Throwables, toBeThrown);
         }
