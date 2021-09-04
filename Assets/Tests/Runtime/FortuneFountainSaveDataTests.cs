@@ -1,21 +1,17 @@
 ﻿using System;
 using System.Collections;
-using System.Threading;
-
-using BrandonUtils.Standalone;
+using BrandonUtils.Logging;
+using BrandonUtils.Standalone.Chronic;
+using BrandonUtils.Standalone.Collections;
 using BrandonUtils.Testing;
 using BrandonUtils.Timing;
-
 using NUnit.Framework;
-
 using Runtime.Saving;
 using Runtime.Valuables;
-
 using UnityEngine;
 using UnityEngine.TestTools;
-
 using static BrandonUtils.Logging.LogUtils;
-
+using Is = BrandonUtils.Testing.Is;
 using Random = UnityEngine.Random;
 
 // ReSharper disable AccessToStaticMemberViaDerivedType
@@ -26,42 +22,44 @@ namespace Tests.Runtime {
 
         [Test]
         public void TestSerializeEmptyHand() {
-            const string            nickName                = nameof(TestSerializeEmptyHand);
+            const string nickName = nameof(TestSerializeEmptyHand);
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nickName);
+
+            LogUtils.Log(fortuneFountainSaveData);
 
             Assert.That(fortuneFountainSaveData.ToJson(), Contains.Substring($"\"{nameof(Hand)}\": {{"));
         }
 
         [Test]
         public void TestSerializeThrowables() {
-            const string            nickName                = nameof(TestSerializeThrowables);
+            const string nickName = nameof(TestSerializeThrowables);
             FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nickName);
 
             for (int i = 0; i < ValuableDatabase.ValuableTypes.Length; i++) {
-                var karmaValue   = Random.Range(1, 25);
-                var valuableType = ValuableDatabase.ValuableTypes[i];
+                // copying `i` into `index` inside the loop 'cus otherwise lambdas can get messed up
+                var index = i;
+                var karmaValue = Random.Range(1, 25);
+                var valuableType = ValuableDatabase.ValuableTypes[index];
                 Log($"Grabbing a {valuableType} with a value of {karmaValue}");
-                fortuneFountainSaveData.Hand.Grab(new Throwable(valuableType, karmaValue));
+                fortuneFountainSaveData.Hand.AddToHand(new ThrowableValuable(valuableType, karmaValue));
+                fortuneFountainSaveData.Save(useReSaveDelay: false);
 
-                Log($"Waiting for {nameof(FortuneFountainSaveData.ReSaveDelay)} ({FortuneFountainSaveData.ReSaveDelay})");
-                Thread.Sleep(FortuneFountainSaveData.ReSaveDelay);
-                Log($"Done waiting - re-saving {nickName}...");
-                fortuneFountainSaveData.Save();
+                Log($"before loading throwables:", fortuneFountainSaveData.Hand.Throwables.JoinLines());
 
                 //load the save data we created
                 FortuneFountainSaveData loadedSaveData = FortuneFountainSaveData.Load(nickName);
 
-                try {
-                    Assert.That(loadedSaveData.ToJson(),                        Contains.Substring($"\"{nameof(Hand.Throwables)}\":"));
-                    Assert.That(loadedSaveData.Hand.Throwables.Count,           Is.EqualTo(i + 1));
-                    Assert.That(loadedSaveData.Hand.Throwables[i].ValuableType, Is.EqualTo(valuableType));
-                    Assert.That(loadedSaveData.Hand.Throwables[i].ThrowValue,   Is.EqualTo(karmaValue));
-                }
-                catch (AssertionException e) {
-                    Log($"Failed an exception for the save data:\n{loadedSaveData}");
-                    Log(e.StackTrace);
-                    throw;
-                }
+                Log($"original SaveData:", fortuneFountainSaveData);
+                Log($"loaded SaveData:", loadedSaveData);
+
+                AssertAll.Of(
+                    () => Assert.That(loadedSaveData.ToJson(), Contains.Substring($"\"{nameof(Hand._throwables)}\":")),
+                    () => Assert.That(loadedSaveData.Hand.Throwables.Count, Is.EqualTo(index + 1)),
+                    () => Assert.That(loadedSaveData.Hand.Throwables[index] as ThrowableValuable,
+                        Has.Property(nameof(ThrowableValuable.ValuableType)).EqualTo(valuableType)),
+                    () => Assert.That(loadedSaveData.Hand.Throwables[index] as ThrowableValuable,
+                        Has.Property(nameof(ThrowableValuable.PresentValue)).EqualTo(karmaValue))
+                );
             }
         }
 
@@ -78,36 +76,15 @@ namespace Tests.Runtime {
 
         [Test]
         public void TestInGameTimeSinceLastThrowWithoutSaving(
-            [ValueSource(nameof(Seconds))]
-            double secondsInGame
+            [ValueSource(nameof(Seconds))] double secondsInGame
         ) {
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestInGameTimeSinceLastThrowWithoutSaving));
+            FortuneFountainSaveData fortuneFountainSaveData =
+                FortuneFountainSaveData.NewSaveFile(nameof(TestInGameTimeSinceLastThrowWithoutSaving));
 
             var inGameTime = TimeSpan.FromSeconds(secondsInGame);
             fortuneFountainSaveData.Hand.LastThrowTime = FrameTime.Now - inGameTime;
-            Assert.That(fortuneFountainSaveData.InGameTimeSinceLastThrow, Is.InRange(inGameTime.Multiply(0.999), inGameTime.Multiply(1.001)));
-        }
-
-        [Test]
-        [TestCase(3, 1, Math.PI)]
-        public void TestInGameTimeSinceLastThrowWithSaving(double secondsInPreviousSession, double secondsOutOfGame, double secondsInCurrentSession) {
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(TestInGameTimeSinceLastThrowWithSaving));
-
-            var previousSession = TimeSpan.FromSeconds(secondsInPreviousSession);
-            var outOfGameTime   = TimeSpan.FromSeconds(secondsOutOfGame);
-            var currentSession  = TimeSpan.FromSeconds(secondsInCurrentSession);
-            var inGameTime      = previousSession + currentSession;
-
-            fortuneFountainSaveData.Hand.LastThrowTime = FrameTime.Now - previousSession;
-            fortuneFountainSaveData.Save(false);
-
-            Thread.Sleep(outOfGameTime);
-
-            fortuneFountainSaveData.Reload();
-
-            Thread.Sleep(currentSession);
-
-            Assert.That(fortuneFountainSaveData.InGameTimeSinceLastThrow, Is.InRange(inGameTime.Multiply(0.999), inGameTime.Multiply(1.001)));
+            Assert.That(fortuneFountainSaveData.InGameTimeSinceLastThrow,
+                Is.InRange(inGameTime.Multiply(0.999), inGameTime.Multiply(1.001)));
         }
 
         private static readonly double[] RealSeconds = {
@@ -127,10 +104,10 @@ namespace Tests.Runtime {
 
         [UnityTest]
         public IEnumerator OutOfGameTime_UpdatesOnReload(
-            [ValueSource(nameof(RealSeconds))]
-            double secondsOutOfGame
+            [ValueSource(nameof(RealSeconds))] double secondsOutOfGame
         ) {
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnReload));
+            FortuneFountainSaveData fortuneFountainSaveData =
+                FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnReload));
 
             //Go to the next frame and then save (to make sure we "discard" the time spent creating the save file)
             yield return null;
@@ -149,15 +126,16 @@ namespace Tests.Runtime {
 
             //make sure that the OOG-time is the difference between loading and saving
             //NOTE: This value will always be slightly larger than secondsOutOfGame due to the time actually spend saving & loading, etc.
-            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(loadTime - saveTime));
+            Assert.That(fortuneFountainSaveData,
+                Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(loadTime - saveTime));
         }
 
         [UnityTest]
         public IEnumerator OutOfGameTime_UpdatesOnLoad(
-            [ValueSource(nameof(RealSeconds))]
-            double secondsOutOfGame
+            [ValueSource(nameof(RealSeconds))] double secondsOutOfGame
         ) {
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnLoad));
+            FortuneFountainSaveData fortuneFountainSaveData =
+                FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_UpdatesOnLoad));
 
             yield return null;
             fortuneFountainSaveData.Save(false);
@@ -171,20 +149,22 @@ namespace Tests.Runtime {
 
             var loadTime = FrameTime.Now;
 
-            Assert.That(loadedSaveData, Has.Property(nameof(loadedSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(loadTime - saveTime));
+            Assert.That(loadedSaveData,
+                Has.Property(nameof(loadedSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(loadTime - saveTime));
         }
 
         [UnityTest]
         public IEnumerator OutOfGameTime_DoesNotUpdateOnSave(
-            [ValueSource(nameof(RealSeconds))]
-            double secondsOutOfGame
+            [ValueSource(nameof(RealSeconds))] double secondsOutOfGame
         ) {
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_DoesNotUpdateOnSave));
+            FortuneFountainSaveData fortuneFountainSaveData =
+                FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_DoesNotUpdateOnSave));
 
             var outOfGameSpan = TimeSpan.FromSeconds(secondsOutOfGame);
 
             //Set the OutOfGameTimeSinceLastThrow (using reflection since the setter is private)
-            fortuneFountainSaveData.GetType().GetProperty(nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow))?.SetValue(fortuneFountainSaveData, outOfGameSpan);
+            fortuneFountainSaveData.GetType().GetProperty(nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow))
+                ?.SetValue(fortuneFountainSaveData, outOfGameSpan);
 
             Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, Is.EqualTo(outOfGameSpan));
 
@@ -193,26 +173,31 @@ namespace Tests.Runtime {
                 yield return new WaitForSecondsRealtime(0.01f);
                 fortuneFountainSaveData.Save(false);
 
-                Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, Is.EqualTo(outOfGameSpan), $"[{nameof(rep)}: {rep}] The {nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow)} should not have changed when we {nameof(FortuneFountainSaveData.Save)}-ed!");
+                Assert.That(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow, Is.EqualTo(outOfGameSpan),
+                    $"[{nameof(rep)}: {rep}] The {nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow)} should not have changed when we {nameof(FortuneFountainSaveData.Save)}-ed!");
             }
         }
 
         [UnityTest]
         public IEnumerator OutOfGameTime_MultipleSessionsWithoutThrowing() {
-            const float sessionSeconds   = 2f;
-            const int   numberOfSessions = 2;
-            var         sessionSpan      = TimeSpan.FromSeconds(sessionSeconds);
+            const float sessionSeconds = 2f;
+            const int numberOfSessions = 2;
+            var sessionSpan = TimeSpan.FromSeconds(sessionSeconds);
             locations = Locations.None;
 
-            FortuneFountainSaveData fortuneFountainSaveData = FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_MultipleSessionsWithoutThrowing));
+            FortuneFountainSaveData fortuneFountainSaveData =
+                FortuneFountainSaveData.NewSaveFile(nameof(OutOfGameTime_MultipleSessionsWithoutThrowing));
 
             yield return null;
             fortuneFountainSaveData.Save(false);
             var realTimeNowAtSave = FrameTime.Now;
 
-            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(TimeSpan.Zero), $"We haven't waited yet, so there shouldn't be any {nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow)}!");
+            Assert.That(fortuneFountainSaveData,
+                Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(TimeSpan.Zero),
+                $"We haven't waited yet, so there shouldn't be any {nameof(FortuneFountainSaveData.OutOfGameTimeSinceLastThrow)}!");
 
-            Assert.That(fortuneFountainSaveData, Has.Property(nameof(fortuneFountainSaveData.LastSaveTime)).EqualTo(realTimeNowAtSave));
+            Assert.That(fortuneFountainSaveData,
+                Has.Property(nameof(fortuneFountainSaveData.LastSaveTime)).EqualTo(realTimeNowAtSave));
 
             var expectedOutOfGameTime = TimeSpan.Zero;
 
@@ -229,7 +214,8 @@ namespace Tests.Runtime {
 
                 Assert.That(
                     fortuneFountainSaveData,
-                    Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow)).EqualTo(expectedOutOfGameTime)
+                    Has.Property(nameof(fortuneFountainSaveData.OutOfGameTimeSinceLastThrow))
+                        .EqualTo(expectedOutOfGameTime)
                 );
 
                 yield return TestUtils.WaitForRealtime(sessionSpan);

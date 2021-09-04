@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-
 using BrandonUtils.Standalone.Collections;
-
+using JetBrains.Annotations;
 using Runtime.Saving;
 using Runtime.Valuables;
 
@@ -18,8 +17,10 @@ namespace Tests.Runtime {
         /// <param name="saveData"></param>
         /// <param name="rate">The <see cref="PlayerValuable.Rate"/> that each <see cref="PlayerValuable"/> will have (defaults to 1)</param>
         /// <returns></returns>
-        public static KeyedList<ValuableType, PlayerValuable> GetUniformPlayerValuables(FortuneFountainSaveData saveData, double rate = 1) {
-            var keyedList = new KeyedList<ValuableType, PlayerValuable>();
+        [NotNull]
+        public static PrimaryKeyedList<ValuableType, PlayerValuable> GetUniformPlayerValuables(
+            FortuneFountainSaveData saveData, double rate = 1) {
+            var keyedList = new PrimaryKeyedList<ValuableType, PlayerValuable>();
 
             foreach (var valuableType in ValuableDatabase.ValuableTypes) {
                 keyedList.Add(new PlayerValuable(saveData, valuableType));

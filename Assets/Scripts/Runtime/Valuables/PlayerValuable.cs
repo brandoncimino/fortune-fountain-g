@@ -1,21 +1,21 @@
 ﻿using System;
-
-using BrandonUtils.Logging;
 using BrandonUtils.Standalone;
+using BrandonUtils.Standalone.Chronic;
 using BrandonUtils.Standalone.Collections;
 using BrandonUtils.Standalone.Exceptions;
+using BrandonUtils.Standalone.Optional;
 using BrandonUtils.Timing;
-
 using JetBrains.Annotations;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-
 using Runtime.Saving;
 using Runtime.Utils;
 
 namespace Runtime.Valuables {
     /// <summary>
+    /// TODO: This class needs to be overhauled using the newer <see cref="BrandonUtils.Standalone.Chronic.Rate"/> and <see cref="Incrementer"/>
+    /// TODO: This class should probably also use an <see cref="System.Runtime.Serialization.OnDeserializedAttribute"/> method, similar to <see cref="Hand"/> and <see cref="FortuneFountainSaveData"/>
+    /// <p/>
     /// Holds information about <see cref="ValuableType"/>s that <b>constantly change</b> and are <b>specific to the current player</b>, such as:
     /// <li>What is my <see cref="Rate"/>?</li>
     /// <li>What is my <see cref="KarmaValue"/>?</li>
@@ -42,6 +42,7 @@ namespace Runtime.Valuables {
 
         /// The rate that a given Valuable is generated, measured in items per second.
         /// TODO: Currently defaults to 1, but will eventually combine upgrades, etc.
+        /// TODO: Replace this with <see cref="BrandonUtils.Standalone.Chronic.Rate"/>
         [JsonProperty]
         public double Rate { get; set; } = 1;
 
@@ -65,9 +66,11 @@ namespace Runtime.Valuables {
         /// <remarks>
         /// I named this prefixed with an underscore because it's one of the _only_ times I'm using a traditional "backing" field, which is in order to do parameter validation against setting <see cref="UnresolvedGeneratedItems"/>.
         /// </remarks>
-        [JsonIgnore]
-        private double _unresolvedGeneratedItems;
+        [JsonIgnore] private double _unresolvedGeneratedItems;
 
+        /**
+         * TODO: Replace this with <see cref="Incrementer"/>
+         */
         [JsonProperty]
         public double UnresolvedGeneratedItems {
             get => _unresolvedGeneratedItems;
@@ -88,7 +91,8 @@ namespace Runtime.Valuables {
             get => _generateTimeUtilized;
             set {
                 if (value < TimeSpan.Zero) {
-                    throw new TimeParadoxException($"Cannot set {nameof(GenerateTimeUtilized)} to be a negative amount ({value})!");
+                    throw new TimeParadoxException(
+                        $"Cannot set {nameof(GenerateTimeUtilized)} to be a negative amount ({value})!");
                 }
 
                 _generateTimeUtilized = value;
@@ -103,27 +107,38 @@ namespace Runtime.Valuables {
                     throw new FortuneFountainException($"The {nameof(Rate)} for {ValuableType} must be positive!");
                 }
 
-                return TimeSpan.FromTicks((long) (TimeSpan.TicksPerSecond / Rate));
+                return TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / Rate));
             }
         }
 
-        [JsonIgnore]
-        private Throwable Throwable => new Throwable(ValuableType, KarmaValue);
+        [JsonIgnore] [NotNull] private FortuneFountainSaveData _saveData;
 
-        [JsonIgnore]
         [NotNull]
-        private readonly FortuneFountainSaveData SaveData;
+        private FortuneFountainSaveData SaveData {
+            get => _saveData;
+            set {
+                if (_saveData != null) {
+                    _saveData.Hand.ThrowHandEvent -= OnThrow;
+                }
+
+                _saveData = value;
+                SaveData.Hand.ThrowHandEvent += OnThrow;
+            }
+        }
+
+        /// <param name="valuableType"></param>
+        /// <summary>
+        ///     TODO: use an <see cref="System.Runtime.Serialization.OnDeserializedAttribute"/> method like <see cref="Hand"/> and <see cref="FortuneFountainSaveData"/> do instead of <see cref="JsonConstructorAttribute"/> shenanigans
+        /// </summary>
+        [JsonConstructor]
+        private PlayerValuable(ValuableType valuableType) { }
 
         public PlayerValuable([NotNull] FortuneFountainSaveData saveData, ValuableType valuableType) {
             ValuableType = valuableType;
 
             //subscribing to the Throw event
-            SaveData = saveData;
-            if (SaveData.Hand == null) {
-                throw new NullReferenceException("SaveData.Hand was null!");
-            }
-
-            SaveData.Hand.ThrowHandEvent += OnThrow;
+            SaveData = saveData ?? throw new ArgumentNullException(nameof(saveData),
+                $"Cannot create a {nameof(PlayerValuable)} with a null {nameof(FortuneFountainSaveData)}!");
         }
 
         /// <summary>
@@ -141,25 +156,15 @@ namespace Runtime.Valuables {
             var unlimitedDuration = InGameTimeSinceLastGenerationCheck(now);
             LastGenerateCheckTime = now;
 
-            var superLimitedDuration = LimitGenerationDuration(unlimitedDuration, generateLimit.GetValueOrDefault(SaveData.Hand.GenerateTimeLimit));
-            var limitedDuration      = unlimitedDuration;
+            var superLimitedDuration = LimitGenerationDuration(unlimitedDuration,
+                generateLimit.GetValueOrDefault(SaveData.Hand.GenerateTimeLimit));
+            var limitedDuration = unlimitedDuration;
             if (generateLimit != null) {
                 //How much of the generate limit we can still utilize (which is based on the overall hand, not this valuable, since this valuable may have been enabled after the most recent throw)
                 var generateLimitRemaining = generateLimit.GetValueOrDefault() - GenerateTimeUtilized;
-                LogUtils.Log(
-                    $"gen limit = {generateLimit}",
-                    $"actual = {generateLimit.GetValueOrDefault()}",
-                    $"genutil = {GenerateTimeUtilized}",
-                    $"remain = {generateLimitRemaining}"
-                );
 
                 limitedDuration = unlimitedDuration.Min(generateLimitRemaining);
             }
-
-            LogUtils.Log(
-                $"limitedDuration = {limitedDuration}",
-                $"GenerateTimeUtilize = {GenerateTimeUtilized}"
-            );
 
             //Add the limitedDuration to the GenerateTimeUtilized
             GenerateTimeUtilized += limitedDuration;
@@ -170,15 +175,6 @@ namespace Runtime.Valuables {
             if (exactAmountGenerated > 0) {
                 UnresolvedGeneratedItems += exactAmountGenerated;
             }
-
-            // LogUtils.Log(
-            //     $"{nameof(unlimitedDuration)} = {unlimitedDuration}",
-            //     $"{nameof(generateTimeUtilized)} = {generateTimeUtilized}",
-            //     $"{nameof(GenerateInterval)} = {GenerateInterval}",
-            //     $"{nameof(exactAmountGenerated)} = {exactAmountGenerated}",
-            //     $"{nameof(UnresolvedGeneratedItems)} = {UnresolvedGeneratedItems}",
-            //     "\n"
-            //     );
 
             return ResolveGeneration();
         }
@@ -191,7 +187,7 @@ namespace Runtime.Valuables {
 
         private TimeSpan LimitGenerationDuration(TimeSpan unlimitedDuration, TimeSpan generateLimit) {
             var personalGenerateLimitRemaining = generateLimit - GenerateTimeUtilized;
-            var handGenerateLimitRemaining     = generateLimit - SaveData.InGameTimeSinceLastThrow;
+            var handGenerateLimitRemaining = generateLimit - SaveData.InGameTimeSinceLastThrow;
             return TimeSpan.Zero.Max(unlimitedDuration.Min(personalGenerateLimitRemaining, handGenerateLimitRemaining));
         }
 
@@ -211,8 +207,8 @@ namespace Runtime.Valuables {
                 return 0;
             }
 
-            var integerAmountGenerated = (int) Math.Floor(UnresolvedGeneratedItems);
-            var unresolvedRemainder    = UnresolvedGeneratedItems - integerAmountGenerated;
+            var integerAmountGenerated = (int)Math.Floor(UnresolvedGeneratedItems);
+            var unresolvedRemainder = UnresolvedGeneratedItems - integerAmountGenerated;
 
             //Grab the completed items
             this.Grab(integerAmountGenerated);
@@ -226,7 +222,8 @@ namespace Runtime.Valuables {
             //Post-condition - ensure that we did actually resolve everything
             //TODO: Is there a "correct" way to check post-conditions? Contract.Ensures is apparently dead: https://github.com/dotnet/docs/issues/6361
             if (UnresolvedGeneratedItems >= 1) {
-                throw new FortuneFountainException($"We should have resolved any completed items, leaving us with less than 1 remaining, not {UnresolvedGeneratedItems}!");
+                throw new FortuneFountainException(
+                    $"We should have resolved any completed items, leaving us with less than 1 remaining, not {UnresolvedGeneratedItems}!");
             }
 
             //return the number of items we generated
@@ -239,7 +236,6 @@ namespace Runtime.Valuables {
         /// <returns></returns>
         private TimeSpan InGameTimeSinceLastGenerationCheck(DateTime now) {
             //Check to see if we've completed a generation since loading the game. If not, then we have to do extra calculations using the time from the previous session.
-
             var isFirstGenerationCheckOfSession = SaveData.LastLoadTime > LastGenerateCheckTime;
 
             //Will hold the final value we're calculating.
@@ -247,12 +243,13 @@ namespace Runtime.Valuables {
 
             if (isFirstGenerationCheckOfSession) {
                 //Calculate the time we spent generating during the previous session (which will always have ENDED with a SAVE)
-                var elapsedGenerationTime_previousSession = SaveData.LastSaveTime - LastGenerateCheckTime;
+                var elapsedGenerationTime_previousSession = SaveData.LastSaveTime.OrElseThrow() - LastGenerateCheckTime;
 
                 //Calculate the time spent generating during the current session (which will always have STARTED with a LOAD, and ENDED with NOW)
-                var elapsedGenerationTime_currentSession = now - SaveData.LastLoadTime;
+                var elapsedGenerationTime_currentSession = now - SaveData.LastLoadTime.OrElseThrow();
 
-                elapsedGenerationTime_total = elapsedGenerationTime_previousSession + elapsedGenerationTime_currentSession;
+                elapsedGenerationTime_total =
+                    elapsedGenerationTime_previousSession + elapsedGenerationTime_currentSession;
             }
             else {
                 //If our generation is taking place entirely during the session, then we can ignore SAVE and LOAD times.
@@ -260,7 +257,8 @@ namespace Runtime.Valuables {
             }
 
             if (elapsedGenerationTime_total < TimeSpan.Zero) {
-                throw new TimeParadoxException($"How have we spent negative time playing?! ({elapsedGenerationTime_total})");
+                throw new TimeParadoxException(
+                    $"How have we spent negative time playing?! ({elapsedGenerationTime_total})");
             }
 
             if (elapsedGenerationTime_total > SaveData.InGameTimeSinceLastThrow) {
@@ -276,7 +274,7 @@ namespace Runtime.Valuables {
         }
 
         public void Grab(int amount = 1) {
-            SaveData.Hand.Grab(Throwable, amount);
+            amount.Repeat(() => SaveData.Hand.AddToHand(new ThrowableValuable(ValuableType, KarmaValue)));
         }
 
         public override string ToString() {
@@ -287,7 +285,7 @@ namespace Runtime.Valuables {
 
         private void OnThrow(Hand hand) {
             this.LastGenerateCheckTime = FrameTime.Now;
-            this.GenerateTimeUtilized  = TimeSpan.Zero;
+            this.GenerateTimeUtilized = TimeSpan.Zero;
         }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System.Linq;
-
 using Runtime.Valuables;
-
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,16 +15,22 @@ namespace Runtime.Object_References {
         }
 
         private void UpdateDebugHandText() {
-            var lines = GameManager.SaveData.Hand.Throwables.GroupBy(it => it.ValuableType).Select(FormatPlayerValuableGroup);
+            var lines = GameManager.SaveData.Hand
+                .Throwables
+                .Select(it => it as ThrowableValuable)
+                .Where(it => it != null)
+                .GroupBy(it => it.ValuableType)
+                .Select(FormatPlayerValuableGroup);
             DebugHandText.text = string.Join("\n", lines);
         }
 
-        private static string FormatPlayerValuableGroup(IGrouping<ValuableType, Throwable> grouping) {
-            return $"{grouping.Key}: {grouping.Count()} ({string.Join(", ", grouping.Select(it => it.ThrowValue))})";
+        private static string FormatPlayerValuableGroup(IGrouping<ValuableType, ThrowableValuable> grouping) {
+            return $"{grouping.Key}: {grouping.Count()} ({string.Join(", ", grouping.Select(it => it.PresentValue))})";
         }
 
         private void UpdateDebugKarmaText() {
-            DebugKarmaText.text = $"Wallet: {GameManager.SaveData.Karma}\nHand: {GameManager.SaveData.Hand.KarmaInHand}";
+            DebugKarmaText.text =
+                $"Wallet: {GameManager.SaveData.Karma}\nHand: {GameManager.SaveData.Hand.KarmaInHand}";
         }
     }
 }

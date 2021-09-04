@@ -1,19 +1,30 @@
 ﻿using System;
-
+using JetBrains.Annotations;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
 using Runtime.Saving;
 
 namespace Runtime.Valuables {
     [Serializable]
-    public class Throwable {
-        [JsonProperty]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public ValuableType ValuableType;
+    public abstract class Throwable {
+        private readonly Guid ID = Guid.NewGuid();
 
-        [JsonProperty]
-        public double ThrowValue;
+        [JsonIgnore] [CanBeNull] internal Hand _hand;
+
+        [JsonIgnore]
+        [NotNull]
+        public Hand MyHand {
+            get => _hand ??
+                   throw new NullReferenceException(
+                       $"This {nameof(Throwable)} isn't currently assigned to a {nameof(Hand)}! {this}");
+            internal set {
+                if (_hand != null) {
+                    throw new ArgumentException(
+                        $"Cannot set {nameof(MyHand)} because it's already set to another {nameof(Hand)}!");
+                }
+
+                _hand = value;
+            }
+        }
 
         /// <summary>
         /// A flag to prevent a single throwable from ever being thrown more than once.
@@ -25,28 +36,47 @@ namespace Runtime.Valuables {
         /// <li>One alternative is to have <see cref="Throwable"/> implement <see cref="IDisposable"/>, and dispose of the <see cref="Throwable"/> when we call <see cref="Throwable.Throw"/></li>
         /// </remarks>
         [JsonIgnore]
-        public bool AlreadyThrown;
+        public bool HasBeenRedeemed { get; private set; }
 
-        public Throwable(ValuableType valuableType, double throwValue) {
-            ValuableType = valuableType;
-            ThrowValue   = throwValue;
+        public void Flick() {
+            MyHand.Flick(this);
         }
 
-        public void Throw(Hand hand) {
-            Throw(hand.SaveData);
-        }
-
-        public void Throw(FortuneFountainSaveData saveData) {
-            if (AlreadyThrown) {
-                throw new FortuneFountainException($"The {nameof(Throwable)} {this} has already been thrown, so it can't be thrown again!");
+        public virtual void Redeem() {
+            if (!CanBeRedeemed()) {
+                throw new FortuneFountainException(
+                    $"The {nameof(Throwable)} {this} has already been thrown ({nameof(HasBeenRedeemed)} = {HasBeenRedeemed}), so it can't be thrown again!");
             }
 
-            AlreadyThrown = true;
-            saveData.ThrowSingle(this);
+            HasBeenRedeemed = true;
+        }
+
+        public virtual bool CanBeRedeemed() {
+            return HasBeenRedeemed == false;
         }
 
         public override string ToString() {
             return JsonConvert.SerializeObject(this);
+        }
+
+        protected bool Equals([CanBeNull] Throwable other) {
+            return ID.Equals(other?.ID);
+        }
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj)) {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj)) {
+                return true;
+            }
+
+            return obj.GetType() == GetType() && Equals((Throwable)obj);
+        }
+
+        public override int GetHashCode() {
+            return ID.GetHashCode();
         }
     }
 }
