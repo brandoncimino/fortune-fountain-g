@@ -1,7 +1,5 @@
 ﻿using System;
-
-using BrandonUtils.Standalone.Strings;
-
+using FowlFever.Conjugal;
 using JetBrains.Annotations;
 
 namespace Runtime.Valuables {
@@ -25,17 +23,17 @@ namespace Runtime.Valuables {
         /// <summary>
         /// The immutable, "raw" karma value of this valuable - i.e. the value that will <b>never change</b> during the course of play.
         /// </summary>
-        public long ImmutableValue;
+        public readonly long ImmutableValue;
 
         /// <summary>
         /// The name of this valuable <b>irrespective of magnitude</b>.
         /// </summary>
-        public Noun DisplayName;
+        public readonly Plurable DisplayName;
 
         /// <summary>
         /// The different real-world objects that this valuable can appear as, in order of magnitude.
         /// </summary>
-        public Noun[] Magnitudes;
+        public readonly Plurable[] Denominations;
 
         /// <summary>
         /// Constructs a new <see cref="ValuableModel"/>.
@@ -46,25 +44,24 @@ namespace Runtime.Valuables {
         /// </summary>
         /// <param name="type"><see cref="Type"/></param>
         /// <param name="immutableValue"><see cref="ImmutableValue"/></param>
-        /// <param name="magnitudes"><see cref="Magnitudes"/></param>
+        /// <param name="denominations"><see cref="Denominations"/></param>
         /// <param name="displayName"><see cref="DisplayName"/>. Defaults to <paramref name="type"/>.</param>
-        /// <exception cref="ArgumentException">if <paramref name="magnitudes"/> is empty.</exception>
-        /// <exception cref="ArgumentNullException">if <paramref name="magnitudes"/> or any of its items are null.</exception>
+        /// <exception cref="ArgumentException">if <paramref name="denominations"/> is empty.</exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="denominations"/> or any of its items are null.</exception>
         public ValuableModel(
             ValuableType type,
+            Plurable displayName,
             long immutableValue,
-            [NotNull] [ItemNotNull]
-            Noun[] magnitudes,
-            Noun displayName = null
+            [NotNull] params Plurable[] denominations
         ) {
-            if (magnitudes.Length == 0) {
-                throw new ArgumentException("Value cannot be an empty collection.", nameof(magnitudes));
+            if (denominations.Length == 0) {
+                throw new ArgumentException("Value cannot be an empty collection.", nameof(denominations));
             }
 
-            Type           = type;
+            Type = type;
+            DisplayName = displayName;
             ImmutableValue = immutableValue;
-            DisplayName    = displayName ?? new Noun(Type.ToString());
-            Magnitudes     = magnitudes ?? throw new ArgumentNullException(nameof(magnitudes));
+            Denominations = denominations ?? throw new ArgumentNullException(nameof(denominations));
         }
     }
 }

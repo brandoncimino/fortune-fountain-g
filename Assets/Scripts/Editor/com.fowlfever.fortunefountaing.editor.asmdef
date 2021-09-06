@@ -1,5 +1,6 @@
 {
   "name": "com.fowlfever.fortunefountaing.editor",
+  "rootNamespace": "",
   "references": [
     "GUID:85dab32679ada7b4e936135d374fb966",
     "GUID:da77a6022a1c1a348868021bde7f2439",
@@ -9,8 +10,10 @@
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "FowlFever.Conjugal.dll"
+  ],
   "autoReferenced": true,
   "defineConstraints": [],
   "versionDefines": [],

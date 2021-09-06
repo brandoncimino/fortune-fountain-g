@@ -12,7 +12,7 @@ using Runtime.Valuables;
 
 namespace Runtime.Saving {
     public class Hand {
-        [JsonProperty] [NotNull] [ItemNotNull] internal List<Throwable> _throwables = new();
+        [JsonProperty] [NotNull] [ItemNotNull] internal List<Throwable> _throwables = new List<Throwable>();
 
         [JsonIgnore]
         [NotNull]

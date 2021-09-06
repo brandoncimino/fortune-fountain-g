@@ -1,0 +1,46 @@
+﻿= Glossary
+
+Throw:: The transfer of *all physical objects* from the *hand* to the *water*
+- After a *throw*, the *hand* should be _empty_.
+- *Throwing* an empty *hand* will result in 1 *throw* and 0 *dunks*.
+- If an item can be *thrown*, it can _also_ be *flicked*, and _vice-versa_.
+- A single item cannot be both *thrown* _and_ *flicked*.
+- 1 *throw* event can involve multiple items.
+- A *throw* must _always_ operate on _every item in the **hand**_.
+
+Dunk:: *Any* transfer of a *single physical object* from a person's *hand* into the *water*
+- 1 *dunk* event corresponds to 1 item.
+- A *dunk* should not know or care what caused it.
+
+Flick:: The transfer of a *single physical object* from a person's *hand* into the *water*
+
+
+|===
+|Scenario |Throws |Flicks |Dunks
+
+|`Throw` button w/5 pennies in `hand`
+|1
+|0
+|5
+
+|`Throw` button w/empty `hand`
+|1
+|0
+|0
+
+|`Hand` of 5 pennies; 1 goes into the well
+|0
+|1
+|1
+
+|`Hand` of 5 pennies; 2 go into the well
+|0
+|2
+|2
+
+|_Nothing_ in `hand`; powerup: "a squirrel steals a penny from your pocket and throws it into the well"
+|0
+|0
+|1
+
+|===

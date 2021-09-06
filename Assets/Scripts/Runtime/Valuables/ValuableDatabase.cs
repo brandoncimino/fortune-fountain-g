@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-
-using BrandonUtils.Standalone.Strings;
-
+using FowlFever.Conjugal;
 using static Runtime.Valuables.ValuableType;
 
 namespace Runtime.Valuables {
@@ -20,95 +18,86 @@ namespace Runtime.Valuables {
         public static readonly ValuableType[] ValuableTypes = Enum.GetValues(typeof(ValuableType)) as ValuableType[];
 
         public static readonly Dictionary<ValuableType, ValuableModel> Models =
-            new Dictionary<ValuableType, ValuableModel>() {
+            new Dictionary<ValuableType, ValuableModel> {
                 [Coin] = new ValuableModel(
-                    type: Coin,
-                    immutableValue: 1,
-                    magnitudes: new[] {
-                        new Noun("Penny", "Pennies"),
-                        new Noun("Dollar"),
-                        new Noun("Piece of Eight", "Pieces of Eight"),
-                        new Noun("Doubloon")
-                    }
+                    Coin,
+                    ("coin", "coins"),
+                    1,
+                    ("Penny", "Pennies"),
+                    ("Dollar", "Dollars"),
+                    ("Piece of Eight", "Pieces of Eight"),
+                    ("Doubloon", "Doubloons"),
+                    ("Denarius", "Denarii")
                 ),
 
                 [Metal] = new ValuableModel(
-                    type: Metal,
-                    immutableValue: 10,
-                    magnitudes: new[] {
-                        new Noun("Silver"),
-                        new Noun("Gold"),
-                        new Noun("Platinum"),
-                        new Noun("Uranium")
-                    },
-                    displayName: new Noun("Precious Metal")
+                    Metal,
+                    ("Precious Metal", "Precious Metals"),
+                    10,
+                    "Silver",
+                    "Gold",
+                    "Platinum",
+                    "Uranium"
                 ),
 
                 [Gem] = new ValuableModel(
-                    type: Gem,
-                    immutableValue: 500,
-                    magnitudes: new[] {
-                        new Noun("Glass"),
-                        new Noun("Garnet"),
-                        new Noun("Salt"),
-                        new Noun("Painite")
-                    }
+                    Gem,
+                    "Gem".Plurablize(),
+                    500,
+                    "Glass".Plurablize(),
+                    "Garnet".Plurablize(),
+                    "Salt".Plurablize(),
+                    "Painite".Plurablize()
                 ),
 
                 [Fiduciary] = new ValuableModel(
-                    type: Fiduciary,
-                    immutableValue: 2500,
-                    magnitudes: new[] {
-                        new Noun("Gift Card"),
-                        new Noun("Bond"),
-                        new Noun("Debt"),
-                        new Noun("Oath") //represented by a feather quill or fountain pen dripping blood
-                    },
-                    displayName: new Noun("Fiduciary", "Fiduciaries")
+                    Fiduciary,
+                    ("Fiduciary", "Fiduciaries"),
+                    2500,
+                    ("Gift Card", "Gift Cards"),
+                    "Bond".Plurablize(),
+                    ("Debt", "Debts"),
+                    ("Oath", "Oaths") //represented by a feather quill or fountain pen dripping blood
                 ),
 
                 [Scrip] = new ValuableModel(
-                    type: Scrip,
-                    immutableValue: 10000,
-                    magnitudes: new[] {
-                        new Noun("WAS IOU, BUT THAT SHOULD CHANGE"),
-                        new Noun("Arcade Token"),
-                        new Noun("Bottle Cap"),
-                        new Noun("Gasoline")
-                    }
+                    Scrip,
+                    Plurable.Uncountable("Script"),
+                    10000,
+                    "WAS IOU, BUT THAT SHOULD CHANGE",
+                    ("Prize Ticket", "Prize Tickets"),
+                    ("Bottle Cap", "Bottle Caps"),
+                    "Gasoline"
                 ),
 
                 [Collectible] = new ValuableModel(
-                    type: Collectible,
-                    immutableValue: 360000,
-                    magnitudes: new[] {
-                        new Noun("Stuffed Animal"),
-                        new Noun("Trading Card"),
-                        new Noun("Postage Stamp"),
-                        new Noun("Painting")
-                    }
+                    Collectible,
+                    "Collectible".Plurablize(),
+                    360000,
+                    ("Stuffed Animal", "Stuffed Animals"),
+                    ("Trading Card", "Trading Cards"),
+                    ("Postage Stamp", "Postage Stamps"),
+                    ("Painting", "Paintings")
                 ),
 
                 [Livestock] = new ValuableModel(
-                    type: Livestock,
-                    immutableValue: 4000000,
-                    magnitudes: new[] {
-                        new Noun("Carp", "Carp"),
-                        new Noun("Chicken"),
-                        new Noun("Cow"),
-                        new Noun("Kangaroo")
-                    }
+                    Livestock,
+                    "Livestock",
+                    4000000,
+                    "Carp",
+                    "Chicken".Plurablize(),
+                    "Cow".Plurablize(),
+                    "Kangaroo".Plurablize()
                 ),
 
                 [Speculative] = new ValuableModel(
-                    type: Speculative,
-                    immutableValue: long.MaxValue,
-                    magnitudes: new[] {
-                        new Noun("South Sea Lottery Ticket"),
-                        new Noun("Stock Share"),
-                        new Noun("Cryptocoin"),
-                        new Noun("Indulgence")
-                    }
+                    Speculative,
+                    ("Speculative Asset", "Speculative Assets"),
+                    long.MaxValue,
+                    "South Sea Lottery Ticket",
+                    ("Stock Share", "Stock Shares"),
+                    ("Cryptocoin", "Cryptocoins"),
+                    ("Indulgence", "Indulgences")
                 ),
             };
     }

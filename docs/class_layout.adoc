@@ -1,0 +1,83 @@
+Flow of gameplay:
+
+- Time passes
+- `Throwables` are generated
+- A `Throw` is triggered
+- `Throwables`
+
+== Rules
+
+- `FortuneFountainSaveData` should not contain any "game logic"
+
+TIP: "Insert" could have the board tiles set up as d6s!!!!
+
+== Throwable
+
+[sidebar,title="What is a `Throwable`?"]
+--
+A `Throwable` is an object that can be:
+
+- Held in the player's `Hand`
+- Thrown into the well
+
+[qanda]
+Can something be *holdable* but not *throwable*?:: No - much like bowling with a slide, we consider any release from the hand to be a "throw".
+Can something be *throwable* but not *holdable*?:: No
+What happens when you "throw" something?::
+- The thing is no longer in your hand
+- _(Optional)_ additional events may trigger, such as:
+** Gaining *karma*
+--
+
+* "Manual dexterity"
+- Must be able to throw an individual `Throwable` via an instance method (e.g. `Throwable.Flick()`)
+- Must be able to throw *all* `Throwables` at once
+- Must *always* be associated with a `Hand`
+- Should know what `Hand` holds it
+- [.line-through]#Must know how much it is worth _(which is determined when it is created)_#
+
+=== Example using Events
+
+Valuable types
+
+Penny::
+- When thrown: +1 `karma`
+Clover::
+- When thrown: +5 seconds of super-luck
+
+The player has in their hand:
+
+- 2 `Pennies`
+- 1 `Clover`
+
+
+==== Without events
+
+.`Hand.cs`
+[source,c#]
+--
+Throw(){
+    foreach(var t in Throwables){
+        t.Throw();
+    }
+
+    Throwables.Clear();
+}
+--
+
+.`Penny.cs`
+[source, c#]
+--
+override void Throw() {
+    base.Throw();
+    AddKarma(1);
+}
+--
+
+.`Clover.cs`
+[source,c#]
+--
+override void Throw() {
+    Base.Throw();
+}
+--
